@@ -23,6 +23,7 @@ import DiaryScreen from './components/screens/DiaryScreen';
 import DemandScreen from './components/screens/DemandScreen';
 import ReportScreen from './components/screens/ReportScreen';
 import CaseRegisterScreen from './components/screens/CaseRegisterScreen';
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 
 export default function App() {
   const { theme, setTheme, user, setUser, loadUserData, workspaces, inbox, saveUserData } = useStore();
@@ -152,6 +153,8 @@ export default function App() {
             </div>
          </div>
       )}
+
+      <PwaInstallPrompt />
     </>
   );
 }
