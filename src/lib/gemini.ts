@@ -109,6 +109,26 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
           }
         }
       }
+      
+      // Update key usage in store
+      if (totalTokens > 0 && keyObj.label !== 'Default Environment Key') {
+        const store = useStore.getState();
+        const updatedKeys = store.apiKeys.map(k => {
+          if (k.key === keyObj.key) {
+            const isToday = k.usage?.date === new Date().toISOString().slice(0, 10);
+            return {
+              ...k,
+              usage: {
+                date: new Date().toISOString().slice(0, 10),
+                tokens: (isToday ? (k.usage?.tokens || 0) : 0) + totalTokens
+              }
+            };
+          }
+          return k;
+        });
+        store.saveUserData({ apiKeys: updatedKeys });
+      }
+
       return { tokens: totalTokens, truncated };
     } catch (e: any) {
       errors.push(`${keyObj.label}: ${e.message}`);
@@ -210,6 +230,25 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
       let text = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const tokens = json.usageMetadata?.totalTokenCount || 0;
       
+      // Update key usage in store
+      if (keyObj.label !== 'Default Environment Key') {
+        const store = useStore.getState();
+        const updatedKeys = store.apiKeys.map(k => {
+          if (k.key === keyObj.key) {
+            const isToday = k.usage?.date === new Date().toISOString().slice(0, 10);
+            return {
+              ...k,
+              usage: {
+                date: new Date().toISOString().slice(0, 10),
+                tokens: (isToday ? (k.usage?.tokens || 0) : 0) + tokens
+              }
+            };
+          }
+          return k;
+        });
+        store.saveUserData({ apiKeys: updatedKeys });
+      }
+
       // Auto-continuation logic for truncated output
       const finishReason = json.candidates?.[0]?.finishReason || '';
       let truncated = false;
