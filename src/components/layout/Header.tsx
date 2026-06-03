@@ -1,6 +1,8 @@
 import { useStore } from '../../lib/store';
-import { Building2, FolderOpen, FileText, Signature, ChevronDown, Cpu, Plus, PenTool, Moon, Sun } from 'lucide-react';
+import { Building2, FolderOpen, FileText, Signature, ChevronDown, Cpu, Plus, PenTool, Moon, Sun, MoreVertical, RefreshCw, LogOut, Info } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 
 export default function Header() {
   const { 
@@ -16,7 +18,27 @@ export default function Header() {
     setTheme
   } = useStore();
 
-  const [openDropdown, setOpenDropdown] = useState<'workspace' | 'dir' | 'file' | 'sig' | 'ai' | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'workspace' | 'dir' | 'file' | 'sig' | 'ai' | 'menu' | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleHardRefresh = async () => {
+    setRefreshing(true);
+    setOpenDropdown(null);
+    try {
+      // Clear service worker cache and reload
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+    } catch (e) {}
+    // Hard reload — bypasses browser cache
+    window.location.reload();
+  };
+
+  const handleSignOut = async () => {
+    setOpenDropdown(null);
+    await signOut(auth);
+  };
 
   const [dialog, setDialog] = useState<{
     isOpen: boolean;
@@ -378,9 +400,9 @@ export default function Header() {
             </div>
           )}
         </div>
-        {/* AI Model Chip & Theme Toggle */}
+        {/* AI Model Chip & Theme Toggle & Three-dot Menu */}
         <div className="relative ml-auto sm:ml-0 flex items-center gap-1 sm:gap-2">
-          <button 
+          <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="flex items-center justify-center p-1.5 border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition-colors h-8"
             title="Toggle Dark Mode"
@@ -425,9 +447,61 @@ export default function Header() {
             </div>
           )}
           </div>
+
+          {/* ── Three-dot Menu ── */}
+          <div className="relative">
+            <button
+              onClick={() => setOpenDropdown(openDropdown === 'menu' ? null : 'menu')}
+              className="flex items-center justify-center p-1.5 border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition-colors h-8 w-8"
+              title="More Options"
+            >
+              <MoreVertical className="w-4 h-4 text-black/60 dark:text-white/60" />
+            </button>
+            {openDropdown === 'menu' && (
+              <div className="absolute top-full right-0 mt-2 bg-white dark:bg-neutral-900 border-2 border-black/20 dark:border-white/20 w-52 shadow-xl" style={{ zIndex: 10000 }}>
+                <div className="p-2 border-b border-black/10 dark:border-white/10">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40 px-2 py-1">Application</p>
+                </div>
+
+                {/* Hard Refresh */}
+                <button
+                  onClick={handleHardRefresh}
+                  disabled={refreshing}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#22C55E]/10 hover:text-[#22C55E] transition-colors text-left disabled:opacity-60"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-[#22C55E]' : ''}`} />
+                  {refreshing ? 'Refreshing...' : 'Hard Refresh App'}
+                </button>
+
+                {/* App Version / Info */}
+                <button
+                  onClick={() => {
+                    setOpenDropdown(null);
+                    alert('Office AI Assistant\nVersion: Latest\nConnected: Firebase + Vercel\n\nAll data is saved to your Firebase account.');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left"
+                >
+                  <Info className="w-4 h-4 text-blue-400" />
+                  App Info
+                </button>
+
+                <div className="border-t border-black/10 dark:border-white/10 mt-1 pt-1">
+                  {/* Sign Out */}
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
-      
+
       {openDropdown && (
         <div className="fixed inset-0" style={{ zIndex: 9998 }} onClick={() => setOpenDropdown(null)}></div>
       )}

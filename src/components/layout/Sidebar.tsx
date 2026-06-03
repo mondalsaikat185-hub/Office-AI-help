@@ -1,11 +1,24 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Edit3, Folder, Inbox, Settings, Layers, Briefcase, CalendarDays, IndianRupee, BarChart2, FileText } from 'lucide-react';
+import { Home, Edit3, Folder, Inbox, Settings, Layers, Briefcase, CalendarDays, IndianRupee, BarChart2, FileText, RefreshCw } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import { cn } from '../../lib/utils';
+import { useState } from 'react';
 
 export default function Sidebar() {
   const { user } = useStore();
-  
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleHardRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if ('caches' in window) {
+        const names = await caches.keys();
+        await Promise.all(names.map(n => caches.delete(n)));
+      }
+    } catch (e) {}
+    window.location.reload();
+  };
+
   const navItems = [
     { to: "/home", icon: <Home className="w-5 h-5" />, label: "Dashboard" },
     { to: "/write", icon: <Edit3 className="w-5 h-5" />, label: "Write" },
@@ -28,17 +41,29 @@ export default function Sidebar() {
       
       <nav className="flex-1 p-4 space-y-2">
         {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({isActive}) => cn(
-              "flex items-center gap-4 px-4 py-3 rounded-none font-bold uppercase tracking-widest text-xs transition-colors",
-              isActive ? "bg-[#22C55E] text-black" : "text-black dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:text-white"
+          <div key={item.to} className="flex items-center gap-1">
+            <NavLink
+              to={item.to}
+              className={({isActive}) => cn(
+                "flex-1 flex items-center gap-4 px-4 py-3 rounded-none font-bold uppercase tracking-widest text-xs transition-colors",
+                isActive ? "bg-[#22C55E] text-black" : "text-black dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:text-white"
+              )}
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+            {/* Refresh button only on Dashboard */}
+            {item.to === '/home' && (
+              <button
+                onClick={handleHardRefresh}
+                disabled={refreshing}
+                title="Hard Refresh App"
+                className="p-2 text-black/30 dark:text-white/30 hover:text-[#22C55E] hover:bg-[#22C55E]/10 transition-colors rounded-none disabled:opacity-40"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#22C55E]' : ''}`} />
+              </button>
             )}
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
+          </div>
         ))}
       </nav>
 

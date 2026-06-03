@@ -129,14 +129,14 @@ ${rawText}`;
        let lh = ws.letterhead;
        if (logo1Buf || logo2Buf || logo3Buf) {
           children.push(new Table({
-             width: { size: 100, type: WidthType.PERCENTAGE },
+             width: { size: 9746, type: WidthType.DXA },
              borders: { top: { style: BorderStyle.NONE, size: 0, color: "auto" }, bottom: { style: BorderStyle.NONE, size: 0, color: "auto" }, left: { style: BorderStyle.NONE, size: 0, color: "auto" }, right: { style: BorderStyle.NONE, size: 0, color: "auto" }, insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "auto" }, insideVertical: { style: BorderStyle.NONE, size: 0, color: "auto" } },
              rows: [
                 new TableRow({
                    children: [
-                      new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1Buf ? [new ImageRun({ data: logo1Buf, transformation: { width: 120, height: 80 }, type: 'png' } as any)] : [] })] }),
-                      new TableCell({ width: { size: 60, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2Buf ? [new ImageRun({ data: logo2Buf, transformation: { width: 120, height: 80 }, type: 'png' } as any)] : [] })] }),
-                      new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3Buf ? [new ImageRun({ data: logo3Buf, transformation: { width: 120, height: 80 }, type: 'png' } as any)] : [] })] }),
+                      new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1Buf ? [new ImageRun({ data: logo1Buf, transformation: { width: 120, height: 80 }, type: 'png' } as any)] : [] })] }),
+                      new TableCell({ width: { size: 5848, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2Buf ? [new ImageRun({ data: logo2Buf, transformation: { width: 120, height: 80 }, type: 'png' } as any)] : [] })] }),
+                      new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3Buf ? [new ImageRun({ data: logo3Buf, transformation: { width: 120, height: 80 }, type: 'png' } as any)] : [] })] }),
                    ]
                 })
              ]

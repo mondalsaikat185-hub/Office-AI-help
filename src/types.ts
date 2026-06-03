@@ -177,3 +177,23 @@ export interface DemandItem {
   recoveredAmount?: number;
   status: string;
 }
+
+export interface CaseItem {
+  id: string;
+  caseNo: string;
+  caseType: 'SCN' | 'OIO' | 'Appeal' | 'Prosecution' | 'Other';
+  party: string;
+  gstin?: string;
+  taxAmount: number;
+  penaltyAmount: number;
+  interestAmount: number;
+  totalAmount: number;
+  oioNo?: string;
+  oioDate?: string;
+  nextHearing: string;
+  stage: 'SCN Issued' | 'Personal Hearing' | 'OIO Passed' | 'Appeal Filed' | 'Appeal Pending' | 'Closed' | 'Prosecution';
+  adjudicatingAuthority?: string;
+  remarks?: string;
+  workspaceId: string;
+  createdAt: number;
+}

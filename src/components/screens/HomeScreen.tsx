@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function HomeScreen() {
-  const { user, letters, inbox, workspaces, diary = [], demands = [] } = useStore();
+  const { user, letters, inbox, workspaces, diary = [], demands = [], cases = [] } = useStore();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<string>('all');
@@ -48,7 +48,7 @@ export default function HomeScreen() {
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Pending Diary</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-purple-500">2</p>
+            <p className="text-3xl font-bold text-purple-500">{(cases || []).filter(c => c.stage !== 'Closed').length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Active Cases</p>
           </div>
           <div>

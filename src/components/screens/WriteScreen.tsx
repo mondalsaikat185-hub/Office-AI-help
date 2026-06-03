@@ -890,9 +890,6 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         else if (paperSize === 'A3') { pgWidth = 16838; pgHeight = 23811; }
 
         const doc = new Document({
-            compatibility: {
-                version: 11,
-            },
             styles: {
                 default: {
                     document: {
