@@ -197,3 +197,25 @@ export interface CaseItem {
   workspaceId: string;
   createdAt: number;
 }
+
+export interface DraftState {
+  subject?: string;
+  recipient?: string;
+  salutation?: string;
+  body?: string;
+  copyTo?: string | string[];
+  enclosures?: string;
+  mode?: string;
+  signatureId?: string;
+  confidentiality?: string;
+  details?: string;
+  refText?: string;
+  extraIns?: string;
+  recipientTo?: string;
+  output?: string;
+  din?: string;
+  includeDin?: boolean;
+  styleRefText?: string;
+  styleImageBase64?: string;
+}
+

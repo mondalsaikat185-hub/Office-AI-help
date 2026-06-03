@@ -6,6 +6,7 @@ import { Folder, FileText, Bot, PenTool, Mic, Paperclip, X } from 'lucide-react'
 import { Document, Packer, Paragraph, TextRun, AlignmentType, TabStopType, BorderStyle, ImageRun, Table, TableRow, TableCell, WidthType, UnderlineType } from 'docx';
 import { Letterhead } from '../../types';
 import { defaultTemplates } from '../../lib/defaultTemplates';
+import { learningEngine } from '../../lib/learningEngine';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 // @ts-ignore
@@ -15,7 +16,7 @@ import remarkGfm from 'remark-gfm';
 export default function WriteScreen() {
   const [params, setParams] = useSearchParams();
   const mode = params.get('mode') || 'ai';
-  const { workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, activeSignatureId, setActiveSignature, saveUserData, saveLetter, letters, drafts, setDraft, templates, phrases, addressBook } = useStore();
+  const { user, workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, activeSignatureId, setActiveSignature, saveUserData, saveLetter, letters, drafts, setDraft, templates, phrases, addressBook } = useStore();
   const ws = workspaces.find(w => w.id === activeWorkspaceId);
   const sig = ws?.signatures.find(s => s.id === activeSignatureId);
   const dir = ws?.directories.find(d => d.id === activeDirectoryId);
@@ -25,6 +26,8 @@ export default function WriteScreen() {
   const draftState = drafts[currentDraftId] || { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', salutation: 'Sir/Madam,' };
 
   const [subject, setSubject] = useState('');
+  const [showSubjectSuggestions, setShowSubjectSuggestions] = useState(false);
+  const originalOutputRef = useRef('');
   const [details, setDetails] = useState('');
   const [refText, setRefText] = useState('');
   const [extraIns, setExtraIns] = useState('');
@@ -130,11 +133,19 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
         };
         await saveLetter(newLetter);
         setLastSavedId(docId);
+
+        // Learning engine tracking
+        learningEngine.recordEdit(mode, originalOutputRef.current, output);
+        learningEngine.recordSubject(subject);
+        if (user) {
+          learningEngine.save(user.uid);
+        }
+
         if (!silent) displayAlert("Record saved to cloud!");
     } catch (e: any) {
         if (!silent) displayAlert("Save failed: " + e.message);
     }
-  }, [output, ws, dir, file, sig, subject, mode, recipientTo, copyTo, lastSavedId, saveLetter, displayAlert]);
+  }, [output, ws, dir, file, sig, subject, mode, recipientTo, copyTo, lastSavedId, saveLetter, displayAlert, user]);
 
   const applyTemplate = (tId: string) => {
     if (!tId) return;
@@ -157,9 +168,27 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
      const localSt = localStorage.getItem(`draft_${currentDraftId}`);
      let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, styleRefText: '', styleImageBase64: '' };
      if (localSt) {
-       try { finalSt = { ...finalSt, ...JSON.parse(localSt) }; } catch(e) {}
+       try { 
+         const parsed = JSON.parse(localSt);
+         if (parsed && Array.isArray(parsed.copyTo)) {
+           parsed.copyTo = parsed.copyTo.join('\n');
+         }
+         finalSt = { ...finalSt, ...parsed }; 
+       } catch(e) {}
      } else if (st) {
-       finalSt = { ...finalSt, ...st };
+       let loadedCopyTo = '';
+       if (st.copyTo) {
+         if (Array.isArray(st.copyTo)) {
+           loadedCopyTo = st.copyTo.join('\n');
+         } else {
+           loadedCopyTo = String(st.copyTo);
+         }
+       }
+       finalSt = {
+         ...finalSt,
+         ...st,
+         copyTo: loadedCopyTo
+       } as any;
      }
      
      setSubject(finalSt.subject || '');
@@ -253,6 +282,14 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin };
       setDraft(currentDraftId, obj);
       await saveUserData();
+
+      // Learning engine tracking
+      learningEngine.recordEdit(mode, originalOutputRef.current, output);
+      learningEngine.recordSubject(subject);
+      if (user) {
+        learningEngine.save(user.uid);
+      }
+
       setSaveMessage('Saved to cloud!');
       setTimeout(() => setSaveMessage(''), 3000);
       
@@ -266,11 +303,9 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       setSaveMessage('Local save only (cloud failed)');
       setTimeout(() => setSaveMessage(''), 3000);
     }
-  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft, saveUserData]);
+  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft, saveUserData, user, mode]);
 
-
-
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async () => {
     if (!ws || !sig) return displayAlert("Please select a workspace and signature first");
     if (!details) return displayAlert("Details/Draft cannot be empty");
     
@@ -371,6 +406,10 @@ OUTPUT FORMAT (plain text):
       const ragContext = RAG.buildContext(ragQuery);
       if (ragContext) prompt += ragContext;
       
+      // Append learning engine prompt enhancements
+      const learningEnhancement = learningEngine.getPromptEnhancements(mode);
+      if (learningEnhancement) prompt += learningEnhancement;
+      
       if (outputLang !== 'English') {
         if (outputLang === 'English-Hindi Mixed') {
           prompt += `\n\nCRITICAL REQUIREMENT: You MUST generate the finalized content in a mixed English and Hindi language style typical for Indian government offices (often called Hinglish or bilingual style), where official terminology or quotes can remain in English while the sentence structures or transitions use Hindi, or vice versa, to serve a bilingual workflow.`;
@@ -383,10 +422,13 @@ OUTPUT FORMAT (plain text):
       setIsTruncated(false);
       setOutput(''); // clear output before streaming
       
+      let accumulated = '';
       const res = await callGeminiStream(prompt, (chunk) => {
+         accumulated += chunk;
          setOutput(prev => prev + chunk);
       }, { temp: 0.35, maxOut: 16384, imageBase64: styleImageBase64 });
       
+      originalOutputRef.current = accumulated;
       setTokensUsed(res.tokens);
       setIsTruncated(res.truncated);
     } catch (e: any) {
@@ -1040,7 +1082,35 @@ DO NOT repeat what was already written. Just continue writing the next words sea
 
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Subject *</label>
-            <input value={subject} onChange={e => setSubject(e.target.value)} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-3 text-black dark:text-white focus:border-[#22C55E] outline-none" placeholder="Brief subject line"/>
+            <div className="relative">
+              <input 
+                value={subject} 
+                onChange={e => {
+                  setSubject(e.target.value);
+                  setShowSubjectSuggestions(true);
+                }} 
+                onFocus={() => setShowSubjectSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSubjectSuggestions(false), 200)}
+                className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-3 text-black dark:text-white focus:border-[#22C55E] outline-none" 
+                placeholder="Brief subject line"
+              />
+              {showSubjectSuggestions && learningEngine.getSubjectSuggestions(subject).length > 0 && (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 shadow-lg max-h-40 overflow-y-auto">
+                  {learningEngine.getSubjectSuggestions(subject).map((sug, sIdx) => (
+                    <div 
+                      key={sIdx} 
+                      onMouseDown={() => {
+                        setSubject(sug);
+                        setShowSubjectSuggestions(false);
+                      }}
+                      className="p-2 text-xs text-black dark:text-white hover:bg-[#22C55E]/10 cursor-pointer border-b border-black/5 dark:border-white/5 last:border-0"
+                    >
+                      {sug}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {mode !== 'note' && (

@@ -1,7 +1,11 @@
 import { useStore } from './store';
+import { rateLimiter } from './rateLimiter';
 
 export async function callGeminiStream(prompt: string, onChunk: (text: string) => void, opts: { temp?: number, maxOut?: number, imageBase64?: string, imageBase64s?: string[] } = {}) {
   let { apiKeys, mistralKey, selectedModel } = useStore.getState();
+  
+  // Set model RPM
+  rateLimiter.setModelRPM(selectedModel);
   
   const envKey = process.env.GEMINI_API_KEY;
   const keysToTry = [...apiKeys];
@@ -45,8 +49,11 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
         },
       };
       
+      // Wait for a rate limit slot before sending the request
+      await rateLimiter.waitForSlot(keyObj.key);
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
+      let timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for connection
 
       const res = await fetch(url, {
         method: 'POST', 
@@ -59,6 +66,7 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
          clearTimeout(timeoutId);
          const errorText = await res.text();
          if (res.status === 429 || /quota|exhausted/i.test(errorText)) {
+           await rateLimiter.handleRateLimit(keyObj.key);
            errors.push(`${keyObj.label}: quota exceeded`);
            continue;
          }
@@ -70,6 +78,9 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
          throw new Error("No response body");
       }
 
+      // Record request slot on successful status response
+      rateLimiter.recordRequest(keyObj.key);
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let done = false;
@@ -77,7 +88,17 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
       let truncated = false;
       let buffer = '';
 
+      // Reset activity timeout helper
+      const resetActivityTimeout = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => controller.abort(), 20000); // 20s inactivity timeout
+      };
+
+      // Clear connection timeout
+      clearTimeout(timeoutId);
+
       while (!done) {
+        resetActivityTimeout();
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
         if (value) {
@@ -100,7 +121,7 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
                    truncated = true;
                 }
                 if (data.usageMetadata?.totalTokenCount) {
-                  totalTokens = data.usageMetadata.totalTokenCount;
+                   totalTokens = data.usageMetadata.totalTokenCount;
                 }
               } catch (e) {
                 console.error("Stream parse error:", e);
@@ -109,6 +130,8 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
           }
         }
       }
+      
+      if (timeoutId) clearTimeout(timeoutId);
       
       // Update key usage in store
       if (totalTokens > 0 && keyObj.label !== 'Default Environment Key') {
@@ -163,6 +186,9 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
 export async function callGemini(prompt: string, opts: { temp?: number, maxOut?: number, imageBase64?: string, imageBase64s?: string[] } = {}) {
   let { apiKeys, mistralKey, selectedModel } = useStore.getState();
   
+  // Set model RPM
+  rateLimiter.setModelRPM(selectedModel);
+  
   // Try to get key from environment first, then user's custom keys
   const envKey = process.env.GEMINI_API_KEY;
   const keysToTry = [...apiKeys];
@@ -207,6 +233,9 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
         },
       };
       
+      // Wait for a rate limit slot before sending the request
+      await rateLimiter.waitForSlot(keyObj.key);
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
 
@@ -221,11 +250,15 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
       
       if (json.error) {
         if (json.error.code === 429 || /quota|exhausted/i.test(json.error.message || '')) {
+          await rateLimiter.handleRateLimit(keyObj.key);
           errors.push(`${keyObj.label}: quota exceeded`);
           continue;
         }
         throw new Error(json.error.message || 'Unknown API error');
       }
+
+      // Record request slot on successful response
+      rateLimiter.recordRequest(keyObj.key);
       
       let text = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const tokens = json.usageMetadata?.totalTokenCount || 0;

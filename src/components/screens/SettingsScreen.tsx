@@ -4,6 +4,7 @@ import { Key, Building2, PenTool, Database, LogOut, Moon, Sun, Plus, Trash2, Edi
 import { auth } from '../../lib/firebase';
 import { Workspace, SignatureBlock, Phrase, Template, Letterhead } from '../../types';
 import { defaultTemplates } from '../../lib/defaultTemplates';
+import { rateLimiter } from '../../lib/rateLimiter';
 
 function AddressBookEditor({ addressBook = [], saveUserData, setActiveSection }: any) {
   const [newEntry, setNewEntry] = useState({ name: '', desig: '', office: '', address: '', salutation: 'Sir/Madam,' });
@@ -473,6 +474,7 @@ function TemplatesEditor({ templates, phrases, saveUserData, setActiveSection }:
 export default function SettingsScreen() {
   const { user, apiKeys, theme, setTheme, saveUserData, workspaces, phrases, templates, addressBook, tgBotToken, tgChatId } = useStore();
   const [newKey, setNewKey] = useState('');
+  const [customRpm, setCustomRpm] = useState<number>(rateLimiter.getRPM());
   
   const [activeSection, setActiveSection] = useState<'main'|'workspaces'|'phrases'|'templates'|'addressBook'>('main');
 
@@ -560,6 +562,27 @@ export default function SettingsScreen() {
         <p className="text-xs text-black/50 dark:text-white/50 mt-4">
           To get a free Gemini API key, visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#22C55E] hover:underline">aistudio.google.com/app/apikey</a>.
         </p>
+
+        <div className="space-y-2 mt-6 border-t border-black/10 dark:border-white/10 pt-6">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E] block">
+            API Rate Limit (RPM)
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={1000}
+            value={customRpm}
+            onChange={e => {
+              const rpm = parseInt(e.target.value) || 10;
+              rateLimiter.setCustomRPM(rpm);
+              setCustomRpm(rpm);
+            }}
+            className="w-24 bg-white/50 dark:bg-black/50 border p-2 text-xs text-black dark:text-white focus:border-[#22C55E] outline-none"
+          />
+          <p className="text-[9px] text-gray-500">
+            Free tier: 10 RPM, Tier 1: 150-300 RPM. Check Google AI Studio for your limit.
+          </p>
+        </div>
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

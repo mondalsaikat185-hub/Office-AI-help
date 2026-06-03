@@ -60,23 +60,53 @@ ${rawText}`;
       let text = res.text.trim();
       if (text.startsWith('```json')) text = text.substring(7);
       if (text.endsWith('```')) text = text.substring(0, text.length - 3);
+      text = text.trim();
       
-      let parsed: any[] = JSON.parse(text);
+      let parsed: any[] = [];
+      try {
+        const decoded = JSON.parse(text);
+        if (Array.isArray(decoded)) {
+          parsed = decoded;
+        } else if (decoded && typeof decoded === 'object') {
+          parsed = [decoded];
+        }
+      } catch (e) {
+        console.error("JSON parse failed for extracted recipients:", e);
+        const arrayMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        if (arrayMatch) {
+          try {
+            parsed = JSON.parse(arrayMatch[0]);
+          } catch (e2) {
+            console.error("JSON regex parse failed:", e2);
+          }
+        }
+      }
+
       if (!Array.isArray(parsed)) parsed = [];
       
       const structured: Recipient[] = parsed.map(p => {
-         const name = p.name || '';
-         const designation = p.designation || '';
-         const office = p.office || '';
-         const address = p.address || '';
-         const phone = p.phone || '';
+         if (!p || typeof p !== 'object') {
+            const randomId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+            return {
+               id: randomId,
+               name: '', designation: '', office: '', address: '', phone: '', status: 'error' as const
+            };
+         }
+         const name = String(p.name || '').trim();
+         const designation = String(p.designation || '').trim();
+         const office = String(p.office || '').trim();
+         const address = String(p.address || '').trim();
+         const phone = String(p.phone || '').trim();
+         
          // heuristics for status
          let status: 'valid' | 'warning' | 'error' = 'valid';
          if (!name && !designation) status = 'error';
          else if (!address || address.length < 5) status = 'warning';
          
+         const randomId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+         
          return {
-            id: crypto.randomUUID(),
+            id: randomId,
             name, designation, office, address, phone, status
          };
       });

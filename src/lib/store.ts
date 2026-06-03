@@ -1,10 +1,12 @@
 import { create } from 'zustand';
-import { AppState, Workspace, Letter, InboxItem, ApiKey, CaseItem } from '../types';
+import { AppState, Workspace, Letter, InboxItem, ApiKey, CaseItem, DraftState } from '../types';
 import { db, auth } from './firebase';
 import { doc, getDoc, setDoc, collection, query, getDocs, limit, orderBy, deleteDoc, writeBatch } from 'firebase/firestore';
+import { User } from 'firebase/auth';
+import { learningEngine } from './learningEngine';
 
 interface GlobalStore extends AppState {
-  user: any | null;
+  user: User | null;
   activeWorkspaceId: string | null;
   activeDirectoryId: string | null;
   activeFileId: string | null;
@@ -12,17 +14,17 @@ interface GlobalStore extends AppState {
   letters: Letter[];
   inbox: InboxItem[];
   cases: CaseItem[];
-  drafts: Record<string, any>;
+  drafts: Record<string, DraftState>;
   theme: 'dark' | 'light';
 
   // Actions
-  setUser: (user: any) => void;
+  setUser: (user: User | null) => void;
   setTheme: (theme: 'dark' | 'light') => void;
   setActiveWorkspace: (id: string) => void;
   setActiveDirectory: (id: string) => void;
   setActiveFile: (id: string) => void;
   setActiveSignature: (id: string) => void;
-  setDraft: (id: string, payload: any) => void;
+  setDraft: (id: string, payload: DraftState) => void;
   loadUserData: () => Promise<void>;
   saveUserData: (data?: Partial<GlobalStore>) => Promise<void>;
   saveLetter: (letter: Letter) => Promise<void>;
@@ -91,7 +93,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
     if (saveDraftTimeout) clearTimeout(saveDraftTimeout);
     saveDraftTimeout = setTimeout(() => {
       get().saveUserData();
-    }, 2000);
+    }, 5000);
   },
 
   loadUserData: async () => {
@@ -99,6 +101,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
     if (!user) return;
 
     try {
+      await learningEngine.load(user.uid);
       const userDocRef = doc(db, 'officeai_users', user.uid);
       const snap = await getDoc(userDocRef);
       if (snap.exists()) {

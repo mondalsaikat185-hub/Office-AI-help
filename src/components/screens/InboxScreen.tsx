@@ -51,7 +51,7 @@ Do not include markdown blocks, just raw JSON.${isText ? '\n\nTEXT:\n' + base64O
       }
 
       const newItem: InboxItem = {
-        id: crypto.randomUUID(),
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
         status: 'pending' as 'pending',
         photo: isText ? '' : base64OrText,
         note: noteText,
@@ -102,7 +102,7 @@ Do not include markdown language blocks, just raw JSON.`;
       }
 
       const newItem: InboxItem = {
-        id: crypto.randomUUID(),
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
         status: 'pending' as 'pending',
         photo: selectedB64s[0] && !selectedB64s[0].startsWith('data:application/pdf') ? selectedB64s[0] : '', // store the first one as thumbnail if it's an image
         note: noteText,

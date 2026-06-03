@@ -951,5 +951,75 @@ export const defaultTemplates = [
     subject: "Show Cause Notice under Section 11A of Central Excise Act, 1944 / CENVAT Credit Rules",
     opening: "During the course of audit/investigation, it was observed that M/s [Noticee Name] has irregularly availed CENVAT credit / short paid Central Excise duty amounting to Rs. [Amount] during the period [Period] in contravention of Rule [Rule No.] of CENVAT Credit Rules, 2004 / Section [Sec No.] of Central Excise Act, 1944.",
     closing: "Therefore, M/s [Noticee Name] are hereby called upon to show cause as to why the amount should not be demanded and recovered along with interest under Section 11AA and penalty under Section 11AC / Rule 15."
+  },
+  {
+    id: "gst_37",
+    name: "Show Cause Notice (SCN) under Section 73",
+    subject: "Show Cause Notice under Section 73 of the CGST Act, 2017 — M/s [Noticee Name]",
+    opening: "Whereas it appears that you, M/s [Noticee Name] (GSTIN: [XXXX]), have short-paid tax / not paid tax / erroneously been refunded tax / input tax credit has been wrongly availed or utilized for the period [Period] as detailed in the attached statement of charges.",
+    closing: "Therefore, you are hereby called upon to show cause as to why the tax amount of Rs. [Amount] along with applicable interest under Section 50 and penalty under Section 73(9) of the Act should not be demanded and recovered from you."
+  },
+  {
+    id: "gst_38",
+    name: "Show Cause Notice (SCN) under Section 74",
+    subject: "Show Cause Notice under Section 74 of the CGST Act, 2017 — M/s [Noticee Name]",
+    opening: "Whereas it appears that tax has not been paid / short paid / erroneously refunded / input tax credit has been wrongly availed or utilized by you, M/s [Noticee Name] (GSTIN: [XXXX]), for the period [Period] by reason of fraud or any willful-misstatement or suppression of facts to evade tax.",
+    closing: "Now therefore, you are hereby directed to show cause as to why the tax amount of Rs. [Amount] along with interest under Section 50 and penalty under Section 74 of the Act should not be demanded and recovered from you."
+  },
+  {
+    id: "gst_39",
+    name: "Order-in-Original (OIO) under Section 73/74",
+    subject: "Order-in-Original / Adjudication Order under Section [73/74] of the CGST Act, 2017",
+    opening: "This order is passed in adjudication of the Show Cause Notice No. [Notice No.] dated [Date] issued to M/s [Noticee Name] (GSTIN: [XXXX]) regarding the short payment of GST/wrongful availing of ITC for the period [Period].",
+    closing: "Therefore, I hereby confirm the demand of tax of Rs. [Amount] under Section [73/74] of the CGST Act, interest under Section 50, and impose a penalty of Rs. [Penalty] under the relevant provisions."
+  },
+  {
+    id: "gst_40",
+    name: "DRC-01 Summary of Show Cause Notice",
+    subject: "Summary of Show Cause Notice in Form GST DRC-01 — M/s [Noticee Name]",
+    opening: "A summary of the Show Cause Notice issued under Section [73/74/76] of the CGST Act, 2017 is hereby uploaded. The brief facts, grounds, and calculations of the tax, interest, and penalty proposed are detailed in the annexures.",
+    closing: "You are required to submit your reply in Form GST DRC-06 within 30 days of service of this notice, failing which the case will be decided ex-parte."
+  },
+  {
+    id: "gst_41",
+    name: "DRC-07 Summary of Adjudication Order",
+    subject: "Summary of Adjudication Order in Form GST DRC-07 — M/s [Noticee Name]",
+    opening: "A summary of the Adjudication Order passed under Section [73/74/76] of the CGST Act, 2017 is hereby uploaded. The tax, interest, and penalty liabilities confirmed are specified in the table below.",
+    closing: "You are hereby directed to deposit the confirmed dues of Rs. [Amount] within 3 months, failing which recovery action under Section 79 will be initiated."
+  },
+  {
+    id: "gst_42",
+    name: "IGST Refund Sanction Order (RFD-06)",
+    subject: "Order Sanctioning Refund under Section 54 of the CGST Act, 2017 — M/s [Noticee Name]",
+    opening: "With reference to your refund application in Form GST RFD-01 (ARN: [ARN]) dated [Date] for refund of Rs. [Amount] on account of [export of goods/services without payment of tax / accumulated ITC], the claim has been verified with shipping bills and customs data.",
+    closing: "Now therefore, I hereby sanction a refund amount of Rs. [Amount] under Section 54 of the CGST Act, 2017 and direct that the same be credited to your bank account."
+  },
+  {
+    id: "gst_43",
+    name: "Anti-Evasion Inspection/Visit Report",
+    subject: "Report on Anti-Evasion Inspection under Section 67(1) — M/s [Noticee Name]",
+    opening: "Pursuant to the authorization in Form GST INS-01 No. [X] dated [Date] issued by the Joint Commissioner, an inspection of the principal place of business of M/s [Noticee Name] was conducted on [Date] by the anti-evasion team.",
+    closing: "The physical stock was verified, records resumed under proper panchnama, and statements of the authorized signatory recorded. Further analysis is under process."
+  },
+  {
+    id: "cus_18",
+    name: "Bill of Entry Assessment Order",
+    subject: "Order-in-Original / Assessment of Bill of Entry No. [BE No.] dated [Date]",
+    opening: "The importer, M/s [Importer Name] (IEC: [XXXX]), has filed the Bill of Entry No. [BE No.] dated [Date] for clearance of [Goods Description] and claimed benefit of Notification No. [No.] dated [Date].",
+    closing: "On verification, the claimed exemption is found [admissible / not admissible]. The goods are ordered to be assessed [at the tariff rate / with the notification benefit] accordingly."
+  },
+  {
+    id: "cus_19",
+    name: "Duty Drawback Sanction Order",
+    subject: "Sanction of Duty Drawback under Section 74 / 75 of the Customs Act, 1962",
+    opening: "With reference to the drawback claim filed by M/s [Exporter Name] (IEC: [XXXX]) under shipping bill No. [SB No.] dated [Date] for export of [Goods Description], the shipping and export records have been verified.",
+    closing: "Accordingly, drawback amount of Rs. [Amount] is hereby sanctioned and ordered to be credited to the exporter's registered bank account."
+  },
+  {
+    id: "cus_20",
+    name: "Customs Goods Detention/Seizure Memo",
+    subject: "Detention / Seizure Memo under Section 110 of the Customs Act, 1962",
+    opening: "Whereas there are reasonable grounds to believe that the goods [Description] imported/exported vide B/E or S/B No. [No.] are liable to confiscation under Section [111/113] of the Customs Act, 1962 for [misdeclaration of value / classification / prohibited goods].",
+    closing: "Therefore, in exercise of powers under Section 110(1) of the Act, I hereby seize the said goods and place them under the custody of [Custodian] until further orders."
   }
 ];
