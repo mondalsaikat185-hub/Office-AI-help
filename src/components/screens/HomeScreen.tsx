@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function HomeScreen() {
-  const { user, letters, inbox, workspaces, diary = [] } = useStore();
+  const { user, letters, inbox, workspaces, diary = [], demands = [] } = useStore();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<string>('all');
@@ -30,18 +30,35 @@ export default function HomeScreen() {
         <h2 className="text-[#22C55E] font-mono text-sm tracking-widest uppercase mb-2">{greeting()}</h2>
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-8">{name}</h1>
         
-        <div className="grid grid-cols-3 gap-4 border-t-2 border-black/10 dark:border-white/10 pt-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 border-t-2 border-black/10 dark:border-white/10 pt-8">
           <div>
-            <p className="text-4xl font-bold text-[#22C55E]">{letters.length}</p>
+            <p className="text-3xl font-bold text-[#22C55E]">{letters.length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Letters</p>
           </div>
           <div>
-            <p className="text-4xl font-bold text-black dark:text-white">{totalFiles}</p>
+            <p className="text-3xl font-bold text-black dark:text-white">{totalFiles}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Files</p>
           </div>
           <div>
-            <p className="text-4xl font-bold text-amber-500">{pendingInbox}</p>
+            <p className="text-3xl font-bold text-amber-500">{pendingInbox}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Inbox</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-orange-500">{(diary || []).filter(d => !d.isCompleted).length}</p>
+            <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Pending Diary</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-purple-500">2</p>
+            <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Active Cases</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-emerald-500 truncate" title={`₹${((demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0)).toLocaleString('en-IN')}`}>
+              ₹{(() => {
+                const pendingDemand = (demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0);
+                return pendingDemand >= 100000 ? `${(pendingDemand / 100000).toFixed(1)}L` : pendingDemand.toLocaleString('en-IN');
+              })()}
+            </p>
+            <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Pending Demand</p>
           </div>
         </div>
       </section>

@@ -76,7 +76,6 @@ export interface AddressBookEntry {
   office: string;
   address: string;
   salutation: string;
-  quickChip: boolean;
 }
 
 export interface Phrase {

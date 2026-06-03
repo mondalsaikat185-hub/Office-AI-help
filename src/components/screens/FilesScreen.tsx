@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function FilesScreen() {
-  const { workspaces, activeWorkspaceId, setActiveWorkspace, saveUserData, deleteFileCascade, deleteDirCascade, letters, deleteLetter } = useStore();
+  const { workspaces, activeWorkspaceId, setActiveWorkspace, setActiveDirectory, setActiveFile, saveUserData, deleteFileCascade, deleteDirCascade, letters, deleteLetter } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
@@ -17,10 +17,12 @@ export default function FilesScreen() {
     wsId: string; dirId: string; fileId: string; fileName: string; fileNumber: string;
   } | null>(null);
   const [previewLetter, setPreviewLetter] = useState<any | null>(null);
-  const [letterTab, setLetterTab] = useState<'all' | 'ai' | 'format' | 'note' | 'order'>('all');
+  const [letterTab, setLetterTab] = useState<'all' | 'letters' | 'note' | 'order'>('all');
 
   const handleFileClick = (wsId: string, dirId: string, fileId: string, fileName: string, fileNumber: string) => {
     setActiveWorkspace(wsId);
+    setActiveDirectory(dirId);
+    setActiveFile(fileId);
     saveUserData({ activeDirectoryId: dirId, activeFileId: fileId });
     setSelectedFile({ wsId, dirId, fileId, fileName, fileNumber });
   };
@@ -46,12 +48,13 @@ export default function FilesScreen() {
   const [dialog, setDialog] = useState<{
     isOpen: boolean;
     title: string;
-    type: 'prompt' | 'confirm' | 'prompt-2';
+    type: 'prompt' | 'confirm' | 'prompt-2' | 'select';
     value: string;
     value2: string;
     label1: string;
     label2: string;
     message: string;
+    options?: { value: string; label: string }[];
     onConfirm: (v1: string, v2: string) => void;
   }>({ isOpen: false, title: '', type: 'prompt', value: '', value2: '', label1: '', label2: '', message: '', onConfirm: () => {} });
 
@@ -65,6 +68,9 @@ export default function FilesScreen() {
   };
   const openPrompt2 = (title: string, label1: string, label2: string, value: string, value2: string, onConfirm: (v1: string, v2: string) => void) => {
     setDialog({ isOpen: true, title, type: 'prompt-2', label1, label2, value, value2, message: '', onConfirm });
+  };
+  const openSelect = (title: string, message: string, options: { value: string; label: string }[], onConfirm: (val: string) => void) => {
+    setDialog({ isOpen: true, title, type: 'select', message, value: options[0]?.value || '', value2: '', label1: '', label2: '', options, onConfirm: (v1) => onConfirm(v1) });
   };
 
   const addDir = (wsId: string, parentId?: string) => {
@@ -129,14 +135,21 @@ export default function FilesScreen() {
   };
 
   const copyFile = (wsId: string, dirId: string, fileId: string) => {
-    const wsList = JSON.parse(JSON.stringify(workspaces));
-    const wsIdx = wsList.findIndex(w => w.id === wsId);
-    if (wsIdx < 0) return;
+    const ws = workspaces.find(w => w.id === wsId);
+    if (!ws) return;
     
-    openPrompt('Copy File', '', (targetDirName) => {
-      if (!targetDirName) return;
-      const targetDirIdx = wsList[wsIdx].directories.findIndex(d => d.name.toLowerCase() === targetDirName.toLowerCase());
-      if (targetDirIdx < 0) return alert('Directory not found in this workspace.');
+    const dirOptions = ws.directories.map(d => ({ value: d.id, label: d.name }));
+    if (dirOptions.length === 0) return alert('No target directories found.');
+
+    openSelect('Copy File', 'Select target directory to copy the file into:', dirOptions, (targetDirId) => {
+      if (!targetDirId) return;
+      
+      const wsList = JSON.parse(JSON.stringify(workspaces));
+      const wsIdx = wsList.findIndex(w => w.id === wsId);
+      if (wsIdx < 0) return;
+
+      const targetDirIdx = wsList[wsIdx].directories.findIndex(d => d.id === targetDirId);
+      if (targetDirIdx < 0) return alert('Target directory not found.');
 
       const dIdx = wsList[wsIdx].directories.findIndex(d => d.id === dirId);
       if (dIdx < 0) return;
@@ -153,15 +166,24 @@ export default function FilesScreen() {
   };
 
   const moveFile = (wsId: string, oldDirId: string, fileId: string) => {
-    const wsList = JSON.parse(JSON.stringify(workspaces));
-    const wsIdx = wsList.findIndex(w => w.id === wsId);
-    if (wsIdx < 0) return;
+    const ws = workspaces.find(w => w.id === wsId);
+    if (!ws) return;
     
-    openPrompt('Move File', '', (targetDirName) => {
-      if (!targetDirName) return;
+    const dirOptions = ws.directories
+      .filter(d => d.id !== oldDirId)
+      .map(d => ({ value: d.id, label: d.name }));
+      
+    if (dirOptions.length === 0) return alert('No other directories found in this workspace.');
 
-      const targetDirIdx = wsList[wsIdx].directories.findIndex(d => d.name.toLowerCase() === targetDirName.toLowerCase());
-      if (targetDirIdx < 0) return alert('Directory not found in this workspace.');
+    openSelect('Move File', 'Select target directory to move the file into:', dirOptions, (targetDirId) => {
+      if (!targetDirId) return;
+
+      const wsList = JSON.parse(JSON.stringify(workspaces));
+      const wsIdx = wsList.findIndex(w => w.id === wsId);
+      if (wsIdx < 0) return;
+
+      const targetDirIdx = wsList[wsIdx].directories.findIndex(d => d.id === targetDirId);
+      if (targetDirIdx < 0) return alert('Target directory not found.');
 
       const oldDirIdx = wsList[wsIdx].directories.findIndex(d => d.id === oldDirId);
       if (oldDirIdx < 0) return;
@@ -377,7 +399,7 @@ export default function FilesScreen() {
           .sort((a, b) => b.createdAt - a.createdAt);
           
         if (letterTab !== 'all') {
-            if (letterTab === 'ai' || letterTab === 'format') {
+            if (letterTab === 'letters') {
                 fileLetters = fileLetters.filter(l => l.mode === 'ai' || l.mode === 'format');
             } else {
                 fileLetters = fileLetters.filter(l => l.mode === letterTab);
@@ -411,9 +433,17 @@ export default function FilesScreen() {
                   </div>
                   <div className="mb-6">
                      <p className="text-xl font-bold mb-2 break-words">Sub: {previewLetter.subject}</p>
-                     {previewLetter.recipient && <p className="text-base text-black/60 dark:text-white/60 mb-2 whitespace-pre-wrap">To:\n{previewLetter.recipient}</p>}
+                     {previewLetter.recipient && (
+                       <p className="text-base text-black/60 dark:text-white/60 mb-2 whitespace-pre-wrap">
+                         <strong>To:</strong><br />
+                         {previewLetter.recipient}
+                       </p>
+                     )}
                      {previewLetter.copyTo && previewLetter.copyTo.length > 0 && (
-                         <div className="text-sm text-black/50 dark:text-white/50 mt-2 mb-4 whitespace-pre-wrap">Copy To:\n{previewLetter.copyTo.join('\n')}</div>
+                         <div className="text-sm text-black/50 dark:text-white/50 mt-2 mb-4 whitespace-pre-wrap">
+                           <strong>Copy To:</strong><br />
+                           {previewLetter.copyTo.join('\n')}
+                         </div>
                      )}
                   </div>
                   <div className="flex-1 bg-white dark:bg-black border border-black/10 dark:border-white/10 p-8 overflow-y-auto shadow-inner rounded-sm font-serif">
@@ -429,8 +459,8 @@ export default function FilesScreen() {
                       className={`pb-2 text-xs font-bold uppercase tracking-widest ${letterTab === 'all' ? 'border-b-2 border-[#22C55E] text-[#22C55E]' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
                     >All</button>
                     <button 
-                      onClick={() => setLetterTab('ai')} 
-                      className={`pb-2 text-xs font-bold uppercase tracking-widest ${letterTab === 'ai' || letterTab === 'format' ? 'border-b-2 border-[#22C55E] text-[#22C55E]' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
+                      onClick={() => setLetterTab('letters')} 
+                      className={`pb-2 text-xs font-bold uppercase tracking-widest ${letterTab === 'letters' ? 'border-b-2 border-[#22C55E] text-[#22C55E]' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
                     >Letters</button>
                     <button 
                       onClick={() => setLetterTab('note')} 
@@ -535,14 +565,14 @@ export default function FilesScreen() {
             {(dialog.type === 'prompt' || dialog.type === 'prompt-2') && (
               <div className="space-y-4 mb-6">
                  <div>
-                   {dialog.label1 && <label className="block text-[10px] font-bold uppercase tracking-widest mb-1">{dialog.label1}</label>}
-                   <input 
-                     autoFocus
-                     className="w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 p-3 text-sm focus:border-[#22C55E] outline-none" 
-                     value={dialog.value} 
-                     onChange={e => setDialog(d => ({...d, value: e.target.value}))} 
-                     onKeyDown={e => { if (e.key === 'Enter' && dialog.type === 'prompt') { dialog.onConfirm(dialog.value, ''); closeDialog(); } }}
-                   />
+                    {dialog.label1 && <label className="block text-[10px] font-bold uppercase tracking-widest mb-1">{dialog.label1}</label>}
+                    <input 
+                      autoFocus
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 p-3 text-sm focus:border-[#22C55E] outline-none" 
+                      value={dialog.value} 
+                      onChange={e => setDialog(d => ({...d, value: e.target.value}))} 
+                      onKeyDown={e => { if (e.key === 'Enter' && dialog.type === 'prompt') { dialog.onConfirm(dialog.value, ''); closeDialog(); } }}
+                    />
                  </div>
                  {dialog.type === 'prompt-2' && (
                    <div>
@@ -555,6 +585,20 @@ export default function FilesScreen() {
                      />
                    </div>
                  )}
+              </div>
+            )}
+
+            {dialog.type === 'select' && (
+              <div className="space-y-4 mb-6">
+                 <select 
+                   className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-3 text-sm focus:border-[#22C55E] outline-none cursor-pointer text-black dark:text-white"
+                   value={dialog.value}
+                   onChange={e => setDialog(d => ({ ...d, value: e.target.value }))}
+                 >
+                   {dialog.options?.map(opt => (
+                     <option key={opt.value} value={opt.value}>{opt.label}</option>
+                   ))}
+                 </select>
               </div>
             )}
             

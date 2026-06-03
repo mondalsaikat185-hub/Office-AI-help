@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Edit3, Folder, Inbox, Settings, Layers, Briefcase, CalendarDays, IndianRupee, BarChart2 } from 'lucide-react';
+import { Home, Edit3, Folder, Inbox, Settings, Layers, Briefcase, CalendarDays, IndianRupee, BarChart2, FileText } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import { cn } from '../../lib/utils';
 
@@ -15,6 +15,7 @@ export default function Sidebar() {
     { to: "/cases", icon: <Briefcase className="w-5 h-5" />, label: "Case Register" },
     { to: "/demand", icon: <IndianRupee className="w-5 h-5" />, label: "Recovery" },
     { to: "/inbox", icon: <Inbox className="w-5 h-5" />, label: "Inbox" },
+    { to: "/gpf", icon: <FileText className="w-5 h-5" />, label: "GPF Tool" },
     { to: "/bulk", icon: <Layers className="w-5 h-5" />, label: "Bulk / Merge" },
     { to: "/settings", icon: <Settings className="w-5 h-5" />, label: "Settings" }
   ];
@@ -32,7 +33,7 @@ export default function Sidebar() {
             to={item.to}
             className={({isActive}) => cn(
               "flex items-center gap-4 px-4 py-3 rounded-none font-bold uppercase tracking-widest text-xs transition-colors",
-              isActive ? "bg-[#22C55E] text-black" : "text-black dark:text-white/60 hover:bg-black/5 dark:bg-white/5 hover:text-black dark:text-white"
+              isActive ? "bg-[#22C55E] text-black" : "text-black dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:text-white"
             )}
           >
             {item.icon}

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../../lib/store';
 import { callGemini, callGeminiStream, RAG } from '../../lib/gemini';
@@ -16,6 +16,10 @@ export default function WriteScreen() {
   const [params, setParams] = useSearchParams();
   const mode = params.get('mode') || 'ai';
   const { workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, activeSignatureId, setActiveSignature, saveUserData, saveLetter, letters, drafts, setDraft, templates, phrases, addressBook } = useStore();
+  const ws = workspaces.find(w => w.id === activeWorkspaceId);
+  const sig = ws?.signatures.find(s => s.id === activeSignatureId);
+  const dir = ws?.directories.find(d => d.id === activeDirectoryId);
+  const file = dir?.files.find(f => f.id === activeFileId);
   
   const currentDraftId = activeFileId || 'unsaved';
   const draftState = drafts[currentDraftId] || { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', salutation: 'Sir/Madam,' };
@@ -36,13 +40,14 @@ export default function WriteScreen() {
   const [output, setOutput] = useState('');
   const [generating, setGenerating] = useState(false);
   const [paperSize, setPaperSize] = useState<'A4' | 'A3' | 'Legal'>('Legal');
-  const [outputLang, setOutputLang] = useState<'English' | 'Bengali' | 'Hindi'>('English');
+  const [outputLang, setOutputLang] = useState<'English' | 'Bengali' | 'Hindi' | 'Odia' | 'English-Hindi Mixed'>('English');
   const [tokensUsed, setTokensUsed] = useState(0);
   const [isTruncated, setIsTruncated] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [uiMessage, setUiMessage] = useState('');
   const [downloadUrl, setDownloadUrl] = useState('');
   const [downloadName, setDownloadName] = useState('');
+  const [lastSavedId, setLastSavedId] = useState<string | null>(null);
   const [magicInput, setMagicInput] = useState('');
   const [isMagicLoading, setIsMagicLoading] = useState(false);
 
@@ -101,10 +106,35 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
     }
   };
 
-  const displayAlert = (msg: string) => {
+  const displayAlert = useCallback((msg: string) => {
     setUiMessage(msg);
     setTimeout(() => setUiMessage(''), 5000);
-  };
+  }, []);
+
+  const handleSaveToFirebase = useCallback(async (silent = false) => {
+    if (!output || !ws || !dir || !file || !sig) {
+        if (!silent) displayAlert('Cannot save: missing workspace, directory, file, or signature.');
+        return;
+    }
+    try {
+        const docId = lastSavedId || Date.now().toString(36);
+        const newLetter = {
+            id: docId,
+            workspaceId: ws.id, workspaceName: ws.name,
+            directoryId: dir.id, directoryName: dir.name,
+            fileId: file.id, fileName: file.name, fileNumber: file.fileNumber,
+            subject, mode: mode as any, body: output, bodyHtml: '',
+            signatureId: sig.id, signatureName: sig.name, signatureDesig: sig.designation,
+            confidentiality: 'routine' as any, recipient: recipientTo, copyTo: copyTo ? copyTo.split('\n') : [], enclosures: '', salutation: '',
+            createdAt: Date.now()
+        };
+        await saveLetter(newLetter);
+        setLastSavedId(docId);
+        if (!silent) displayAlert("Record saved to cloud!");
+    } catch (e: any) {
+        if (!silent) displayAlert("Save failed: " + e.message);
+    }
+  }, [output, ws, dir, file, sig, subject, mode, recipientTo, copyTo, lastSavedId, saveLetter, displayAlert]);
 
   const applyTemplate = (tId: string) => {
     if (!tId) return;
@@ -166,8 +196,19 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
        if (item && item.note) {
           if (!refText) setRefText(item.note);
           
-          if (item.workspaceId && state.activeWorkspaceId !== item.workspaceId) {
-             state.setActiveWorkspace(item.workspaceId);
+          if (item.workspaceId) {
+             if (state.activeWorkspaceId !== item.workspaceId) {
+                state.setActiveWorkspace(item.workspaceId);
+             }
+             // Auto-select first directory and first file in the workspace
+             const ws = state.workspaces.find(w => w.id === item.workspaceId);
+             if (ws && ws.directories && ws.directories.length > 0) {
+                const firstDir = ws.directories[0];
+                state.setActiveDirectory(firstDir.id);
+                if (firstDir.files && firstDir.files.length > 0) {
+                   state.setActiveFile(firstDir.files[0].id);
+                }
+             }
           }
 
           const suggMatch = item.note.match(/Suggested Reply: (.*)/);
@@ -183,7 +224,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
           if (senderMatch && !recipientTo) setRecipientTo(senderMatch[1]);
        }
     }
-  }, [params]);
+  }, [params, refText, details, subject, recipientTo]);
 
   // Handle editId from History
   useEffect(() => {
@@ -192,14 +233,22 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
        const letter = letters.find(l => l.id === editId);
        if (letter) {
           setSubject(letter.subject || '');
-          setDetails(letter.body || '');
-          setRecipientTo(letter.body?.match(/To,[\s\S]*?(?=\n\n)/)?.[0]?.replace('To,\n', '') || '');
+          setDetails('');
+          setRecipientTo(letter.recipient || '');
           setOutput(letter.body || '');
+          if (letter.copyTo && letter.copyTo.length > 0) {
+             setCopyTo(letter.copyTo.join('\n'));
+          } else {
+             setCopyTo('');
+          }
+          setEnclosures(letter.enclosures || '');
+          setSalutation(letter.salutation || '');
+          setLastSavedId(letter.id);
        }
     }
-  }, [params]);
+  }, [params, letters]);
 
-  const handleManualSave = async () => {
+  const handleManualSave = useCallback(async () => {
     try {
       const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin };
       setDraft(currentDraftId, obj);
@@ -217,40 +266,16 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       setSaveMessage('Local save only (cloud failed)');
       setTimeout(() => setSaveMessage(''), 3000);
     }
-  };
+  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft, saveUserData]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + Enter to Generate
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleGenerate();
-      }
-      // Ctrl/Cmd + S to Save
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleManualSave();
-      }
-      // Ctrl/Cmd + D to Download
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault();
-        handlePdfDownload();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation]);
 
-  const ws = workspaces.find(w => w.id === activeWorkspaceId);
-  const sig = ws?.signatures.find(s => s.id === activeSignatureId);
-  const dir = ws?.directories.find(d => d.id === activeDirectoryId);
-  const file = dir?.files.find(f => f.id === activeFileId);
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!ws || !sig) return displayAlert("Please select a workspace and signature first");
     if (!details) return displayAlert("Details/Draft cannot be empty");
     
     setGenerating(true);
+    setLastSavedId(null);
     try {
       let prompt = '';
       const allTemplates = [...defaultTemplates, ...templates];
@@ -347,7 +372,11 @@ OUTPUT FORMAT (plain text):
       if (ragContext) prompt += ragContext;
       
       if (outputLang !== 'English') {
-        prompt += `\n\nCRITICAL REQUIREMENT: You MUST generate the finalized content entirely in ${outputLang} language. Do not output English. Maintain official government terminology in ${outputLang}.`;
+        if (outputLang === 'English-Hindi Mixed') {
+          prompt += `\n\nCRITICAL REQUIREMENT: You MUST generate the finalized content in a mixed English and Hindi language style typical for Indian government offices (often called Hinglish or bilingual style), where official terminology or quotes can remain in English while the sentence structures or transitions use Hindi, or vice versa, to serve a bilingual workflow.`;
+        } else {
+          prompt += `\n\nCRITICAL REQUIREMENT: You MUST generate the finalized content entirely in ${outputLang} language. Do not output English. Maintain official government terminology in ${outputLang}.`;
+        }
       }
 
       setTokensUsed(0);
@@ -370,7 +399,7 @@ OUTPUT FORMAT (plain text):
     } finally {
       setGenerating(false);
     }
-  };
+  }, [ws, sig, details, subject, templates, styleRefText, styleImageBase64, mode, recipientTo, refText, extraIns, outputLang, displayAlert]);
 
   const handleContinueGenerating = async () => {
      setGenerating(true);
@@ -398,7 +427,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
      }
   };
 
-  const handlePdfDownload = () => {
+  const handlePdfDownload = useCallback(() => {
     const element = document.getElementById('print-area');
     if (!element) {
       alert("No content to PDF.");
@@ -425,8 +454,29 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         noPdfElements.forEach(el => (el as HTMLElement).style.display = '');
         handleSaveToFirebase(true);
     });
-  };
+  }, [paperSize, subject, handleSaveToFirebase]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + Enter to Generate
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleGenerate();
+      }
+      // Ctrl/Cmd + S to Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleManualSave();
+      }
+      // Ctrl/Cmd + D to Download
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        handlePdfDownload();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleGenerate, handleManualSave, handlePdfDownload]);
 
   const handleOldWordDownload = () => {
     const printArea = document.getElementById('print-area');
@@ -528,18 +578,18 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                
                if (logo1 || logo2 || logo3) {
                   children.push(new Table({
-                     width: { size: 100, type: WidthType.PERCENTAGE },
-                     borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                     rows: [
-                        new TableRow({
-                           children: [
-                              new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1 ? [new ImageRun({ data: logo1.buf, transformation: { width: logo1.width, height: logo1.height }, type: 'png' } as any)] : [] })] }),
-                              new TableCell({ width: { size: 60, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2 ? [new ImageRun({ data: logo2.buf, transformation: { width: logo2.width, height: logo2.height }, type: 'png' } as any)] : [] })] }),
-                              new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3 ? [new ImageRun({ data: logo3.buf, transformation: { width: logo3.width, height: logo3.height }, type: 'png' } as any)] : [] })] }),
-                           ]
-                        })
-                     ]
-                  }));
+                      width: { size: 9746, type: WidthType.DXA },
+                      borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
+                      rows: [
+                         new TableRow({
+                            children: [
+                               new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1 ? [new ImageRun({ data: logo1.buf, transformation: { width: logo1.width, height: logo1.height }, type: 'png' } as any)] : [] })] }),
+                               new TableCell({ width: { size: 5848, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2 ? [new ImageRun({ data: logo2.buf, transformation: { width: logo2.width, height: logo2.height }, type: 'png' } as any)] : [] })] }),
+                               new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3 ? [new ImageRun({ data: logo3.buf, transformation: { width: logo3.width, height: logo3.height }, type: 'png' } as any)] : [] })] }),
+                            ]
+                         })
+                      ]
+                   }));
                }
 
                const addCenterRun = (text: string, o: any) => {
@@ -548,13 +598,13 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                       if (line.includes('|')) {
                           const [l, r] = line.split('|');
                           children.push(new Table({
-                              width: { size: 100, type: WidthType.PERCENTAGE },
+                              width: { size: 9746, type: WidthType.DXA },
                               borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
                               rows: [
                                   new TableRow({
                                       children: [
-                                          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: l.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })] })] }),
-                                          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: r.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })] })] }),
+                                          new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: l.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })] })] }),
+                                          new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: r.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })] })] }),
                                       ]
                                   })
                               ]
@@ -590,17 +640,17 @@ DO NOT repeat what was already written. Just continue writing the next words sea
 
             if (isOrder) {
                children.push(new Table({
-                   width: { size: 100, type: WidthType.PERCENTAGE },
-                   borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                   rows: [
-                       new TableRow({
-                           children: [
-                               new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + (file.fileNumber || dir.filePrefix || ''), bold: true })] })] }),
-                               new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-GB').replace(/\//g, '.'), bold: true })] })] })
-                           ]
-                       })
-                   ]
-               }));
+                    width: { size: 9746, type: WidthType.DXA },
+                    borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + (file.fileNumber || dir.filePrefix || ''), bold: true })] })] }),
+                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-GB').replace(/\//g, '.'), bold: true })] })] })
+                            ]
+                        })
+                    ]
+                }));
                children.push(new Paragraph({text:''}));
                if (includeDin && din) {
                    children.push(new Paragraph({
@@ -625,17 +675,17 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                }
                // C.No. and Date for Normal Letters
                children.push(new Table({
-                   width: { size: 100, type: WidthType.PERCENTAGE },
-                   borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                   rows: [
-                       new TableRow({
-                           children: [
-                               new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + (file.fileNumber || dir.filePrefix || ''), bold: true })] })] }),
-                               new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-IN'), bold: true })] })] })
-                           ]
-                       })
-                   ]
-               }));
+                    width: { size: 9746, type: WidthType.DXA },
+                    borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + (file.fileNumber || dir.filePrefix || ''), bold: true })] })] }),
+                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-IN'), bold: true })] })] })
+                            ]
+                        })
+                    ]
+                }));
                
                children.push(new Paragraph({text:''}));
                
@@ -751,19 +801,19 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         
         const makeDocxSignatureBlock = (sigName: string, sigDesig: string, sigSection?: string, includeYours: boolean = true, encText?: string) => {
             return new Table({
-                width: { size: 100, type: WidthType.PERCENTAGE },
+                width: { size: 9746, type: WidthType.DXA },
                 borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
                 rows: [
                     new TableRow({
                         children: [
                             new TableCell({ 
-                                width: { size: 55, type: WidthType.PERCENTAGE }, 
+                                width: { size: 5360, type: WidthType.DXA }, 
                                 children: [
                                     ...(encText ? [new Paragraph({text: ""}), ...encText.split('\n').map((l, idx) => new Paragraph({ children: [new TextRun({ text: l, bold: idx === 0 })] }))] : [])
                                 ] 
                             }),
                             new TableCell({ 
-                                width: { size: 45, type: WidthType.PERCENTAGE }, 
+                                width: { size: 4386, type: WidthType.DXA }, 
                                 children: [
                                     ...(includeYours ? [
                                         new Paragraph({children: [new TextRun({text: 'Yours faithfully,'})], alignment: AlignmentType.CENTER}),
@@ -884,31 +934,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
     }
   }
 
-  const handleSaveToFirebase = async (silent = false) => {
-    if (!output || !ws || !dir || !file || !sig) {
-        if (!silent) displayAlert('Cannot save: missing workspace, directory, file, or signature.');
-        return;
-    }
-    // Check if we just generated this to avoid duplicate spamming
-    // But since `id: Date.now().toString(36)`, we will just overwrite if we tracked ID,
-    // let's do a simple save.
-    try {
-        const newLetter = {
-            id: Date.now().toString(36),
-            workspaceId: ws.id, workspaceName: ws.name,
-            directoryId: dir.id, directoryName: dir.name,
-            fileId: file.id, fileName: file.name, fileNumber: file.fileNumber,
-            subject, mode: mode as any, body: output, bodyHtml: '',
-            signatureId: sig.id, signatureName: sig.name, signatureDesig: sig.designation,
-            confidentiality: 'routine' as any, recipient: recipientTo, copyTo: copyTo ? copyTo.split('\n') : [], enclosures: '', salutation: '',
-            createdAt: Date.now()
-        };
-        await saveLetter(newLetter);
-        if (!silent) displayAlert("Record saved to cloud!");
-    } catch (e: any) {
-        if (!silent) displayAlert("Save failed: " + e.message);
-    }
-  };
+  // handleSaveToFirebase was moved above to prevent TDZ issues
 
   return (
     <div className="space-y-4 flex flex-col md:flex-row gap-8 relative">
@@ -1176,7 +1202,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         {output && <p className="text-center text-[10px] text-black/50 dark:text-white/50 mt-1 font-mono">Word Count: {output.trim().split(/\s+/).length} words</p>}
 
         <div className="flex items-center justify-between mt-4">
-          <button onClick={handleManualSave} className="bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 rounded transition-colors">
+          <button onClick={() => handleSaveToFirebase()} className="bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 rounded transition-colors">
             💾 Save to Cloud
           </button>
           {saveMessage && <span className="text-xs text-[#22C55E] font-bold">{saveMessage}</span>}
@@ -1193,7 +1219,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
               <div 
                  id="print-area"
                  className="bg-white text-black shadow-2xl relative flex-shrink-0"
-                 style={{ width: mode === 'note' ? '216mm' : '210mm', minHeight: mode === 'note' ? '356mm' : '297mm', transform: 'scale(1)', transformOrigin: 'top center' }}
+                 style={{ width: paperSize === 'A4' ? '210mm' : paperSize === 'A3' ? '297mm' : '216mm', minHeight: paperSize === 'A4' ? '297mm' : paperSize === 'A3' ? '420mm' : '356mm', transform: 'scale(1)', transformOrigin: 'top center' }}
               >
                  <div className={`font-serif text-[12pt] leading-normal outline-none ${mode === 'note' ? 'py-[20mm] pl-[35mm] pr-[20mm]' : 'p-[20mm]'}`}>
                     
@@ -1209,7 +1235,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                                   {ws.letterhead.logo1 && <img src={ws.letterhead.logo1} className="h-20 object-contain mix-blend-multiply" />}
                                 </td>
                                 <td style={{ width: '60%', textAlign: 'center', verticalAlign: 'middle', border: 'none', padding: 0 }}>
-                                  {ws.letterhead.logo2 && <img src={ws.letterhead.logo2} className="h-24 object-contain mix-blend-multiply mx-auto" />}
+                                  {ws.letterhead.logo2 && <img src={ws.letterhead.logo2} className="h-20 object-contain mix-blend-multiply mx-auto" />}
                                 </td>
                                 <td style={{ width: '20%', textAlign: 'right', verticalAlign: 'middle', border: 'none', padding: 0 }}>
                                   {ws.letterhead.logo3 && <img src={ws.letterhead.logo3} className="h-20 object-contain mix-blend-multiply ml-auto" />}

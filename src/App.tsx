@@ -73,7 +73,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-black dark:text-white">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22C55E] mb-4"></div>
         <p className="text-gray-400 font-mono tracking-widest text-sm uppercase">Loading AI Office Assistant...</p>
       </div>

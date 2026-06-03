@@ -58,11 +58,20 @@ function AddressBookEditor({ addressBook = [], saveUserData, setActiveSection }:
       
       <div className="border border-indigo-500/30 p-4 bg-indigo-500/5 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400">Add New Entry</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
            <input value={newEntry.name} onChange={e => setNewEntry({...newEntry, name: e.target.value})} placeholder="Name (e.g. Shri PK Das)" className="bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
            <input value={newEntry.desig} onChange={e => setNewEntry({...newEntry, desig: e.target.value})} placeholder="Designation *" className="bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
            <input value={newEntry.office} onChange={e => setNewEntry({...newEntry, office: e.target.value})} placeholder="Office *" className="bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
            <input value={newEntry.address} onChange={e => setNewEntry({...newEntry, address: e.target.value})} placeholder="Full Address" className="bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
+           <select value={newEntry.salutation} onChange={e => setNewEntry({...newEntry, salutation: e.target.value})} className="bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white cursor-pointer outline-none">
+              <option value="Sir/Madam,">Sir/Madam,</option>
+              <option value="Dear Sir,">Dear Sir,</option>
+              <option value="Dear Madam,">Dear Madam,</option>
+              <option value="Respected Sir,">Respected Sir,</option>
+              <option value="Respected Madam,">Respected Madam,</option>
+              <option value="Sir,">Sir,</option>
+              <option value="Madam,">Madam,</option>
+           </select>
            <button onClick={handleCreate} disabled={!newEntry.desig || !newEntry.office} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 disabled:opacity-50">Save</button>
         </div>
       </div>
@@ -162,7 +171,7 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
                   <div className="w-full border-b border-black/10 dark:border-white/10 pb-8">
                      <p className="text-xs font-bold uppercase tracking-widest text-[#22C55E] mb-4">Live Letterhead Preview</p>
                      <div className="bg-neutral-200 dark:bg-neutral-800 p-4 rounded-md overflow-x-auto flex justify-center items-start">
-                        <div className="bg-white text-black shadow-lg relative w-full max-w-[210mm] pt-8 px-8 pb-4" style={{ minHeight: '150px' }}>
+                        <div className="bg-white text-black shadow-lg relative w-full max-w-[210mm]" style={{ minHeight: '150px', padding: '12.7mm 19mm 10mm 19mm' }}>
                               {ws.letterhead && (
                                 <div className="relative text-center border-b-2 pb-4" style={{ borderColor: ws.letterhead.color ? `#${ws.letterhead.color}` : '#1a3a8a', color: ws.letterhead.color ? `#${ws.letterhead.color}` : '#1a3a8a' }}>
                                   
@@ -173,7 +182,7 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
                                           {ws.letterhead.logo1 && <img src={ws.letterhead.logo1} className="h-20 object-contain mix-blend-multiply" />}
                                         </td>
                                         <td style={{ width: '60%', textAlign: 'center', verticalAlign: 'middle', border: 'none', padding: 0 }}>
-                                          {ws.letterhead.logo2 && <img src={ws.letterhead.logo2} className="h-24 object-contain mix-blend-multiply mx-auto" />}
+                                          {ws.letterhead.logo2 && <img src={ws.letterhead.logo2} className="h-20 object-contain mix-blend-multiply mx-auto" />}
                                         </td>
                                         <td style={{ width: '20%', textAlign: 'right', verticalAlign: 'middle', border: 'none', padding: 0 }}>
                                           {ws.letterhead.logo3 && <img src={ws.letterhead.logo3} className="h-20 object-contain mix-blend-multiply ml-auto" />}

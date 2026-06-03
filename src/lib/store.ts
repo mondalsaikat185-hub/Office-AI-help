@@ -30,6 +30,8 @@ interface GlobalStore extends AppState {
   deleteDirCascade: (wsId: string, dirId: string) => Promise<void>;
 }
 
+let saveDraftTimeout: any = null;
+
 export const useStore = create<GlobalStore>((set, get) => ({
   user: null,
   profile: null,
@@ -81,7 +83,10 @@ export const useStore = create<GlobalStore>((set, get) => ({
   setActiveSignature: (id) => set({ activeSignatureId: id }),
   setDraft: (id, payload) => {
     set(state => ({ drafts: { ...state.drafts, [id]: payload } }));
-    get().saveUserData(); // Persist drafts to Firebase
+    if (saveDraftTimeout) clearTimeout(saveDraftTimeout);
+    saveDraftTimeout = setTimeout(() => {
+      get().saveUserData();
+    }, 2000);
   },
 
   loadUserData: async () => {
