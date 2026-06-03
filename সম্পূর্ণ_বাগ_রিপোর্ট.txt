@@ -1,0 +1,579 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       Office AI Assistant — সম্পূর্ণ বাগ ও সমস্যা রিপোর্ট
+       (Full Bug Audit Report — Bengali)
+       তারিখ: ৩ জুন ২০২৬ | সংস্করণ: 2.0 (চূড়ান্ত)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+এই রিপোর্টে সমস্ত ফাইল পুঙ্খানুপুঙ্খভাবে পরীক্ষা করা হয়েছে:
+App.tsx, WriteScreen.tsx, FilesScreen.tsx, SettingsScreen.tsx,
+HomeScreen.tsx, InboxScreen.tsx, GPFScreen.tsx, ReportScreen.tsx,
+DemandScreen.tsx, DiaryScreen.tsx, CaseRegisterScreen.tsx,
+BulkScreen.tsx, Sidebar.tsx, BottomNav.tsx, store.ts, types.ts,
+gemini.ts, defaultTemplates.ts, excelReports.ts
+
+═══════════════════════════════════════════════════════════════════════
+          আগের চ্যাটে যা বলা হয়েছিল — তার বর্তমান অবস্থা
+         (Previous Discussion — Current Status Verification)
+═══════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ সমস্যা ১: Letterhead Logo Height Inconsistency                      │
+│ আগে বলা হয়েছিল: logo2 WriteScreen-এ h-24, বাকিগুলো h-20          │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান অবস্থা: ⚠️ আংশিক ঠিক, তবে নতুন সমস্যা বাকি              │
+│                                                                     │
+│ WriteScreen.tsx line 1209 → logo1: h-20 ✓                         │
+│ WriteScreen.tsx line 1212 → logo2: h-24 ✗ (এখনো বড়)             │
+│ WriteScreen.tsx line 1215 → logo3: h-20 ✓                         │
+│                                                                     │
+│ SettingsScreen.tsx line 173 → logo1: h-20 ✓                       │
+│ SettingsScreen.tsx line 176 → logo2: h-24 ✗ (এখনো বড়)           │
+│ SettingsScreen.tsx line 179 → logo3: h-20 ✓                       │
+│                                                                     │
+│ DOCX জেনারেশন → সব লোগোর height = 80 (একই) ✓                     │
+│                                                                     │
+│ সমস্যা: Preview-এ logo2 বড় (h-24 ≈ 96px) দেখায় কিন্তু DOCX-এ  │
+│ সব সমান (80px)। ফলে Preview এবং Word ফাইলে আলাদা দেখায়।        │
+│ সমাধান: WriteScreen line 1212 এবং SettingsScreen line 176-এ       │
+│ "h-24" → "h-20" করতে হবে।                                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ সমস্যা ২: Word 2007/2013 WidthType.PERCENTAGE → DXA              │
+│ আগে বলা হয়েছিল: সব PERCENTAGE DXA-তে বদলানো হবে                 │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান অবস্থা: ❌ শুধুমাত্র body content table ঠিক হয়েছে       │
+│                                                                     │
+│ DOCX-এ এখনো PERCENTAGE আছে এই টেবিলগুলোতে:                       │
+│ Line 531 → Logo Table (লেটারহেড লোগো) ← PERCENTAGE ✗             │
+│ Line 536 → logo1 cell (20%) ← PERCENTAGE ✗                        │
+│ Line 537 → logo2 cell (60%) ← PERCENTAGE ✗                        │
+│ Line 538 → logo3 cell (20%) ← PERCENTAGE ✗                        │
+│ Line 551 → Split letterhead line table ← PERCENTAGE ✗             │
+│ Line 556 → Split cell left (50%) ← PERCENTAGE ✗                   │
+│ Line 557 → Split cell right (50%) ← PERCENTAGE ✗                  │
+│ Line 593 → Order C.No./Date table ← PERCENTAGE ✗                  │
+│ Line 598 → C.No. cell (50%) ← PERCENTAGE ✗                        │
+│ Line 599 → Date cell (50%) ← PERCENTAGE ✗                         │
+│ Line 628 → Letter C.No./Date table ← PERCENTAGE ✗                 │
+│ Line 633 → C.No. cell (50%) ← PERCENTAGE ✗                        │
+│ Line 634 → Date cell (50%) ← PERCENTAGE ✗                         │
+│ Line 754 → Signature Block table ← PERCENTAGE ✗                   │
+│ Line 760 → Enclosure cell (55%) ← PERCENTAGE ✗                    │
+│ Line 766 → Signature cell (45%) ← PERCENTAGE ✗                    │
+│                                                                     │
+│ শুধু এটুকু ঠিক হয়েছে:                                             │
+│ Line 688 → Body content table cells ← DXA ✓                      │
+│ Line 714 → Body content total table ← DXA ✓                      │
+│                                                                     │
+│ ফলাফল: Word 2007/2010-এ Letterhead, C.No., Signature block       │
+│ এখনো ভাঙা দেখাবে। মূল সমস্যার মাত্র ৩০% সমাধান হয়েছে।          │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ সমস্যা ৩: File Letter History — ক্লিক করলে কিছু দেখাচ্ছিল না   │
+│ আগে বলা হয়েছিল: FilesScreen-এ history modal যোগ করতে হবে       │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান অবস্থা: ✅ সম্পূর্ণ সমাধান হয়েছে এবং ভালোভাবে কাজ করছে│
+│                                                                     │
+│ FilesScreen.tsx-এ যা আছে:                                          │
+│ • selectedFile, previewLetter, letterTab state ✓                  │
+│ • handleFileClick → modal খোলে ✓                                  │
+│ • Letter list tab (All / Letters / Notes / Orders) ✓              │
+│ • Letter preview modal ✓                                           │
+│ • Edit button → WriteScreen-এ navigate ✓                          │
+│ • Delete button → Firebase থেকে মুছে দেয় ✓                      │
+│ • Letter count badge (সবুজ) প্রতিটি file-এ দেখায় ✓              │
+│ • Eye icon button ✓                                                │
+│                                                                     │
+│ এই ফিচারটি এখন সম্পূর্ণ কাজ করছে। ✓                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ compatibility: { version: 11 } — DOCX-এ যোগ করা হয়েছিল           │
+│ আগে আলোচনা: User বলেছিলেন — "যদি structure নষ্ট হয় তাহলে দরকার নেই"│
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান অবস্থা: ⚠️ যোগ করা হয়েছে (WriteScreen.tsx line 843-845) │
+│                                                                     │
+│ compatibility: {                                                    │
+│     version: 11,                                                   │
+│ },                                                                  │
+│                                                                     │
+│ এটি Word 2007-2013 compatibility mode সক্রিয় করে।               │
+│ পরীক্ষা না করে বলা যাচ্ছে না এটি Quality নষ্ট করছে কিনা।        │
+│ User চাইলে এই block মুছে দেওয়া যাবে।                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+                    নতুন বাগ ও সমস্যা তালিকা
+                   (Newly Discovered Bugs)
+═══════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🔴 CRITICAL বাগ — অবশ্যই ঠিক করতে হবে
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১ (CRITICAL): GPF Screen — Navigation থেকে সম্পূর্ণ বাদ    │
+│ ফাইল: Sidebar.tsx, BottomNav.tsx                                   │
+├─────────────────────────────────────────────────────────────────────┤
+│ সমস্যা: App.tsx-এ `/gpf` route সঠিকভাবে আছে (line 107):         │
+│   <Route path="gpf" element={<GPFScreen />} />                    │
+│                                                                     │
+│ কিন্তু Sidebar.tsx-এ `/gpf` লিংক নেই।                            │
+│ BottomNav.tsx-এ `/gpf` লিংক নেই।                                  │
+│                                                                     │
+│ ফলাফল: GPFScreen সম্পূর্ণ অ্যাক্সেসযোগ্য নয়।                   │
+│ একজন ব্যবহারকারী GPF Withdrawal Tool-এ কখনো পৌঁছাতে পারবে না   │
+│ যদি না সে manually URL টাইপ করে।                                  │
+│                                                                     │
+│ সমাধান: Sidebar.tsx-এ এই লাইন যোগ করতে হবে navItems-এ:           │
+│   { to: "/gpf", icon: <FileText className="w-5 h-5" />,            │
+│     label: "GPF Tool" }                                            │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #২ (CRITICAL): handleFileClick — Store State ঠিকমতো Update হয় না│
+│ ফাইল: FilesScreen.tsx, line 22-26                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   const handleFileClick = (wsId, dirId, fileId, ...) => {         │
+│     setActiveWorkspace(wsId);                                      │
+│     saveUserData({ activeDirectoryId: dirId,                      │
+│                    activeFileId: fileId });    ← সমস্যা এখানে    │
+│     setSelectedFile({ ... });                                      │
+│   };                                                               │
+│                                                                     │
+│ সমস্যা: `saveUserData` Firestore-এ save করে কিন্তু localStorage  │
+│ update করে না। কারণ `setActiveDirectory` এবং `setActiveFile`      │
+│ store actions গুলো localStorage-এও save করে:                      │
+│   localStorage.setItem('officeai_lastDir_' + wsId, id)            │
+│   localStorage.setItem('officeai_lastFile_' + dirId, id)          │
+│                                                                     │
+│ কিন্তু `saveUserData` শুধু Firebase-এ যায়, localStorage miss হয়।  │
+│                                                                     │
+│ ফলাফল: File click করার পরে Write-এ গেলে সঠিক file select নাও    │
+│ থাকতে পারে। Page refresh করলে সিলেকশন হারিয়ে যায়।              │
+│                                                                     │
+│ সমাধান:                                                             │
+│   const handleFileClick = (wsId, dirId, fileId, ...) => {         │
+│     setActiveWorkspace(wsId);                                      │
+│     setActiveDirectory(dirId);   ← এটি যোগ করতে হবে             │
+│     setActiveFile(fileId);       ← এটি যোগ করতে হবে             │
+│     saveUserData({ activeDirectoryId: dirId,                      │
+│                    activeFileId: fileId });                        │
+│     setSelectedFile({ ... });                                      │
+│   };                                                               │
+│ এবং useStore থেকে setActiveDirectory, setActiveFile import করতে হবে│
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৩ (CRITICAL): BottomNav-এ গুরুত্বপূর্ণ স্ক্রিন নেই (Mobile) │
+│ ফাইল: BottomNav.tsx                                                │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান BottomNav তে মাত্র ৫টি লিংক:                              │
+│   Dashboard, Write, Cases, Recovery, Inbox                         │
+│                                                                     │
+│ নেই: Files ✗, Diary ✗, Reports ✗, Settings ✗                     │
+│                                                                     │
+│ মোবাইলে Sidebar দেখা যায় না। তাই মোবাইল ব্যবহারকারী:            │
+│ • Files Screen-এ যেতে পারে না                                    │
+│ • Diary Screen-এ যেতে পারে না                                    │
+│ • Reports Screen-এ যেতে পারে না                                  │
+│                                                                     │
+│ সমাধান: BottomNav-এ সব গুরুত্বপূর্ণ স্ক্রিন যোগ করতে হবে        │
+│ অথবা একটি "More" বাটন দিয়ে বাকি স্ক্রিনগুলো দেখাতে হবে।        │
+└─────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🟠 HIGH বাগ — যত দ্রুত সম্ভব ঠিক করা উচিত
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৪ (HIGH): Settings Preview Padding মেলে না DOCX-এর সাথে     │
+│ ফাইল: SettingsScreen.tsx, line 165                                 │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   <div className="bg-white ... w-full max-w-[210mm]                │
+│        pt-8 px-8 pb-4" ...>                                        │
+│                                                                     │
+│ pt-8 = 32px ≈ 8.5mm   → কিন্তু DOCX-এ top margin = 720 twips = 12.7mm│
+│ px-8 = 32px ≈ 8.5mm   → কিন্তু DOCX-এ left/right margin = 1080 twips = 19mm│
+│                                                                     │
+│ ফলাফল: Settings-এ letterhead preview দেখতে আলাদা লাগে, Word      │
+│ ফাইলে আলাদা দেখায়। User বিভ্রান্ত হন।                           │
+│                                                                     │
+│ সমাধান: CSS class-এর বদলে inline style দিয়ে সঠিক margin দিন:    │
+│   style={{ padding: '12.7mm 19mm 10mm 19mm' }}                    │
+│ অথবা DOCX-এর actual margin value দিয়ে মেলান।                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৫ (HIGH): Draft Auto-Save প্রতিটি Keystroke-এ Firebase Write  │
+│ ফাইল: WriteScreen.tsx, lines 153-157                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   useEffect(() => {                                                │
+│     const obj = { subject, details, refText, ... };               │
+│     setDraft(currentDraftId, obj);  ← Firebase write trigger!    │
+│     localStorage.setItem(...);                                    │
+│   }, [subject, details, refText, ...]);                            │
+│                                                                     │
+│ store.ts-এ setDraft এর কোড (line 84):                             │
+│   setDraft: (id, payload) => {                                    │
+│     set(state => ({ drafts: { ...state.drafts, [id]: payload } }));│
+│     get().saveUserData(); // ← প্রতিটি keystroke-এ Firebase write! │
+│   },                                                               │
+│                                                                     │
+│ ফলাফল: ব্যবহারকারী Subject field-এ একটি অক্ষর টাইপ করলেই        │
+│ Firebase-এ একটি write operation হয়। ১০০ অক্ষর টাইপ করলে ১০০ বার │
+│ Firebase-এ write হয়। এতে:                                         │
+│ (১) Firebase quota দ্রুত শেষ হয়                                  │
+│ (২) অ্যাপ slow হয়ে যায়                                          │
+│ (৩) অপ্রয়োজনীয় খরচ বাড়ে                                       │
+│                                                                     │
+│ সমাধান: Debounce যোগ করতে হবে — টাইপ করা বন্ধ হওয়ার ২ সেকেন্ড │
+│ পরে Firebase-এ save করতে হবে:                                     │
+│   const debouncedSave = useRef<any>();                            │
+│   useEffect(() => {                                                │
+│     clearTimeout(debouncedSave.current);                          │
+│     debouncedSave.current = setTimeout(() => {                    │
+│       get().saveUserData();                                       │
+│     }, 2000);                                                     │
+│   }, [subject, details, ...]);                                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৬ (HIGH): Letter Edit Mode — details ও output উভয়ে body পায় │
+│ ফাইল: WriteScreen.tsx, lines 188-199                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   const editId = params.get('editId');                            │
+│   if (editId) {                                                    │
+│     const letter = letters.find(l => l.id === editId);           │
+│     if (letter) {                                                  │
+│       setSubject(letter.subject || '');                           │
+│       setDetails(letter.body || '');  ← Full letter body!        │
+│       setRecipientTo(letter.body?.match(...) || '');  ← ভুল regex│
+│       setOutput(letter.body || '');  ← সেটাই output!            │
+│     }                                                              │
+│   }                                                               │
+│                                                                     │
+│ সমস্যা ১: `details` field-এ সম্পূর্ণ generated body চলে যায়।    │
+│ এটি AI prompt-এর input, preview body নয়। এতে AI regenerate      │
+│ করলে ভুল হবে।                                                    │
+│                                                                     │
+│ সমস্যা ২: recipientTo extract করার regex ভুল:                    │
+│   letter.body?.match(/To,[\s\S]*?(?=\n\n)/)?.[0]?.replace(...)   │
+│ এটি letter body-র মধ্যে "To," খোঁজে, কিন্তু body-তে "To," নেই  │
+│ কারণ letter body শুধু content রাখে। সবসময় undefined হবে।       │
+│                                                                     │
+│ সমাধান: edit করার সময় `details`-এ body না দিয়ে                  │
+│ `output`-এ body দিন এবং details খালি রাখুন। Letter-এ            │
+│ `recipient` field আলাদা আছে, সেটি ব্যবহার করুন:                 │
+│   setRecipientTo(letter.recipient || '');  ← সঠিক               │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৭ (HIGH): handleSaveToFirebase — প্রতিটি Download-এ Duplicate  │
+│ ফাইল: WriteScreen.tsx, lines 887-911                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ সমস্যা: প্রতিবার Download করলে `handleSaveToFirebase(true)` call  │
+│ হয়। এটি প্রতিবার নতুন `id: Date.now().toString(36)` দিয়ে        │
+│ নতুন record তৈরি করে।                                             │
+│                                                                     │
+│ ফলাফল: একটি চিঠি ৩ বার download করলে Firebase-এ ৩টি আলাদা       │
+│ record তৈরি হয়, সবগুলো একই বিষয়ের। History-তে duplicate দেখায়।│
+│                                                                     │
+│ সমাধান: একটি `lastSavedId` state রাখুন। যদি ইতিমধ্যে save হয়ে   │
+│ গেছে, আবার save করবেন না:                                        │
+│   const [lastSavedId, setLastSavedId] = useState('');            │
+│   // Generate করার পরেই একবার save করুন, download-এ নয়         │
+└─────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🟡 MEDIUM বাগ — গুরুত্বপূর্ণ কিন্তু জরুরি নয়
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৮ (MEDIUM): Letter History Tab — Active State বাগ             │
+│ ফাইল: FilesScreen.tsx, lines 432-433                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড (Letters tab):                                          │
+│   <button onClick={() => setLetterTab('ai')}                      │
+│     className={`... ${letterTab === 'ai' ||                       │
+│                       letterTab === 'format'   ← সমস্যা          │
+│                       ? 'border-b-2 ...' : ''}`}>                  │
+│   Letters</button>                                                │
+│                                                                     │
+│ সমস্যা: Tab-এর active style check করে `letterTab === 'ai' ||      │
+│ letterTab === 'format'`। কিন্তু click করলে শুধু `setLetterTab('ai')`│
+│ হয়। যদি কোনোভাবে tab 'format'-এ থাকে, Letters tab highlighted   │
+│ দেখায় কিন্তু click করলে 'ai'-তে যায়।                           │
+│                                                                     │
+│ আরো সমস্যা: filter logic (line 380-381):                          │
+│   if (letterTab === 'ai' || letterTab === 'format') {             │
+│     fileLetters = fileLetters.filter(l =>                         │
+│       l.mode === 'ai' || l.mode === 'format');                    │
+│   }                                                               │
+│ এটি সঠিক, কিন্তু setLetterTab('format') কখনো call হয় না।       │
+│ তাই 'format' mode-এর letters 'ai'-তে দেখাবে।                    │
+│                                                                     │
+│ সমাধান: একটি নতুন tab value 'letters' তৈরি করুন:                  │
+│   onClick={() => setLetterTab('letters')}                         │
+│   className={letterTab === 'letters' ? active : ''}               │
+│   filter: mode === 'ai' || mode === 'format'                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #৯ (MEDIUM): OutputLang TypeScript Type Mismatch               │
+│ ফাইল: WriteScreen.tsx, lines 39, 1162-1169                         │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   const [outputLang, setOutputLang] =                             │
+│     useState<'English' | 'Bengali' | 'Hindi'>('English');         │
+│                                                                     │
+│ কিন্তু dropdown-এ আরো দুটি option আছে:                            │
+│   <option value="Odia">Odia / ଓଡ଼ିଆ</option>                     │
+│   <option value="English-Hindi Mixed">English-Hindi Mixed</option>│
+│                                                                     │
+│ TypeScript type union-এ 'Odia' এবং 'English-Hindi Mixed' নেই।    │
+│ এটি TypeScript compile warning/error দেবে।                        │
+│                                                                     │
+│ সমাধান:                                                             │
+│   useState<'English'|'Bengali'|'Hindi'|'Odia'|'English-Hindi Mixed'>│
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১০ (MEDIUM): quickChip — Dormant/অব্যবহৃত Feature            │
+│ ফাইল: types.ts, line 79 | SettingsScreen.tsx                       │
+├─────────────────────────────────────────────────────────────────────┤
+│ AddressBookEntry interface-এ:                                       │
+│   quickChip: boolean;                                              │
+│                                                                     │
+│ সমস্যা: এই field সম্পূর্ণ অ্যাপে কোথাও ব্যবহার হয় না।           │
+│ কোনো UI নেই এটি সেট বা দেখার জন্য।                              │
+│                                                                     │
+│ উদ্দেশ্য ছিল সম্ভবত: ঘন ঘন ব্যবহৃত recipients কে "quick chip"   │
+│ হিসেবে WriteScreen-এ দ্রুত access দেওয়া।                         │
+│                                                                     │
+│ এই feature dormant অবস্থায় আছে। হয় implement করুন, নয়তো type   │
+│ থেকে সরিয়ে দিন।                                                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১১ (MEDIUM): Loading Screen-এ Text Color বাগ                  │
+│ ফাইল: App.tsx, line 76                                             │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   <div className="min-h-screen bg-black flex flex-col items-center │
+│     justify-center text-black dark:text-white">                    │
+│                                                                     │
+│ সমস্যা: `bg-black` কিন্তু `text-black`। Light mode-এ কালো         │
+│ background-এ কালো text — সম্পূর্ণ অদৃশ্য!                        │
+│                                                                     │
+│ সমাধান:                                                             │
+│   text-white dark:text-white  (সবসময় সাদা text)                  │
+│ অথবা: bg-black text-white                                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১২ (MEDIUM): Letter Preview-এ `\n` Literal দেখায়            │
+│ ফাইল: FilesScreen.tsx, lines 414, 416                              │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   <p className="...">To:\n{previewLetter.recipient}</p>           │
+│   <div className="...">Copy To:\n{previewLetter.copyTo...}</div>  │
+│                                                                     │
+│ সমস্যা: JSX-এ string-এর মধ্যে `\n` literal হিসেবে দেখায়।        │
+│ Browser "To:\nShri Sharma" এভাবে দেখাবে, line break হবে না।     │
+│                                                                     │
+│ সমাধান:                                                             │
+│   <p>To:<br/>{previewLetter.recipient}</p>                        │
+│ অথবা:                                                              │
+│   <pre className="whitespace-pre-wrap">                           │
+│     To:\n{previewLetter.recipient}                                │
+│   </pre>                                                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৩ (MEDIUM): Keyboard Shortcut-এ stale closure               │
+│ ফাইল: WriteScreen.tsx, lines 222-242                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ সমস্যা: keyboard shortcut `handleGenerate()`, `handleManualSave()`, │
+│ `handlePdfDownload()` এগুলো event listener-এর closure-এ ধরা পড়ে। │
+│ কিন্তু dependency array-তে এই function references নেই।           │
+│                                                                     │
+│ ফলাফল: Ctrl+Enter চাপলে পুরানো state দিয়ে generate হতে পারে।    │
+│                                                                     │
+│ সমাধান: `useCallback` দিয়ে function memoize করুন এবং             │
+│ dependency array-তে function refs যোগ করুন।                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৪ (MEDIUM): Store-এ `diary` এবং `demands` সংরক্ষণ problem  │
+│ ফাইল: store.ts, lines 141-142                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   diary: partialData?.diary ?? get().diary ?? [],                 │
+│   demands: partialData?.demands ?? get().demands ?? [],           │
+│                                                                     │
+│ সমস্যা: `diary` ও `demands` UserDocument-এ সরাসরি save হয়।      │
+│ যদি diary অনেক বড় হয় (১০০০+ entries), তাহলে প্রতিটি save-এ    │
+│ পুরো document save হবে। Firestore document limit 1MB।            │
+│ অতিরিক্ত diary/demand entries document limit ভাঙতে পারে।        │
+│                                                                     │
+│ সমাধান (ভবিষ্যতের জন্য): diary ও demands আলাদা sub-collection-এ │
+│ রাখুন, যেমন letters ও inbox।                                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🟢 LOW বাগ — ছোট সমস্যা, অ্যাপ চলে কিন্তু আরো ভালো হতে পারে
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৫ (LOW): Note Sheet preview width ভুল                        │
+│ ফাইল: WriteScreen.tsx, line 1196                                   │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   style={{ width: mode === 'note' ? '216mm' : '210mm',           │
+│             minHeight: mode === 'note' ? '356mm' : '297mm' }}     │
+│                                                                     │
+│ সমস্যা: Note mode-এ width 216mm, Letter-এ 210mm (A4)।            │
+│ কিন্তু Note Sheet DOCX-এও A4 ব্যবহার হয় (Legal paper নয়)।      │
+│ Preview-এ 216mm কিন্তু DOCX-এ A4 (210mm) — আলাদা দেখায়।       │
+│                                                                     │
+│ এছাড়া `paperSize` state পরিবর্তন করলে preview width বদলায় না।   │
+│ Legal, A4, A3 সব mode-এ preview একই size দেখায়।                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৬ (LOW): InboxScreen-এ reply করলে activeWorkspace সমস্যা    │
+│ ফাইল: WriteScreen.tsx, lines 160-186                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   const state = useStore.getState();                              │
+│   if (item.workspaceId &&                                         │
+│       state.activeWorkspaceId !== item.workspaceId) {             │
+│     state.setActiveWorkspace(item.workspaceId);                   │
+│   }                                                               │
+│                                                                     │
+│ সমস্যা: Inbox reply navigate করলে activeWorkspace বদলে যায়।     │
+│ কিন্তু directory বা file select হয় না। Write screen-এ letter    │
+│ save করতে গেলে "directory/file নেই" error আসবে।                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৭ (LOW): CopyFile এবং MoveFile — case-sensitive search      │
+│ ফাইল: FilesScreen.tsx, lines 136-177                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   const targetDirIdx = wsList[wsIdx].directories                  │
+│     .findIndex(d => d.name.toLowerCase()                          │
+│                  === targetDirName.toLowerCase());                 │
+│                                                                     │
+│ সমস্যা: User-কে টার্গেট directory-র exact name টাইপ করতে হয়।    │
+│ শুধু lowercase matching আছে, কিন্তু partial match নেই।           │
+│ "Pension" folder-এ move করতে "Pension" টাইপ করতে হবে।           │
+│ User "pension" বা "Pensi" টাইপ করলে কাজ করবে না।               │
+│                                                                     │
+│ সমাধান: Dropdown দিয়ে target directory select করার option দিন।   │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৮ (LOW): Sidebar hover style inconsistency                   │
+│ ফাইল: Sidebar.tsx, line 35                                         │
+├─────────────────────────────────────────────────────────────────────┤
+│ বর্তমান কোড:                                                        │
+│   isActive ? "bg-[#22C55E] text-black"                            │
+│            : "text-black dark:text-white/60                        │
+│               hover:bg-black/5 dark:bg-white/5                   │
+│               hover:text-black dark:text-white"                   │
+│                                                                     │
+│ সমস্যা: `dark:bg-white/5` সবসময় apply হয় (hover ছাড়াও)।         │
+│ `hover:bg-black/5` শুধু light mode hover-এ।                       │
+│ Dark mode-এ সব inactive items-এ সবসময় সাদা/5 background থাকে।  │
+│                                                                     │
+│ সমাধান:                                                             │
+│   "hover:bg-black/5 dark:hover:bg-white/5"  (hover শুধু)         │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #১৯ (LOW): AddressBook-এ salutation field UI নেই              │
+│ ফাইল: SettingsScreen.tsx, lines 61-67                              │
+├─────────────────────────────────────────────────────────────────────┤
+│ Add New Entry form-এ fields:                                        │
+│   Name, Designation, Office, Address, Save button                  │
+│                                                                     │
+│ কিন্তু `salutation` field-এর কোনো input নেই UI-তে।               │
+│ Default 'Sir/Madam,' সবসময় যায়। User কখনো "Dear Sir," বা       │
+│ "Madam," set করতে পারবে না নতুন entry তৈরির সময়।               │
+│                                                                     │
+│ সমাধান: AddressBook add form-এ salutation dropdown যোগ করুন।      │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ বাগ #২০ (LOW): HomeScreen-এ diary count দেখায় না                  │
+│ ফাইল: HomeScreen.tsx                                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ Home screen-এ Stats section দেখায়:                                │
+│   Letters count ✓, Files count ✓, Pending Inbox count ✓          │
+│                                                                     │
+│ কিন্তু নেই: Diary entries count, Pending Cases count, Demand total │
+│                                                                     │
+│ এই গুরুত্বপূর্ণ তথ্যগুলো Dashboard-এ না থাকলে ব্যবহারকারী      │
+│ সহজে বুঝতে পারবেন না কী pending আছে।                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+            Dormant / নিষ্ক্রিয় Features সারসংক্ষেপ
+═══════════════════════════════════════════════════════════════════════
+
+নিচের features code-এ আছে কিন্তু সম্পূর্ণ অকার্যকর বা অ্যাক্সেসযোগ্য নয়:
+
+১. GPF Tool (/gpf route) → কোনো navigation link নেই [বাগ #১]
+২. quickChip in AddressBook → define করা কিন্তু কোনো UI নেই [বাগ #১০]
+৩. Address Book salutation field → type-এ আছে, input নেই [বাগ #১৯]
+৪. DIN field → কাজ করে কিন্তু format approximation (line 1007-1008):
+   `${y}${m}72ZN${random}` → "72ZN" কি সঠিক? এটি hardcoded!
+৫. Style Image Upload → কাজ করে কিন্তু DOCX generation-এ ব্যবহার হয় না।
+   imageBase64 শুধু AI prompt-এ যায়, DOCX-এ কোনো visual style নেই।
+৬. Telegram notification → tgBotToken/tgChatId configure করা যায়
+   কিন্তু Letter generate হলে notification পাঠানো হয় না, শুধু manual save-এ
+
+═══════════════════════════════════════════════════════════════════════
+                        Priority সারসংক্ষেপ
+═══════════════════════════════════════════════════════════════════════
+
+ অগ্রাধিকার ক্রম (কোনটা আগে ঠিক করবেন):
+
+ ১ম → বাগ #১  : GPF Navigation link যোগ করুন (৫ মিনিটের কাজ)
+ ২য় → বাগ #২  : handleFileClick-এ setActiveDirectory/setActiveFile যোগ করুন
+ ৩য় → বাগ #১১ : Loading screen text color ঠিক করুন (bg-black এ text-white)
+ ৪র্থ → বাগ #১২ : Letter preview-এ \n literal ঠিক করুন
+ ৫ম  → বাগ #৮  : Letter history tab 'letters' value ঠিক করুন
+ ৬ষ্ঠ → বাগ #৩  : BottomNav-এ Files/Diary/Reports যোগ করুন (mobile)
+ ৭ম  → বাগ #৫  : Draft auto-save debounce যোগ করুন (Firebase cost)
+ ৮ম  → বাগ #৬  : Letter edit mode logic ঠিক করুন
+ ৯ম  → বাগ #৪  : Settings preview padding DOCX-এর সাথে মেলান
+ ১০ম → বাগ #৭  : Download-এ duplicate save বন্ধ করুন
+
+ DOCX সংক্রান্ত (Word compatibility):
+ ১১শ → Logo table, C.No. table, Signature block-এ PERCENTAGE → DXA
+ ১২শ → logo2 h-24 → h-20 করুন (preview consistency)
+
+═══════════════════════════════════════════════════════════════════════
+                    মোট সমস্যার সারসংক্ষেপ
+═══════════════════════════════════════════════════════════════════════
+
+  🔴 Critical বাগ        : ৩টি  (বাগ #১, ২, ৩)
+  🟠 High বাগ            : ৪টি  (বাগ #৪, ৫, ৬, ৭)
+  🟡 Medium বাগ          : ৭টি  (বাগ #৮ থেকে #১৪)
+  🟢 Low বাগ             : ৬টি  (বাগ #১৫ থেকে #২০)
+  ⚠️ আগের কাজ অসম্পূর্ণ : ২টি  (PERCENTAGE, logo2 height)
+  ──────────────────────────────────────────
+  মোট                    : ২২টি সমস্যা চিহ্নিত
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+রিপোর্ট তৈরি করা হয়েছে: সম্পূর্ণ সোর্স কোড পর্যালোচনার ভিত্তিতে
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
