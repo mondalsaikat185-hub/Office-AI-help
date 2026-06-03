@@ -12,11 +12,34 @@ export default function DemandScreen() {
     date: '', partyName: '', oioNo: '', oioDate: '', tax: 0, penalty: 0, interest: 0, recoveredAmount: 0, remarks: '' 
   });
 
+  const [calcFromDate, setCalcFromDate] = useState('');
+  const [calcToDate, setCalcToDate] = useState('');
+  const [calcRate, setCalcRate] = useState(18);
+
   const addDemand = () => {
     if(newDemand.partyName && (newDemand.tax > 0 || newDemand.penalty > 0)) {
       const amount = (newDemand.tax || 0) + (newDemand.penalty || 0) + (newDemand.interest || 0);
       saveUserData({ demands: [...demands, { ...newDemand, tax: newDemand.tax.toString(), penalty: newDemand.penalty.toString(), interest: newDemand.interest.toString(), party: newDemand.partyName, oio: newDemand.oioNo, recovered: newDemand.recoveredAmount, amount, id: Date.now().toString(), status: 'Pending' }] });
       setNewDemand({ date: '', partyName: '', oioNo: '', oioDate: '', tax: 0, penalty: 0, interest: 0, recoveredAmount: 0, remarks: '' });
+      setCalcFromDate('');
+      setCalcToDate('');
+    }
+  };
+
+  const calculateInterest = () => {
+    if (calcFromDate && calcToDate && newDemand.tax > 0) {
+      const fromDate = new Date(calcFromDate);
+      const toDate = new Date(calcToDate);
+      const diffTime = toDate.getTime() - fromDate.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        const interestAmt = Math.round(newDemand.tax * (calcRate / 100) * (diffDays / 365));
+        setNewDemand(prev => ({ ...prev, interest: interestAmt }));
+      } else {
+        alert('To Date must be after From Date.');
+      }
+    } else {
+      alert('Please enter From Date, To Date, and ensure Tax amount is greater than 0.');
     }
   };
 
@@ -81,29 +104,71 @@ export default function DemandScreen() {
 
       <div className="border border-emerald-500/30 bg-emerald-500/5 p-4 mb-8">
          <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-4">Add New Demand</h3>
-         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 items-end">
-           <div>
-             <label className="text-[9px] uppercase font-bold opacity-60">Party Name</label>
-             <input type="text" value={newDemand.partyName} onChange={e => setNewDemand({...newDemand, partyName: e.target.value})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
+         <div className="space-y-4">
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div>
+               <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Party Name *</label>
+               <input type="text" value={newDemand.partyName} onChange={e => setNewDemand({...newDemand, partyName: e.target.value})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-sm text-black dark:text-white" placeholder="Name of party" />
+             </div>
+             <div>
+               <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">OIO Number</label>
+               <input type="text" placeholder="e.g. OIO-12/2026" value={newDemand.oioNo} onChange={e => setNewDemand({...newDemand, oioNo: e.target.value})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-sm text-black dark:text-white" />
+             </div>
+             <div>
+               <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">OIO Date</label>
+               <input type="date" value={newDemand.oioDate} onChange={e => setNewDemand({...newDemand, oioDate: e.target.value})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-sm text-black dark:text-white" />
+             </div>
            </div>
-           <div>
-             <label className="text-[9px] uppercase font-bold opacity-60">OIO No. & Date</label>
-             <input type="text" placeholder="OIO No." value={newDemand.oioNo} onChange={e => setNewDemand({...newDemand, oioNo: e.target.value})} className="w-full mb-1 bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
-             <input type="date" value={newDemand.oioDate} onChange={e => setNewDemand({...newDemand, oioDate: e.target.value})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
+
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-emerald-500/20 pt-4">
+             <div>
+               <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Tax / Duty Amount (₹) *</label>
+               <input type="number" value={newDemand.tax || ''} onChange={e => setNewDemand({...newDemand, tax: Number(e.target.value)})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-sm text-black dark:text-white font-mono" />
+             </div>
+
+             <div>
+               <div className="flex justify-between items-center mb-1">
+                 <label className="text-[10px] uppercase font-bold text-gray-500">Penalty Amount (₹)</label>
+                 <div className="flex gap-1">
+                   <button type="button" onClick={() => setNewDemand(prev => ({...prev, penalty: Math.max(10000, Math.round(prev.tax * 0.1))}))} className="text-[8px] font-bold uppercase tracking-tighter bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-1 py-0.5 border border-emerald-500/30">10% Sec 73</button>
+                   <button type="button" onClick={() => setNewDemand(prev => ({...prev, penalty: Math.round(prev.tax)}))} className="text-[8px] font-bold uppercase tracking-tighter bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-1 py-0.5 border border-emerald-500/30">100% Sec 74</button>
+                 </div>
+               </div>
+               <input type="number" value={newDemand.penalty || ''} onChange={e => setNewDemand({...newDemand, penalty: Number(e.target.value)})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-sm text-black dark:text-white font-mono" />
+             </div>
+
+             <div>
+               <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Interest Amount (₹)</label>
+               <input type="number" value={newDemand.interest || ''} onChange={e => setNewDemand({...newDemand, interest: Number(e.target.value)})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-sm text-black dark:text-white font-mono" />
+             </div>
            </div>
-           <div>
-             <label className="text-[9px] uppercase font-bold opacity-60">Tax / Duty ₹</label>
-             <input type="number" value={newDemand.tax || ''} onChange={e => setNewDemand({...newDemand, tax: Number(e.target.value)})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
+
+           <div className="bg-black/5 dark:bg-white/5 p-3 border border-emerald-500/20 space-y-2">
+             <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-500">Interest Calculator (Section 50 Helper)</p>
+             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+               <div>
+                 <label className="text-[9px] uppercase font-bold text-gray-400 block mb-1">From Date (Due Date)</label>
+                 <input type="date" value={calcFromDate} onChange={e => setCalcFromDate(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 p-1.5 text-xs text-black dark:text-white" />
+               </div>
+               <div>
+                 <label className="text-[9px] uppercase font-bold text-gray-400 block mb-1">To Date (Payment Date)</label>
+                 <input type="date" value={calcToDate} onChange={e => setCalcToDate(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 p-1.5 text-xs text-black dark:text-white" />
+               </div>
+               <div>
+                 <label className="text-[9px] uppercase font-bold text-gray-400 block mb-1">Rate (% Per Annum)</label>
+                 <input type="number" value={calcRate} onChange={e => setCalcRate(Number(e.target.value))} className="w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 p-1.5 text-xs text-black dark:text-white" />
+               </div>
+               <button type="button" onClick={calculateInterest} className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold uppercase tracking-widest text-[10px] px-3 py-2 h-[32px] transition-colors">
+                 Calculate Interest
+               </button>
+             </div>
            </div>
-           <div>
-             <label className="text-[9px] uppercase font-bold opacity-60">Penalty ₹</label>
-             <input type="number" value={newDemand.penalty || ''} onChange={e => setNewDemand({...newDemand, penalty: Number(e.target.value)})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
+
+           <div className="flex justify-end gap-3 pt-2">
+             <button onClick={addDemand} disabled={!newDemand.partyName || (newDemand.tax === 0 && newDemand.penalty === 0)} className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold uppercase tracking-widest text-xs px-6 py-3 transition-colors">
+               Add Demand Entry
+             </button>
            </div>
-           <div>
-             <label className="text-[9px] uppercase font-bold opacity-60">Interest ₹</label>
-             <input type="number" value={newDemand.interest || ''} onChange={e => setNewDemand({...newDemand, interest: Number(e.target.value)})} className="w-full bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs" />
-           </div>
-           <button onClick={addDemand} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 mt-2 h-[34px]">Add</button>
          </div>
       </div>
 

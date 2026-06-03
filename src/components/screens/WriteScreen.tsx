@@ -14,6 +14,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 export default function WriteScreen() {
+  // =========================================================================
+  // SECTION 1: COMPONENT STATE & INITIALIZATION
+  // =========================================================================
   const [params, setParams] = useSearchParams();
   const mode = params.get('mode') || 'ai';
   const { user, workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, activeSignatureId, setActiveSignature, saveUserData, saveLetter, letters, drafts, setDraft, templates, phrases, addressBook } = useStore();
@@ -147,6 +150,37 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
     }
   }, [output, ws, dir, file, sig, subject, mode, recipientTo, copyTo, lastSavedId, saveLetter, displayAlert, user]);
 
+  // =========================================================================
+  // SECTION 3: CLOUD STORAGE & MANUAL SAVE HANDLERS
+  // =========================================================================
+  const handleManualSave = useCallback(async () => {
+    try {
+      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin };
+      setDraft(currentDraftId, obj);
+      await saveUserData();
+
+      // Learning engine tracking
+      learningEngine.recordEdit(mode, originalOutputRef.current, output);
+      learningEngine.recordSubject(subject);
+      if (user) {
+        learningEngine.save(user.uid);
+      }
+
+      setSaveMessage('Saved to cloud!');
+      setTimeout(() => setSaveMessage(''), 3000);
+      
+      const { tgBotToken, tgChatId } = useStore.getState();
+      if (tgBotToken && tgChatId && output) {
+        import('../../lib/telegram').then(m => {
+          m.sendTelegramNotification(tgBotToken, tgChatId, `📄 *Letter Saved*: ${subject || 'Untitled'}\n\n*Draft length*: ${output.length} characters`);
+        });
+      }
+    } catch(err) {
+      setSaveMessage('Local save only (cloud failed)');
+      setTimeout(() => setSaveMessage(''), 3000);
+    }
+  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft, saveUserData, user, mode]);
+
   const applyTemplate = (tId: string) => {
     if (!tId) return;
     const allT = [...defaultTemplates, ...templates];
@@ -162,6 +196,9 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
     }
   };
 
+  // =========================================================================
+  // SECTION 2: DRAFT & LOCALSTORAGE AUTOSAVE SYNC
+  // =========================================================================
   // Load draft from local component mount based on activeFileId
   useEffect(() => {
      const st = drafts[currentDraftId];
@@ -277,35 +314,10 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
     }
   }, [params, letters]);
 
-  const handleManualSave = useCallback(async () => {
-    try {
-      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin };
-      setDraft(currentDraftId, obj);
-      await saveUserData();
-
-      // Learning engine tracking
-      learningEngine.recordEdit(mode, originalOutputRef.current, output);
-      learningEngine.recordSubject(subject);
-      if (user) {
-        learningEngine.save(user.uid);
-      }
-
-      setSaveMessage('Saved to cloud!');
-      setTimeout(() => setSaveMessage(''), 3000);
-      
-      const { tgBotToken, tgChatId } = useStore.getState();
-      if (tgBotToken && tgChatId && output) {
-        import('../../lib/telegram').then(m => {
-          m.sendTelegramNotification(tgBotToken, tgChatId, `📄 *Letter Saved*: ${subject || 'Untitled'}\n\n*Draft length*: ${output.length} characters`);
-        });
-      }
-    } catch(err) {
-      setSaveMessage('Local save only (cloud failed)');
-      setTimeout(() => setSaveMessage(''), 3000);
-    }
-  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft, saveUserData, user, mode]);
-
-  const handleGenerate = useCallback(async () => {
+  // =========================================================================
+  // SECTION 4: GEMINI AI PROMPT ENGINE & STREAMING GENERATOR
+  // =========================================================================
+  const handleGenerate = useCallback(async () => {
     if (!ws || !sig) return displayAlert("Please select a workspace and signature first");
     if (!details) return displayAlert("Details/Draft cannot be empty");
     
@@ -469,6 +481,9 @@ DO NOT repeat what was already written. Just continue writing the next words sea
      }
   };
 
+  // =========================================================================
+  // SECTION 5: DOCUMENT EXPORTERS (PDF, DOCX, & PRINT)
+  // =========================================================================
   const handlePdfDownload = useCallback(() => {
     const element = document.getElementById('print-area');
     if (!element) {
@@ -975,6 +990,9 @@ DO NOT repeat what was already written. Just continue writing the next words sea
 
   // handleSaveToFirebase was moved above to prevent TDZ issues
 
+  // =========================================================================
+  // SECTION 6: JSX LAYOUT & COMPONENT UI RENDERING
+  // =========================================================================
   return (
     <div className="space-y-4 flex flex-col md:flex-row gap-8 relative">
       {uiMessage && (

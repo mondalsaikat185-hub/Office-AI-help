@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { callGemini } from '../../lib/gemini';
-import { Users, FileText, Download, Loader2, Save, Wand2, Edit, Check, AlertTriangle } from 'lucide-react';
+import { Users, FileText, Download, Loader2, Save, Wand2, Edit, Check, AlertTriangle, Upload } from 'lucide-react';
 import { Document, Packer, Paragraph, TextRun, AlignmentType, TabStopType, BorderStyle, ImageRun, Table, TableRow, TableCell, WidthType } from 'docx';
 import JSZip from 'jszip';
+import { parseUploadedExcel } from '../../lib/excelReports';
 
 interface Recipient {
   id: string;
@@ -26,8 +27,95 @@ export default function BulkScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
 
+  const [uploadMethod, setUploadMethod] = useState<'text' | 'excel'>('text');
+  const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [isParsingExcel, setIsParsingExcel] = useState(false);
+
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
   const activeSignature = activeWorkspace?.signatures.find(s => s.id === activeSignatureId) || activeWorkspace?.signatures[0];
+
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setExcelFile(file);
+    setIsParsingExcel(true);
+    try {
+      const rows = await parseUploadedExcel(file);
+      if (rows.length === 0) {
+        alert("The uploaded Excel file is empty.");
+        return;
+      }
+      
+      const firstRow = rows[0].map(c => String(c || '').toLowerCase().trim());
+      let nameIdx = -1;
+      let desigIdx = -1;
+      let officeIdx = -1;
+      let addrIdx = -1;
+      let phoneIdx = -1;
+      
+      firstRow.forEach((val, idx) => {
+        if (val.includes('name') || val.includes('official') || val.includes('person') || val.includes('officer')) {
+          if (nameIdx === -1) nameIdx = idx;
+        } else if (val.includes('designation') || val.includes('desig') || val.includes('post') || val.includes('rank') || val.includes('role')) {
+          if (desigIdx === -1) desigIdx = idx;
+        } else if (val.includes('office') || val.includes('dept') || val.includes('department') || val.includes('commissionerate') || val.includes('division') || val.includes('range')) {
+          if (officeIdx === -1) officeIdx = idx;
+        } else if (val.includes('address') || val.includes('postal') || val.includes('location')) {
+          if (addrIdx === -1) addrIdx = idx;
+        } else if (val.includes('phone') || val.includes('mobile') || val.includes('contact') || val.includes('num')) {
+          if (phoneIdx === -1) phoneIdx = idx;
+        }
+      });
+
+      // Default mappings if header scanning fails:
+      if (nameIdx === -1 && rows[0].length > 0) nameIdx = 0;
+      if (desigIdx === -1 && rows[0].length > 1) desigIdx = 1;
+      if (officeIdx === -1 && rows[0].length > 2) officeIdx = 2;
+      if (addrIdx === -1 && rows[0].length > 3) addrIdx = 3;
+      if (phoneIdx === -1 && rows[0].length > 4) phoneIdx = 4;
+
+      const startRow = (nameIdx === 0 && (firstRow[0].includes('name') || firstRow[0].includes('sl') || firstRow[0].includes('no'))) ? 1 : 0;
+      const parsedRecipients: Recipient[] = [];
+
+      for (let i = startRow; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length === 0) continue;
+        if (row.every(c => c === null || c === undefined || String(c).trim() === '')) continue;
+        
+        const name = nameIdx !== -1 && row[nameIdx] ? String(row[nameIdx]).trim() : '';
+        const designation = desigIdx !== -1 && row[desigIdx] ? String(row[desigIdx]).trim() : '';
+        const office = officeIdx !== -1 && row[officeIdx] ? String(row[officeIdx]).trim() : '';
+        const address = addrIdx !== -1 && row[addrIdx] ? String(row[addrIdx]).trim() : '';
+        const phone = phoneIdx !== -1 && row[phoneIdx] ? String(row[phoneIdx]).trim() : '';
+        
+        if (!name && !designation && !office) continue;
+
+        let status: 'valid' | 'warning' | 'error' = 'valid';
+        if (!name && !designation) status = 'error';
+        else if (!address || address.length < 5) status = 'warning';
+
+        const randomId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+        parsedRecipients.push({
+          id: randomId,
+          name,
+          designation,
+          office,
+          address,
+          phone,
+          status
+        });
+      }
+
+      setRecipients(parsedRecipients);
+      alert(`Successfully imported ${parsedRecipients.length} recipients from Excel!`);
+      setStep(3);
+    } catch (err: any) {
+      alert("Error parsing Excel file: " + err.message);
+    } finally {
+      setIsParsingExcel(false);
+    }
+  };
 
   const handleExtract = async () => {
     if (!rawText.trim()) return;
@@ -366,39 +454,90 @@ ${rawText}`;
 
       {step === 2 && (
         <div className="space-y-6">
-           <h2 className="font-bold uppercase tracking-widest text-sm text-[#22C55E]">Extract Recipients using AI</h2>
-           <p className="text-sm text-black dark:text-white/70">
-             Paste unstructured text containing names, addresses, designations, etc. It can be from WhatsApp, Facebook, or a messy document. Our AI will automatically extract the structure for your placeholders.
-           </p>
-
-           <div>
-              <textarea 
-                rows={12}
-                value={rawText} 
-                onChange={e => setRawText(e.target.value)}
-                placeholder="Paste raw addresses here..."
-                disabled={isExtracting}
-                className="w-full bg-[#22C55E]/5 border-2 border-[#22C55E]/20 focus:border-[#22C55E] p-4 outline-none text-sm dark:text-white resize-none disabled:opacity-50"
-              />
+           <div className="flex border-b border-black/10 dark:border-white/10 mb-4">
+             <button
+               onClick={() => setUploadMethod('text')}
+               className={`py-2 px-4 font-bold text-xs uppercase tracking-widest border-b-2 transition-colors ${uploadMethod === 'text' ? 'border-[#22C55E] text-[#22C55E]' : 'border-transparent text-gray-400 hover:text-black dark:hover:text-white'}`}
+             >
+               AI Text Parsing
+             </button>
+             <button
+               onClick={() => setUploadMethod('excel')}
+               className={`py-2 px-4 font-bold text-xs uppercase tracking-widest border-b-2 transition-colors ${uploadMethod === 'excel' ? 'border-[#22C55E] text-[#22C55E]' : 'border-transparent text-gray-400 hover:text-black dark:hover:text-white'}`}
+             >
+               Excel/CSV File Upload
+             </button>
            </div>
 
-           <div className="flex gap-4">
-              <button 
-                 onClick={() => setStep(1)}
-                 disabled={isExtracting}
-                 className="border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 px-6 py-3 font-bold uppercase tracking-widest text-xs"
-              >
-                 Back
-              </button>
-              <button 
-                 onClick={handleExtract}
-                 disabled={isExtracting || !rawText.trim()}
-                 className="bg-[#22C55E] hover:bg-[#1fb355] text-black px-6 py-3 font-bold uppercase tracking-widest text-xs flex items-center gap-2 disabled:opacity-50"
-              >
-                 {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                 {isExtracting ? 'Extracting via AI...' : 'Parse & Extract'}
-              </button>
-           </div>
+           {uploadMethod === 'text' ? (
+             <div className="space-y-4">
+               <h2 className="font-bold uppercase tracking-widest text-sm text-[#22C55E]">Extract Recipients using AI</h2>
+               <p className="text-sm text-black dark:text-white/70">
+                 Paste unstructured text containing names, addresses, designations, etc. It can be from WhatsApp, Facebook, or a messy document. Our AI will automatically extract the structure for your placeholders.
+               </p>
+
+               <div>
+                  <textarea 
+                    rows={12}
+                    value={rawText} 
+                    onChange={e => setRawText(e.target.value)}
+                    placeholder="Paste raw addresses here..."
+                    disabled={isExtracting}
+                    className="w-full bg-[#22C55E]/5 border-2 border-[#22C55E]/20 focus:border-[#22C55E] p-4 outline-none text-sm dark:text-white resize-none disabled:opacity-50"
+                  />
+               </div>
+
+               <div className="flex gap-4">
+                  <button 
+                     onClick={() => setStep(1)}
+                     disabled={isExtracting}
+                     className="border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 px-6 py-3 font-bold uppercase tracking-widest text-xs"
+                  >
+                     Back
+                  </button>
+                  <button 
+                     onClick={handleExtract}
+                     disabled={isExtracting || !rawText.trim()}
+                     className="bg-[#22C55E] hover:bg-[#1fb355] text-black px-6 py-3 font-bold uppercase tracking-widest text-xs flex items-center gap-2 disabled:opacity-50"
+                  >
+                     {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                     {isExtracting ? 'Extracting via AI...' : 'Parse & Extract'}
+                  </button>
+               </div>
+             </div>
+           ) : (
+             <div className="space-y-4">
+               <h2 className="font-bold uppercase tracking-widest text-sm text-[#22C55E]">Import Recipients from Excel/CSV</h2>
+               <p className="text-sm text-black dark:text-white/70">
+                 Upload an Excel sheet or CSV list. Ensure columns are named reasonably (e.g. Name, Designation, Office, Address, Phone) or they will map to standard columns (Col 1 to Col 5) in order.
+               </p>
+
+               <div className="border-2 border-dashed border-[#22C55E]/30 bg-[#22C55E]/5 hover:border-[#22C55E] p-8 text-center cursor-pointer transition-colors relative">
+                 <input
+                   type="file"
+                   accept=".xlsx,.xls,.csv"
+                   onChange={handleExcelUpload}
+                   disabled={isParsingExcel}
+                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                 />
+                 <Upload className="w-10 h-10 mx-auto text-[#22C55E] mb-4" />
+                 <p className="text-sm font-bold uppercase tracking-widest text-black dark:text-white">
+                   {isParsingExcel ? 'Parsing file...' : 'Choose or Drag Excel/CSV File'}
+                 </p>
+                 <p className="text-xs text-gray-500 mt-2">Supports .xlsx, .xls, and .csv formats</p>
+               </div>
+
+               <div className="flex gap-4">
+                  <button 
+                     onClick={() => setStep(1)}
+                     disabled={isParsingExcel}
+                     className="border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 px-6 py-3 font-bold uppercase tracking-widest text-xs"
+                  >
+                     Back
+                  </button>
+               </div>
+             </div>
+           )}
         </div>
       )}
 

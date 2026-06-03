@@ -32,6 +32,24 @@ export default function CaseRegisterScreen() {
   const [form, setForm] = useState<Partial<CaseItem>>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [gstinError, setGstinError] = useState('');
+
+  const validateGSTIN = (gstin: string): boolean => {
+    if (!gstin) return true;
+    const cleanGstin = gstin.trim().toUpperCase();
+    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Zz][0-9A-Z]{1}$/;
+    return gstinRegex.test(cleanGstin);
+  };
+
+  const handleGstinChange = (val: string) => {
+    const uppercaseVal = val.toUpperCase();
+    f('gstin', uppercaseVal);
+    if (uppercaseVal && !validateGSTIN(uppercaseVal)) {
+      setGstinError('Invalid GSTIN Format (Must be 15 alphanumeric characters, e.g., 21AAAAA1111A1Z1)');
+    } else {
+      setGstinError('');
+    }
+  };
 
   const f = (field: keyof CaseItem, val: any) => {
     const updated = { ...form, [field]: val };
@@ -46,17 +64,22 @@ export default function CaseRegisterScreen() {
   const openAdd = () => {
     setEditingCase(null);
     setForm(emptyForm());
+    setGstinError('');
     setShowForm(true);
   };
 
   const openEdit = (c: CaseItem) => {
     setEditingCase(c);
     setForm({ ...c });
+    setGstinError(c.gstin && !validateGSTIN(c.gstin) ? 'Invalid GSTIN Format (Must be 15 alphanumeric characters, e.g., 21AAAAA1111A1Z1)' : '');
     setShowForm(true);
   };
 
   const handleSave = async () => {
     if (!form.caseNo || !form.party) return alert('Case No. and Party Name are required.');
+    if (form.gstin && !validateGSTIN(form.gstin)) {
+      return alert('Please enter a valid GSTIN format (15 characters) before saving.');
+    }
     setSaving(true);
     try {
       if (editingCase) {
@@ -273,7 +296,8 @@ export default function CaseRegisterScreen() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-purple-500">GSTIN (Optional)</label>
-                  <input value={form.gstin || ''} onChange={e => f('gstin', e.target.value)} className="w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 p-3 text-sm focus:border-purple-500 outline-none font-mono" placeholder="e.g. 21XXXXX1234Z1Z5" />
+                  <input value={form.gstin || ''} onChange={e => handleGstinChange(e.target.value)} className="w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 p-3 text-sm focus:border-purple-500 outline-none font-mono" placeholder="e.g. 21XXXXX1234Z1Z5" />
+                  {gstinError && <p className="text-[10px] text-red-500 font-bold mt-1">{gstinError}</p>}
                 </div>
               </div>
 
