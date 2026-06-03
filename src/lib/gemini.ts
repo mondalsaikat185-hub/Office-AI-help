@@ -319,6 +319,21 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
 }
 
 // Semantic Chunker & RAG Implementation
+const ENGLISH_STOPWORDS = new Set([
+  'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'arent', 'as', 'at',
+  'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by',
+  'can', 'cant', 'cannot', 'could', 'couldnt', 'did', 'didnt', 'do', 'does', 'doesnt', 'doing', 'dont', 'down', 'during',
+  'each', 'few', 'for', 'from', 'further', 'had', 'hadnt', 'has', 'hasnt', 'have', 'havent', 'having', 'he', 'hed', 'hell', 'hes',
+  'her', 'here', 'heres', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'hows', 'i', 'id', 'ill', 'im', 'ive', 'if', 'in',
+  'into', 'is', 'isnt', 'it', 'its', 'itself', 'lets', 'me', 'more', 'most', 'mustnt', 'my', 'myself',
+  'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own',
+  'same', 'shant', 'she', 'shed', 'shell', 'shes', 'should', 'shouldnt', 'so', 'some', 'such', 'than', 'that', 'thats', 'the',
+  'their', 'theirs', 'them', 'themselves', 'then', 'there', 'theres', 'these', 'they', 'theyd', 'theyll', 'theyre', 'theyve',
+  'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', 'wasnt', 'we', 'wed', 'well', 'were', 'weve',
+  'werent', 'what', 'whats', 'when', 'whens', 'where', 'wheres', 'which', 'while', 'who', 'whos', 'whom', 'why', 'whys', 'with',
+  'wont', 'would', 'wouldnt', 'you', 'youd', 'youll', 'youre', 'youve', 'your', 'yours', 'yourself', 'yourselves'
+]);
+
 export const RAG = {
   chunk(text: string, maxChunkSize=500) {
     if(!text || text.length <= maxChunkSize) return text ? [{text, index:0}] : [];
@@ -353,7 +368,8 @@ export const RAG = {
     return chunks;
   },
   _tokenize(text: string) {
-    return (text||'').toLowerCase().replace(/[^\w\s\u0980-\u09FF\u0900-\u097F]/g,' ').split(/\s+/).filter(w => w.length > 2);
+    const rawTokens = (text||'').toLowerCase().replace(/[^\w\s\u0980-\u09FF\u0900-\u097F]/g,' ').split(/\s+/);
+    return rawTokens.filter(w => w.length > 2 && !ENGLISH_STOPWORDS.has(w));
   },
   _termFreq(tokens: string[]) {
     const tf: any = {};
@@ -372,6 +388,27 @@ export const RAG = {
     }
     return mag1 && mag2 ? dot / (Math.sqrt(mag1) * Math.sqrt(mag2)) : 0;
   },
+  similarityTfIdf(queryTokens: string[], docTokens: string[], idfs: { [term: string]: number }) {
+    if (!queryTokens.length || !docTokens.length) return 0;
+    const tfQ = this._termFreq(queryTokens);
+    const tfD = this._termFreq(docTokens);
+    
+    const allTerms = new Set([...Object.keys(tfQ), ...Object.keys(tfD)]);
+    let dot = 0;
+    let magQ = 0;
+    let magD = 0;
+    
+    for (const t of allTerms) {
+      const idf = idfs[t] ?? 1.0;
+      const valQ = (tfQ[t] || 0) * idf;
+      const valD = (tfD[t] || 0) * idf;
+      dot += valQ * valD;
+      magQ += valQ * valQ;
+      magD += valD * valD;
+    }
+    
+    return magQ && magD ? dot / (Math.sqrt(magQ) * Math.sqrt(magD)) : 0;
+  },
   retrieve(query: string, opts: any = {}) {
     const maxResults = opts.maxResults || 3;
     const minScore = opts.minScore || 0.08;
@@ -380,19 +417,72 @@ export const RAG = {
     
     if(!wsLetters.length) return [];
     
-    const scored = [];
-    for(const letter of wsLetters.slice(0, 50)) {
-      const fullText = 'Subject: ' + (letter.subject||'') + '\n' + (letter.body||'');
-      const chunks = this.chunk(fullText);
-      for(const chunk of chunks) {
-        const score = this.similarity(query, chunk.text);
-        if(score >= minScore) {
-          scored.push({ text: chunk.text, score, source: letter.subject || 'Untitled', date: letter.createdAt, mode: letter.mode });
+    try {
+      // ── TF-IDF Retrieval with English Stopwords ──
+      const allChunks: { text: string; source: string; date: number; mode: string; tokens: string[] }[] = [];
+      
+      for(const letter of wsLetters.slice(0, 50)) {
+        const fullText = 'Subject: ' + (letter.subject||'') + '\n' + (letter.body||'');
+        const chunks = this.chunk(fullText);
+        for(const chunk of chunks) {
+          allChunks.push({
+            text: chunk.text,
+            source: letter.subject || 'Untitled',
+            date: letter.createdAt,
+            mode: letter.mode,
+            tokens: this._tokenize(chunk.text)
+          });
         }
       }
+      
+      const N = allChunks.length;
+      if (N === 0) return [];
+      
+      // Calculate Document Frequency (DF)
+      const df: { [term: string]: number } = {};
+      for (const chunk of allChunks) {
+        const uniqueTokens = new Set(chunk.tokens);
+        for (const t of uniqueTokens) {
+          df[t] = (df[t] || 0) + 1;
+        }
+      }
+      
+      // Calculate Inverse Document Frequency (IDF)
+      const idfs: { [term: string]: number } = {};
+      for (const term in df) {
+        idfs[term] = Math.log(1 + N / df[term]);
+      }
+      
+      const queryTokens = this._tokenize(query);
+      const scored = [];
+      
+      for(const chunk of allChunks) {
+        const score = this.similarityTfIdf(queryTokens, chunk.tokens, idfs);
+        if(score >= minScore) {
+          scored.push({ text: chunk.text, score, source: chunk.source, date: chunk.date, mode: chunk.mode });
+        }
+      }
+      
+      scored.sort((a,b) => b.score - a.score);
+      return scored.slice(0, maxResults);
+      
+    } catch (err) {
+      console.error("TF-IDF RAG search failed, falling back to simple similarity matching:", err);
+      // ── Fallback: Simple Similarity Matching ──
+      const scored: any[] = [];
+      for(const letter of wsLetters.slice(0, 50)) {
+        const fullText = 'Subject: ' + (letter.subject||'') + '\n' + (letter.body||'');
+        const chunks = this.chunk(fullText);
+        for(const chunk of chunks) {
+          const score = this.similarity(query, chunk.text);
+          if(score >= minScore) {
+            scored.push({ text: chunk.text, score, source: letter.subject || 'Untitled', date: letter.createdAt, mode: letter.mode });
+          }
+        }
+      }
+      scored.sort((a,b) => b.score - a.score);
+      return scored.slice(0, maxResults);
     }
-    scored.sort((a,b) => b.score - a.score);
-    return scored.slice(0, maxResults);
   },
   buildContext(query: string) {
     const chunks = this.retrieve(query);
