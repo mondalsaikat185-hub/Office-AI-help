@@ -1004,11 +1004,11 @@ DO NOT repeat what was already written. Just continue writing the next words sea
       <div className="flex-1 space-y-6">
         <h2 className="text-[#22C55E] font-bold uppercase tracking-widest text-xs border-b-2 border-black/10 dark:border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           Write Editor
-          <div className="grid grid-cols-4 gap-1 mt-2 sm:mt-0 sm:flex sm:gap-2">
-            <button onClick={() => setParams({mode: 'ai'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'ai' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>AI Gen</button>
-            <button onClick={() => setParams({mode: 'format'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
-            <button onClick={() => setParams({mode: 'note'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
-            <button onClick={() => setParams({mode: 'order'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
+          <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+            <button onClick={() => setParams({mode: 'ai'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'ai' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>AI Gen</button>
+            <button onClick={() => setParams({mode: 'format'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
+            <button onClick={() => setParams({mode: 'note'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
+            <button onClick={() => setParams({mode: 'order'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
           </div>
         </h2>
 

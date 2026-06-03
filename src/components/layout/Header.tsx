@@ -249,7 +249,7 @@ export default function Header() {
     <header className="border-b-2 border-black/10 dark:border-white/10 bg-[#f8fafc] dark:bg-[#0A0A0A] px-3 py-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 relative" style={{ zIndex: 9999 }}>
       <div className="flex flex-nowrap gap-2 items-center w-full overflow-x-auto scrollbar-none pb-1">
         {/* Workspace Chip */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center flex-shrink-0">
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'workspace' ? null : 'workspace')}
             className="flex items-center gap-2 border border-[#22C55E]/30 bg-[#22C55E]/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-[#22C55E] transition-colors h-8"
@@ -287,7 +287,7 @@ export default function Header() {
         </div>
 
         {/* Directory Chip */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center flex-shrink-0">
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'dir' ? null : 'dir')}
             className="flex items-center gap-2 border border-blue-500/30 bg-blue-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-blue-500 transition-colors h-8"
@@ -328,7 +328,7 @@ export default function Header() {
         </div>
 
         {/* File Chip */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center flex-shrink-0">
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'file' ? null : 'file')}
             className="flex items-center gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-amber-500 transition-colors h-8"
@@ -365,7 +365,7 @@ export default function Header() {
         </div>
         
         {/* Signature Chip */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center flex-shrink-0">
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'sig' ? null : 'sig')}
             className="flex items-center gap-2 border border-purple-500/30 bg-purple-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-purple-500 transition-colors h-8"
@@ -401,7 +401,7 @@ export default function Header() {
           )}
         </div>
         {/* AI Model Chip & Theme Toggle & Three-dot Menu */}
-        <div className="relative ml-auto sm:ml-0 flex items-center gap-1 sm:gap-2">
+        <div className="relative ml-auto sm:ml-0 flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="flex items-center justify-center p-1.5 border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition-colors h-8"

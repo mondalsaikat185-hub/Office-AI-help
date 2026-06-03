@@ -271,7 +271,7 @@ export default function FilesScreen() {
                       <div className="flex items-center gap-3">
                         <Folder className="w-8 h-8 text-blue-400" />
                       </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover/dir:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover/dir:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                          <button onClick={() => editDir(ws.id, dir.id)} className="text-blue-400 hover:text-blue-300"><Edit2 className="w-4 h-4" /></button>
                          <button onClick={() => deleteDir(ws.id, dir.id)} className="text-red-400 hover:text-red-300"><Trash2 className="w-4 h-4" /></button>
                       </div>
@@ -325,7 +325,7 @@ export default function FilesScreen() {
                         <Folder className="w-6 h-6 text-blue-400" />
                         <h4 className="font-bold uppercase text-sm truncate">{subd.name}</h4>
                       </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover/subd:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover/subd:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                          <button onClick={() => editDir(currentWs.id, subd.id)} className="text-blue-400 hover:text-blue-300"><Edit2 className="w-3 h-3" /></button>
                          <button onClick={() => deleteDir(currentWs.id, subd.id)} className="text-red-400 hover:text-red-300"><Trash2 className="w-3 h-3" /></button>
                       </div>
@@ -359,7 +359,7 @@ export default function FilesScreen() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-3 opacity-0 group-hover:opacity-100 shrink-0">
+                      <div className="flex items-center gap-1 sm:gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 shrink-0">
                         <button onClick={() => handleFileClick(currentWs.id, currentDir.id, f.id, f.name, f.fileNumber || '')} className="text-[#22C55E] p-2 hover:bg-[#22C55E]/10 rounded-md" title="View Letters"><Eye className="w-4 h-4" /></button>
                         <button onClick={() => moveFile(currentWs.id, currentDir.id, f.id)} className="hidden sm:inline-flex text-blue-400 p-2 hover:bg-blue-400/10 rounded-md" title="Move File"><ArrowRightLeft className="w-4 h-4" /></button>
                         <button onClick={() => copyFile(currentWs.id, currentDir.id, f.id)} className="hidden sm:inline-flex text-green-400 p-2 hover:bg-green-400/10 rounded-md" title="Copy File"><Copy className="w-4 h-4" /></button>
