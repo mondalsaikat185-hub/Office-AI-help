@@ -942,13 +942,13 @@ DO NOT repeat what was already written. Just continue writing the next words sea
       )}
       {/* Left: Input Form */}
       <div className="flex-1 space-y-6">
-        <h2 className="text-[#22C55E] font-bold uppercase tracking-widest text-xs border-b-2 border-black/10 dark:border-white/10 pb-4 flex items-center justify-between">
+        <h2 className="text-[#22C55E] font-bold uppercase tracking-widest text-xs border-b-2 border-black/10 dark:border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           Write Editor
-          <div className="flex gap-2">
-            <button onClick={() => setParams({mode: 'ai'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'ai' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>AI Gen</button>
-            <button onClick={() => setParams({mode: 'format'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
-            <button onClick={() => setParams({mode: 'note'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
-            <button onClick={() => setParams({mode: 'order'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
+          <div className="grid grid-cols-4 gap-1 mt-2 sm:mt-0 sm:flex sm:gap-2">
+            <button onClick={() => setParams({mode: 'ai'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'ai' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>AI Gen</button>
+            <button onClick={() => setParams({mode: 'format'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
+            <button onClick={() => setParams({mode: 'note'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
+            <button onClick={() => setParams({mode: 'order'})} className={`px-1 sm:px-3 py-1 text-[9px] sm:text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
           </div>
         </h2>
 
@@ -1212,7 +1212,17 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         
         {output ? (
           <>
-            <div className="bg-neutral-200 dark:bg-neutral-800 p-2 sm:p-4 rounded-md overflow-x-auto flex justify-center">
+            {/* Mobile: simplified text preview */}
+            <div className="block md:hidden bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-4 rounded text-sm font-serif max-h-80 overflow-y-auto">
+              <p className="font-bold text-xs text-[#22C55E] mb-2 uppercase tracking-widest">
+                Preview (Simplified)
+              </p>
+              <p className="font-bold underline mb-2">Sub: {subject}</p>
+              <div className="whitespace-pre-wrap text-xs leading-relaxed">{output}</div>
+            </div>
+
+            {/* Desktop: full A4 preview */}
+            <div className="hidden md:block bg-neutral-200 dark:bg-neutral-800 p-2 sm:p-4 rounded-md overflow-x-auto flex justify-center">
               <div 
                  id="print-area"
                  className="bg-white text-black shadow-2xl relative flex-shrink-0"
@@ -1442,7 +1452,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <div>
                   <select value={paperSize} onChange={e => setPaperSize(e.target.value as any)} className="w-full bg-white dark:bg-neutral-900 border border-[#22C55E] p-1 text-[10px] text-[#22C55E] outline-none font-bold uppercase tracking-widest cursor-pointer mb-2">
                      <option value="Legal">Legal (8.5x14)</option>

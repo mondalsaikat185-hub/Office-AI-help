@@ -359,11 +359,11 @@ export default function FilesScreen() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 shrink-0">
+                      <div className="flex items-center gap-1 sm:gap-3 opacity-0 group-hover:opacity-100 shrink-0">
                         <button onClick={() => handleFileClick(currentWs.id, currentDir.id, f.id, f.name, f.fileNumber || '')} className="text-[#22C55E] p-2 hover:bg-[#22C55E]/10 rounded-md" title="View Letters"><Eye className="w-4 h-4" /></button>
-                        <button onClick={() => moveFile(currentWs.id, currentDir.id, f.id)} className="text-blue-400 p-2 hover:bg-blue-400/10 rounded-md" title="Move File"><ArrowRightLeft className="w-4 h-4" /></button>
-                        <button onClick={() => copyFile(currentWs.id, currentDir.id, f.id)} className="text-green-400 p-2 hover:bg-green-400/10 rounded-md" title="Copy File"><Copy className="w-4 h-4" /></button>
-                        <button onClick={() => editFile(currentWs.id, currentDir.id, f.id)} className="text-amber-500 p-2 hover:bg-amber-500/10 rounded-md" title="Edit Properties"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => moveFile(currentWs.id, currentDir.id, f.id)} className="hidden sm:inline-flex text-blue-400 p-2 hover:bg-blue-400/10 rounded-md" title="Move File"><ArrowRightLeft className="w-4 h-4" /></button>
+                        <button onClick={() => copyFile(currentWs.id, currentDir.id, f.id)} className="hidden sm:inline-flex text-green-400 p-2 hover:bg-green-400/10 rounded-md" title="Copy File"><Copy className="w-4 h-4" /></button>
+                        <button onClick={() => editFile(currentWs.id, currentDir.id, f.id)} className="hidden sm:inline-flex text-amber-500 p-2 hover:bg-amber-500/10 rounded-md" title="Edit Properties"><Edit2 className="w-4 h-4" /></button>
                         <button onClick={() => deleteFile(currentWs.id, currentDir.id, f.id)} className="text-red-500 p-2 hover:bg-red-500/10 rounded-md" title="Delete"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>

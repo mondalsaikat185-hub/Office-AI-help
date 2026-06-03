@@ -246,8 +246,8 @@ export default function Header() {
   };
 
   return (
-    <header className="border-b-2 border-black/10 dark:border-white/10 bg-[#f8fafc] dark:bg-[#0A0A0A] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 relative" style={{ zIndex: 9999 }}>
-      <div className="flex flex-wrap gap-2 md:gap-4 items-center w-full">
+    <header className="border-b-2 border-black/10 dark:border-white/10 bg-[#f8fafc] dark:bg-[#0A0A0A] px-3 py-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 relative" style={{ zIndex: 9999 }}>
+      <div className="flex flex-nowrap gap-2 items-center w-full overflow-x-auto scrollbar-none pb-1">
         {/* Workspace Chip */}
         <div className="relative flex items-center">
           <div 
@@ -255,19 +255,19 @@ export default function Header() {
             className="flex items-center gap-2 border border-[#22C55E]/30 bg-[#22C55E]/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-[#22C55E] transition-colors h-8"
           >
             <Building2 className="w-3.5 h-3.5 text-[#22C55E]" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[100px] truncate">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[70px] sm:max-w-[100px] truncate">
               {ws ? ws.name : 'No Workspace'}
             </span>
             <ChevronDown className="w-3 h-3 text-[#22C55E]" />
           </div>
           {ws && (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleEditWorkspace} title="Edit Workspace" className="text-[#22C55E]/60 hover:text-[#22C55E] p-1"><PenTool className="w-3.5 h-3.5" /></button>
               <button onClick={handleAddWorkspace} title="New Workspace" className="text-[#22C55E]/60 hover:text-[#22C55E] p-1"><Plus className="w-4 h-4" /></button>
             </div>
           )}
           {!ws && (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleAddWorkspace} title="New Workspace" className="text-[#22C55E]/60 hover:text-[#22C55E] p-1"><Plus className="w-4 h-4" /></button>
             </div>
           )}
@@ -293,18 +293,18 @@ export default function Header() {
             className="flex items-center gap-2 border border-blue-500/30 bg-blue-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-blue-500 transition-colors h-8"
           >
             <FolderOpen className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[120px] truncate">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[80px] sm:max-w-[120px] truncate">
               {dir ? dir.name : '—'}
             </span>
             <ChevronDown className="w-3 h-3 text-blue-400" />
           </div>
           {dir ? (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleEditDir} title="Edit Folder" className="text-blue-400/60 hover:text-blue-400 p-1"><PenTool className="w-3.5 h-3.5" /></button>
               <button onClick={handleAddDir} title="New Folder" className="text-blue-400/60 hover:text-blue-400 p-1"><Plus className="w-4 h-4" /></button>
             </div>
           ) : ws ? (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleAddDir} title="New Folder" className="text-blue-400/60 hover:text-blue-400 p-1"><Plus className="w-4 h-4" /></button>
             </div>
           ) : null}
@@ -334,18 +334,18 @@ export default function Header() {
             className="flex items-center gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-amber-500 transition-colors h-8"
           >
             <FileText className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[120px] truncate">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[80px] sm:max-w-[120px] truncate">
               {file ? file.name : '—'}
             </span>
             <ChevronDown className="w-3 h-3 text-amber-400" />
           </div>
           {file ? (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleEditFile} title="Edit File" className="text-amber-500/60 hover:text-amber-500 p-1"><PenTool className="w-3.5 h-3.5" /></button>
               <button onClick={handleAddFile} title="New File" className="text-amber-500/60 hover:text-amber-500 p-1"><Plus className="w-4 h-4" /></button>
             </div>
           ) : dir ? (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleAddFile} title="New File" className="text-amber-500/60 hover:text-amber-500 p-1"><Plus className="w-4 h-4" /></button>
             </div>
           ) : null}
@@ -365,24 +365,24 @@ export default function Header() {
         </div>
         
         {/* Signature Chip */}
-        <div className="relative ml-auto sm:ml-0 flex items-center">
+        <div className="relative flex items-center">
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'sig' ? null : 'sig')}
             className="flex items-center gap-2 border border-purple-500/30 bg-purple-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-purple-500 transition-colors h-8"
           >
             <Signature className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[120px] truncate">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[80px] sm:max-w-[100px] truncate">
               {sig ? `${sig.designation.split(/[(\/]/)[0].trim()} - ${sig.name.split(' ').slice(-1)[0]}` : '—'}
             </span>
             <ChevronDown className="w-3 h-3 text-purple-400" />
           </div>
           {sig ? (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleEditSig} title="Edit Signature" className="text-purple-400/60 hover:text-purple-400 p-1"><PenTool className="w-3.5 h-3.5" /></button>
               <button onClick={handleAddSig} title="New Signature" className="text-purple-400/60 hover:text-purple-400 p-1"><Plus className="w-4 h-4" /></button>
             </div>
           ) : ws ? (
-            <div className="flex items-center gap-1 ml-1 h-8 px-1">
+            <div className="hidden sm:flex items-center gap-1 ml-1 h-8 px-1">
               <button onClick={handleAddSig} title="New Signature" className="text-purple-400/60 hover:text-purple-400 p-1"><Plus className="w-4 h-4" /></button>
             </div>
           ) : null}

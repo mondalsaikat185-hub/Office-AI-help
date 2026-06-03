@@ -30,29 +30,29 @@ export default function HomeScreen() {
         <h2 className="text-[#22C55E] font-mono text-sm tracking-widest uppercase mb-2">{greeting()}</h2>
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-8">{name}</h1>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 border-t-2 border-black/10 dark:border-white/10 pt-8">
+        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 border-t-2 border-black/10 dark:border-white/10 pt-8">
           <div>
-            <p className="text-3xl font-bold text-[#22C55E]">{letters.length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-[#22C55E]">{letters.length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Letters</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-black dark:text-white">{totalFiles}</p>
+            <p className="text-xl sm:text-3xl font-bold text-black dark:text-white">{totalFiles}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Files</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-amber-500">{pendingInbox}</p>
+            <p className="text-xl sm:text-3xl font-bold text-amber-500">{pendingInbox}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Inbox</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-orange-500">{(diary || []).filter(d => !d.isCompleted).length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-orange-500">{(diary || []).filter(d => !d.isCompleted).length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Pending Diary</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-purple-500">{(cases || []).filter(c => c.stage !== 'Closed').length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-purple-500">{(cases || []).filter(c => c.stage !== 'Closed').length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Active Cases</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-emerald-500 truncate" title={`₹${((demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0)).toLocaleString('en-IN')}`}>
+            <p className="text-lg sm:text-2xl font-bold text-emerald-500 truncate" title={`₹${((demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0)).toLocaleString('en-IN')}`}>
               ₹{(() => {
                 const pendingDemand = (demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0);
                 return pendingDemand >= 100000 ? `${(pendingDemand / 100000).toFixed(1)}L` : pendingDemand.toLocaleString('en-IN');
@@ -66,45 +66,45 @@ export default function HomeScreen() {
       {/* Quick Actions */}
       <section>
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#22C55E] mb-6">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          <button onClick={() => navigate('/write?mode=ai')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-[#22C55E] p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <Bot className="w-6 h-6 text-[#22C55E] mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">AI Generate</h4>
+        <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-4">
+          <button onClick={() => navigate('/write?mode=ai')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-[#22C55E] p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <Bot className="w-4 h-4 md:w-6 md:h-6 text-[#22C55E] mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">AI Generate</h4>
           </button>
           
-          <button onClick={() => navigate('/write?mode=note')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-amber-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <FileSignature className="w-6 h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Note Sheet</h4>
+          <button onClick={() => navigate('/write?mode=note')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-amber-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <FileSignature className="w-4 h-4 md:w-6 md:h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Note Sheet</h4>
           </button>
 
-          <button onClick={() => navigate('/write?mode=order')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-red-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <Gavel className="w-6 h-6 text-red-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Order Letter</h4>
+          <button onClick={() => navigate('/write?mode=order')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-red-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <Gavel className="w-4 h-4 md:w-6 md:h-6 text-red-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Order Letter</h4>
           </button>
 
-          <button onClick={() => navigate('/write?mode=format')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-blue-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <Sparkles className="w-6 h-6 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Format Only</h4>
+          <button onClick={() => navigate('/write?mode=format')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-blue-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Format Only</h4>
           </button>
 
-          <button onClick={() => navigate('/inbox')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-purple-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <Inbox className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Inbox</h4>
+          <button onClick={() => navigate('/inbox')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-purple-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <Inbox className="w-4 h-4 md:w-6 md:h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Inbox</h4>
           </button>
 
-          <button onClick={() => navigate('/diary')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-orange-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <CalendarDays className="w-6 h-6 text-orange-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Diary</h4>
+          <button onClick={() => navigate('/diary')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-orange-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <CalendarDays className="w-4 h-4 md:w-6 md:h-6 text-orange-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Diary</h4>
           </button>
 
-          <button onClick={() => navigate('/demand')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-emerald-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <IndianRupee className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Demand</h4>
+          <button onClick={() => navigate('/demand')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-emerald-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <IndianRupee className="w-4 h-4 md:w-6 md:h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Demand</h4>
           </button>
           
-          <button onClick={() => navigate('/reports')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-sky-500 p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
-            <BarChart2 className="w-6 h-6 text-sky-500 mb-2 group-hover:scale-110 transition-transform" />
-            <h4 className="font-bold uppercase tracking-wide text-[10px] mb-1">Reports</h4>
+          <button onClick={() => navigate('/reports')} className="text-left border-2 border-black/10 dark:border-white/10 hover:border-sky-500 p-2 md:p-4 transition-all group bg-black/5 dark:bg-white/5 hover:bg-white/10">
+            <BarChart2 className="w-4 h-4 md:w-6 md:h-6 text-sky-500 mb-2 group-hover:scale-110 transition-transform" />
+            <h4 className="font-bold uppercase tracking-wide text-[8px] md:text-[10px] mb-1">Reports</h4>
           </button>
         </div>
       </section>

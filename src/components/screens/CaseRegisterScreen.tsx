@@ -238,7 +238,7 @@ export default function CaseRegisterScreen() {
       {/* Add / Edit Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-neutral-900 border-2 border-purple-500/40 w-full max-w-2xl shadow-2xl mt-8 mb-8">
+          <div className="bg-white dark:bg-neutral-900 border-2 border-purple-500/40 w-full max-w-2xl shadow-2xl mt-4 mb-4 sm:mt-8 sm:mb-8">
 
             <div className="flex justify-between items-center p-6 border-b-2 border-black/10 dark:border-white/10 bg-purple-500/5">
               <h2 className="text-xl font-black uppercase tracking-widest text-purple-500">
@@ -249,7 +249,7 @@ export default function CaseRegisterScreen() {
               </button>
             </div>
 
-            <div className="p-6 space-y-5">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
 
               {/* Row 1 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

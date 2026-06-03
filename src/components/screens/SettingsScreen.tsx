@@ -255,7 +255,7 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
                            </div>
                            <div className="flex gap-2">
                               <input value={ws.letterhead?.[`l${i}` as keyof Letterhead] as string || ''} onChange={e => handleUpdateLetterhead(ws.id, `l${i}` as keyof Letterhead, e.target.value)} className="flex-1 bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-3 text-black dark:text-white text-base" placeholder={i === 1 ? 'e.g. भारत सरकार | Government of India' : ''} />
-                              <input type="number" min="8" max="48" value={ws.letterhead?.[`s${i}` as keyof Letterhead] as number || 16} onChange={e => handleUpdateLetterhead(ws.id, `s${i}` as keyof Letterhead, e.target.value)} className="w-24 bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-3 text-black dark:text-white text-base" />
+                              <input type="number" min="8" max="48" value={ws.letterhead?.[`s${i}` as keyof Letterhead] as number || 16} onChange={e => handleUpdateLetterhead(ws.id, `s${i}` as keyof Letterhead, e.target.value)} className="w-20 sm:w-24 bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-3 text-black dark:text-white text-base" />
                            </div>
                         </div>
                       ))}

@@ -1,97 +1,122 @@
 import { useState, useRef, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, Edit3, Folder, Inbox, Settings, Layers, Briefcase, CalendarDays, IndianRupee, BarChart2, MoreHorizontal, FileText } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Home, Edit3, Folder, Inbox, Settings, Layers, Briefcase,
+         CalendarDays, IndianRupee, BarChart2, MoreHorizontal,
+         FileText, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export default function BottomNav() {
   const [showMore, setShowMore] = useState(false);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
+  // Main 4 items always visible in bottom bar
   const mainItems = [
-    { to: "/home", icon: <Home className="w-5 h-5" />, label: "Dashboard" },
-    { to: "/write", icon: <Edit3 className="w-5 h-5" />, label: "Write" },
-    { to: "/cases", icon: <Briefcase className="w-5 h-5" />, label: "Cases" },
-    { to: "/inbox", icon: <Inbox className="w-5 h-5" />, label: "Inbox" }
+    { to: "/home",  icon: <Home className="w-5 h-5" />,     label: "Home" },
+    { to: "/write", icon: <Edit3 className="w-5 h-5" />,    label: "Write" },
+    { to: "/files", icon: <Folder className="w-5 h-5" />,   label: "Files" },
+    { to: "/inbox", icon: <Inbox className="w-5 h-5" />,    label: "Inbox" },
   ];
 
+  // Extra items in "More" sheet
   const moreItems = [
-    { to: "/files", icon: <Folder className="w-5 h-5" />, label: "Files" },
-    { to: "/diary", icon: <CalendarDays className="w-5 h-5" />, label: "Diary" },
-    { to: "/reports", icon: <BarChart2 className="w-5 h-5" />, label: "Reports" },
-    { to: "/gpf", icon: <FileText className="w-5 h-5" />, label: "GPF Tool" },
-    { to: "/demand", icon: <IndianRupee className="w-5 h-5" />, label: "Recovery" },
-    { to: "/bulk", icon: <Layers className="w-5 h-5" />, label: "Bulk" },
-    { to: "/settings", icon: <Settings className="w-5 h-5" />, label: "Settings" }
+    { to: "/diary",    icon: <CalendarDays className="w-5 h-5" />,  label: "Diary" },
+    { to: "/cases",    icon: <Briefcase className="w-5 h-5" />,     label: "Cases" },
+    { to: "/demand",   icon: <IndianRupee className="w-5 h-5" />,   label: "Recovery" },
+    { to: "/reports",  icon: <BarChart2 className="w-5 h-5" />,     label: "Reports" },
+    { to: "/gpf",      icon: <FileText className="w-5 h-5" />,      label: "GPF Tool" },
+    { to: "/bulk",     icon: <Layers className="w-5 h-5" />,        label: "Bulk/Merge" },
+    { to: "/settings", icon: <Settings className="w-5 h-5" />,      label: "Settings" },
   ];
-
-  // Close popover when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setShowMore(false);
-      }
-    }
-    if (showMore) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMore]);
 
   return (
-    <div className="relative">
-      {/* More Options Popover */}
+    <>
+      {/* More Sheet Overlay */}
       {showMore && (
-        <div 
-          ref={popoverRef} 
-          className="absolute bottom-16 right-4 left-4 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-2 border-black/10 dark:border-white/10 p-4 grid grid-cols-3 gap-4 shadow-2xl z-50 animate-in slide-in-from-bottom duration-200"
-        >
-          {moreItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setShowMore(false)}
+        />
+      )}
+
+      {/* More Items Sheet — slides up from bottom */}
+      {showMore && (
+        <div className="fixed bottom-16 left-0 right-0 z-50
+                        bg-white dark:bg-neutral-900
+                        border-t-2 border-black/10 dark:border-white/10
+                        shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="flex justify-between items-center px-4 py-3
+                          border-b border-black/10 dark:border-white/10">
+            <p className="text-[10px] font-bold uppercase tracking-widest
+                          text-black/50 dark:text-white/50">More Options</p>
+            <button
               onClick={() => setShowMore(false)}
-              className={({isActive}) => cn(
-                "flex flex-col items-center gap-2 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors",
-                isActive ? "text-[#22C55E]" : "text-black dark:text-white"
-              )}
+              className="p-1 text-black/40 dark:text-white/40
+                         hover:text-black dark:hover:text-white"
             >
-              {item.icon}
-              <span className="text-[10px] font-bold uppercase tracking-widest text-center">{item.label}</span>
-            </NavLink>
-          ))}
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-0 p-2">
+            {moreItems.map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setShowMore(false)}
+                className={({ isActive }) => cn(
+                  "flex flex-col items-center gap-1 p-3 text-center transition-colors",
+                  isActive
+                    ? "text-[#22C55E]"
+                    : "text-black/60 dark:text-white/50 hover:text-black dark:hover:text-white"
+                )}
+              >
+                {item.icon}
+                <span className="text-[9px] font-bold uppercase tracking-widest">
+                  {item.label}
+                </span>
+              </NavLink>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Main Bottom Bar */}
-      <nav className="border-t-2 border-black/10 dark:border-white/10 bg-[#f8fafc] dark:bg-[#0A0A0A] flex justify-around p-2 pb-safe relative z-10">
-        {mainItems.map((item) => (
+      {/* Bottom Nav Bar */}
+      <nav className="border-t-2 border-black/10 dark:border-white/10
+                      bg-[#f8fafc] dark:bg-[#0A0A0A]
+                      flex justify-around items-center
+                      h-16 px-1
+                      safe-area-pb">
+        {mainItems.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
-            className={({isActive}) => cn(
-              "flex flex-col items-center gap-1 p-2 w-full text-center transition-colors",
-              isActive ? "text-[#22C55E]" : "text-black dark:text-white/40 hover:text-black dark:text-white/80"
+            className={({ isActive }) => cn(
+              "flex flex-col items-center gap-1 px-2 py-2 flex-1 text-center transition-colors",
+              isActive
+                ? "text-[#22C55E]"
+                : "text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white"
             )}
           >
             {item.icon}
-            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest">
+              {item.label}
+            </span>
           </NavLink>
         ))}
 
-        {/* More Toggle Button */}
+        {/* More Button */}
         <button
-          onClick={() => setShowMore(!showMore)}
+          onClick={() => setShowMore(v => !v)}
           className={cn(
-            "flex flex-col items-center gap-1 p-2 w-full text-center transition-colors outline-none",
-            showMore ? "text-[#22C55E]" : "text-black dark:text-white/40 hover:text-black dark:text-white/80"
+            "flex flex-col items-center gap-1 px-2 py-2 flex-1 text-center transition-colors",
+            showMore
+              ? "text-[#22C55E]"
+              : "text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white"
           )}
         >
           <MoreHorizontal className="w-5 h-5" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">More</span>
+          <span className="text-[9px] font-bold uppercase tracking-widest">More</span>
         </button>
       </nav>
-    </div>
+    </>
   );
 }
