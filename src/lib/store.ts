@@ -104,27 +104,117 @@ export const useStore = create<GlobalStore>((set, get) => ({
       await learningEngine.load(user.uid);
       const userDocRef = doc(db, 'officeai_users', user.uid);
       const snap = await getDoc(userDocRef);
+      
+      let coreData: Partial<AppState> = {};
+      let migratedWorkspaces: Workspace[] = [];
+      let migratedDemands: any[] = [];
+      let migratedDiary: any[] = [];
+      let needsMigrationSave = false;
+
       if (snap.exists()) {
-        const data = snap.data() as Partial<AppState>;
-        set((state) => ({ ...state, ...data }));
-      } else {
-        console.log("No user document found. Needs setup.");
+        coreData = snap.data() as Partial<AppState>;
+        if (coreData.workspaces && coreData.workspaces.length > 0) {
+          migratedWorkspaces = coreData.workspaces;
+          needsMigrationSave = true;
+        }
+        if (coreData.demands && coreData.demands.length > 0) {
+          migratedDemands = coreData.demands;
+          needsMigrationSave = true;
+        }
+        if (coreData.diary && coreData.diary.length > 0) {
+          migratedDiary = coreData.diary;
+          needsMigrationSave = true;
+        }
+      }
+
+      // Load workspaces from subcollection
+      const workspacesRef = collection(db, 'officeai_users', user.uid, 'workspaces');
+      const workspacesSnap = await getDocs(workspacesRef);
+      let loadedWorkspaces = workspacesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Workspace));
+
+      // Load demands from subcollection
+      const demandsRef = collection(db, 'officeai_users', user.uid, 'demands');
+      const demandsSnap = await getDocs(demandsRef);
+      let loadedDemands = demandsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      // Load diary from subcollection
+      const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
+      const diarySnap = await getDocs(diaryRef);
+      let loadedDiary = diarySnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      // Migration fallback
+      if (loadedWorkspaces.length === 0 && migratedWorkspaces.length > 0) {
+        console.log("Migrating legacy workspaces...");
+        const batch = writeBatch(db);
+        migratedWorkspaces.forEach(w => {
+          batch.set(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), w);
+        });
+        await batch.commit();
+        loadedWorkspaces = migratedWorkspaces;
+      }
+
+      if (loadedDemands.length === 0 && migratedDemands.length > 0) {
+        console.log("Migrating legacy demands...");
+        const batch = writeBatch(db);
+        migratedDemands.forEach(d => {
+          batch.set(doc(db, 'officeai_users', user.uid, 'demands', d.id), d);
+        });
+        await batch.commit();
+        loadedDemands = migratedDemands;
+      }
+
+      if (loadedDiary.length === 0 && migratedDiary.length > 0) {
+        console.log("Migrating legacy diary...");
+        const batch = writeBatch(db);
+        migratedDiary.forEach(d => {
+          batch.set(doc(db, 'officeai_users', user.uid, 'diary', d.id), d);
+        });
+        await batch.commit();
+        loadedDiary = migratedDiary;
+      }
+
+      if (needsMigrationSave) {
+        console.log("Cleaning up legacy core user document fields...");
+        const cleanupData = {
+          workspaces: [],
+          demands: [],
+          diary: [],
+          drafts: {}
+        };
+        await setDoc(userDocRef, cleanupData, { merge: true });
       }
 
       // Load inbox
       const inboxRef = collection(db, 'officeai_users', user.uid, 'inbox');
       const inboxSnap = await getDocs(query(inboxRef, orderBy('createdAt', 'desc'), limit(50)));
-      set({ inbox: inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem)) });
+      const loadedInbox = inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem));
 
       // Load letters
       const lettersRef = collection(db, 'officeai_users', user.uid, 'letters');
       const lettersSnap = await getDocs(query(lettersRef, orderBy('createdAt', 'desc'), limit(500)));
-      set({ letters: lettersSnap.docs.map(d => ({ id: d.id, ...d.data() } as Letter)) });
+      const loadedLetters = lettersSnap.docs.map(d => ({ id: d.id, ...d.data() } as Letter));
 
       // Load cases
       const casesRef = collection(db, 'officeai_users', user.uid, 'cases');
       const casesSnap = await getDocs(query(casesRef, orderBy('createdAt', 'desc'), limit(200)));
-      set({ cases: casesSnap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem)) });
+      const loadedCases = casesSnap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem));
+
+      const cleanCoreData: any = { ...coreData };
+      delete cleanCoreData.workspaces;
+      delete cleanCoreData.demands;
+      delete cleanCoreData.diary;
+      delete cleanCoreData.drafts;
+
+      set((state) => ({
+        ...state,
+        ...cleanCoreData,
+        workspaces: loadedWorkspaces,
+        demands: loadedDemands,
+        diary: loadedDiary,
+        inbox: loadedInbox,
+        letters: loadedLetters,
+        cases: loadedCases
+      }));
 
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -132,39 +222,84 @@ export const useStore = create<GlobalStore>((set, get) => ({
   },
 
   saveUserData: async (partialData) => {
-    const { user, profile, workspaces, apiKeys, mistralKey, tokenBudget, addressBook, phrases, templates, appPasswordHash, tgBotToken, tgChatId, drafts } = get();
+    const { user } = get();
     if (!user) return;
 
-    if (partialData) {
-      set(partialData);
-    }
-
     try {
-      const rawToSave = {
-        profile: partialData?.profile ?? profile ?? null,
-        workspaces: partialData?.workspaces ?? workspaces ?? [],
-        apiKeys: partialData?.apiKeys ?? apiKeys ?? [],
-        selectedModel: partialData?.selectedModel ?? get().selectedModel ?? '',
-        mistralKey: partialData?.mistralKey ?? mistralKey ?? '',
-        tokenBudget: partialData?.tokenBudget ?? tokenBudget ?? 0,
-        addressBook: partialData?.addressBook ?? addressBook ?? [],
-        phrases: partialData?.phrases ?? phrases ?? [],
-        templates: partialData?.templates ?? templates ?? [],
-        appPasswordHash: partialData?.appPasswordHash ?? appPasswordHash ?? '',
-        tgBotToken: partialData?.tgBotToken ?? tgBotToken ?? '',
-        tgChatId: partialData?.tgChatId ?? tgChatId ?? '',
-        drafts: partialData?.drafts ?? drafts ?? {},
-        diary: partialData?.diary ?? get().diary ?? [],
-        demands: partialData?.demands ?? get().demands ?? [],
-        activeWorkspaceId: partialData?.activeWorkspaceId ?? get().activeWorkspaceId ?? null,
-        activeDirectoryId: partialData?.activeDirectoryId ?? get().activeDirectoryId ?? null,
-        activeFileId: partialData?.activeFileId ?? get().activeFileId ?? null,
-        activeSignatureId: partialData?.activeSignatureId ?? get().activeSignatureId ?? null,
+      if (partialData) {
+        // Sync subcollections if they are updated in partialData
+        if ('workspaces' in partialData) {
+          const oldWs = get().workspaces;
+          const newWs = partialData.workspaces || [];
+          const deleted = oldWs.filter(ow => !newWs.some(nw => nw.id === ow.id));
+          for (const w of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id));
+          }
+          for (const w of newWs) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), JSON.parse(JSON.stringify(w)));
+          }
+        }
+        if ('demands' in partialData) {
+          const oldDemands = get().demands;
+          const newDemands = partialData.demands || [];
+          const deleted = oldDemands.filter(od => !newDemands.some(nd => nd.id === od.id));
+          for (const d of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'demands', d.id));
+          }
+          for (const d of newDemands) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'demands', d.id), JSON.parse(JSON.stringify(d)));
+          }
+        }
+        if ('diary' in partialData) {
+          const oldDiary = get().diary;
+          const newDiary = partialData.diary || [];
+          const deleted = oldDiary.filter(od => !newDiary.some(nd => nd.id === od.id));
+          for (const d of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id));
+          }
+          for (const d of newDiary) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id), JSON.parse(JSON.stringify(d)));
+          }
+        }
+
+        set(partialData);
+      } else {
+        // Full sync
+        const { workspaces, demands, diary } = get();
+        for (const w of workspaces) {
+          await setDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), JSON.parse(JSON.stringify(w)));
+        }
+        for (const d of demands) {
+          await setDoc(doc(db, 'officeai_users', user.uid, 'demands', d.id), JSON.parse(JSON.stringify(d)));
+        }
+        for (const d of diary) {
+          await setDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id), JSON.parse(JSON.stringify(d)));
+        }
+      }
+
+      // Save core user doc without subcollection datasets and drafts
+      const state = get();
+      const rawCoreToSave = {
+        profile: state.profile ?? null,
+        apiKeys: state.apiKeys ?? [],
+        selectedModel: state.selectedModel ?? '',
+        mistralKey: state.mistralKey ?? '',
+        tokenBudget: state.tokenBudget ?? 0,
+        addressBook: state.addressBook ?? [],
+        phrases: state.phrases ?? [],
+        templates: state.templates ?? [],
+        appPasswordHash: state.appPasswordHash ?? '',
+        tgBotToken: state.tgBotToken ?? '',
+        tgChatId: state.tgChatId ?? '',
+        activeWorkspaceId: state.activeWorkspaceId ?? null,
+        activeDirectoryId: state.activeDirectoryId ?? null,
+        activeFileId: state.activeFileId ?? null,
+        activeSignatureId: state.activeSignatureId ?? null,
         lastUpdate: Date.now()
       };
 
-      const toSave = JSON.parse(JSON.stringify(rawToSave));
-      await setDoc(doc(db, 'officeai_users', user.uid), toSave, { merge: true });
+      const coreToSave = JSON.parse(JSON.stringify(rawCoreToSave));
+      await setDoc(doc(db, 'officeai_users', user.uid), coreToSave, { merge: true });
     } catch (error) {
       console.error("Error saving user data:", error);
       throw error;
