@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function HomeScreen() {
-  const { user, letters, inbox, workspaces, diary = [], demands = [], cases = [] } = useStore();
+  const { user, letters, inbox, workspaces, diary = [], demands = [], cases = [], activeWorkspaceId } = useStore();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<string>('all');
@@ -18,10 +18,17 @@ export default function HomeScreen() {
 
   const name = user?.displayName || user?.email?.split('@')[0] || 'Officer';
 
-  let totalFiles = 0;
-  workspaces.forEach(w => w.directories.forEach(d => totalFiles += (d.files?.length || 0)));
+  const activeLetters = letters.filter(l => !activeWorkspaceId || l.workspaceId === activeWorkspaceId);
+  const activeInbox = inbox.filter(i => !activeWorkspaceId || i.workspaceId === activeWorkspaceId);
+  const activeDiary = (diary || []).filter(d => !activeWorkspaceId || d.workspaceId === activeWorkspaceId);
+  const activeCases = (cases || []).filter(c => !activeWorkspaceId || c.workspaceId === activeWorkspaceId);
+  const activeDemands = (demands || []).filter(d => !activeWorkspaceId || d.workspaceId === activeWorkspaceId);
 
-  const pendingInbox = inbox.filter(i => i.status !== 'done').length;
+  let totalFiles = 0;
+  const activeWsList = activeWorkspaceId ? workspaces.filter(w => w.id === activeWorkspaceId) : workspaces;
+  activeWsList.forEach(w => w.directories.forEach(d => totalFiles += (d.files?.length || 0)));
+
+  const pendingInbox = activeInbox.filter(i => i.status !== 'done').length;
 
   return (
     <div className="space-y-12">
@@ -32,7 +39,7 @@ export default function HomeScreen() {
         
         <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 border-t-2 border-black/10 dark:border-white/10 pt-8">
           <div>
-            <p className="text-xl sm:text-3xl font-bold text-[#22C55E]">{letters.length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-[#22C55E]">{activeLetters.length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Letters</p>
           </div>
           <div>
@@ -44,17 +51,17 @@ export default function HomeScreen() {
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Inbox</p>
           </div>
           <div>
-            <p className="text-xl sm:text-3xl font-bold text-orange-500">{(diary || []).filter(d => !d.isCompleted).length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-orange-500">{activeDiary.filter(d => !d.isCompleted).length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Pending Diary</p>
           </div>
           <div>
-            <p className="text-xl sm:text-3xl font-bold text-purple-500">{(cases || []).filter(c => c.stage !== 'Closed').length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-purple-500">{activeCases.filter(c => c.stage !== 'Closed').length}</p>
             <p className="text-[10px] text-black dark:text-white/50 uppercase font-bold tracking-widest mt-1">Active Cases</p>
           </div>
           <div>
-            <p className="text-lg sm:text-2xl font-bold text-emerald-500 truncate" title={`₹${((demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0)).toLocaleString('en-IN')}`}>
+            <p className="text-lg sm:text-2xl font-bold text-emerald-500 truncate" title={`₹${(activeDemands.reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - activeDemands.reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0)).toLocaleString('en-IN')}`}>
               ₹{(() => {
-                const pendingDemand = (demands || []).reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - (demands || []).reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0);
+                const pendingDemand = activeDemands.reduce((acc: any, d: any) => acc + (d.amount || 0), 0) - activeDemands.reduce((acc: any, d: any) => acc + (d.recoveredAmount || 0), 0);
                 return pendingDemand >= 100000 ? `${(pendingDemand / 100000).toFixed(1)}L` : pendingDemand.toLocaleString('en-IN');
               })()}
             </p>
@@ -113,7 +120,7 @@ export default function HomeScreen() {
       <section>
         <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-6">Today's Agenda</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {diary.filter(d => !d.isCompleted && d.date === new Date().toISOString().slice(0, 10)).map(item => (
+          {activeDiary.filter(d => !d.isCompleted && d.date === new Date().toISOString().slice(0, 10)).map(item => (
             <div key={item.id} onClick={() => navigate('/diary')} className="border border-amber-500/30 bg-amber-500/5 p-4 cursor-pointer hover:border-amber-500 transition-colors">
                <div className="flex justify-between items-start mb-2">
                  <div className={`text-[10px] uppercase font-bold tracking-widest px-2 py-1 border ${item.type === 'hearing' ? 'border-blue-500 text-blue-500' : item.type === 'deadline' ? 'border-red-500 text-red-500' : 'border-gray-500 text-gray-500'}`}>
@@ -123,7 +130,7 @@ export default function HomeScreen() {
                <h4 className="font-bold text-sm">{item.title}</h4>
             </div>
           ))}
-          {(!diary || diary.filter(d => !d.isCompleted && d.date === new Date().toISOString().slice(0, 10)).length === 0) && (
+          {(!activeDiary || activeDiary.filter(d => !d.isCompleted && d.date === new Date().toISOString().slice(0, 10)).length === 0) && (
             <div className="col-span-full border border-black/10 dark:border-white/10 p-6 text-center text-black/50 dark:text-white/50 text-xs font-mono uppercase tracking-widest bg-black/5 dark:bg-white/5">
               No pending items for today.
             </div>
@@ -160,12 +167,12 @@ export default function HomeScreen() {
            </div>
          </div>
          <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-           {letters.length === 0 ? (
+           {activeLetters.length === 0 ? (
              <div className="border-2 border-black/10 dark:border-white/10 p-8 text-center text-black dark:text-white/40 font-mono text-sm uppercase tracking-widest">
                No letters yet
              </div>
            ) : (
-             letters
+             activeLetters
               .filter(l => filterMode === 'all' || l.mode === filterMode)
               .filter(l => !search || l.subject?.toLowerCase().includes(search.toLowerCase()) || l.fileName?.toLowerCase().includes(search.toLowerCase()))
               .map(letter => (
@@ -182,7 +189,7 @@ export default function HomeScreen() {
                </div>
              ))
            )}
-           {letters.length > 0 && letters
+           {activeLetters.length > 0 && activeLetters
               .filter(l => filterMode === 'all' || l.mode === filterMode)
               .filter(l => !search || l.subject?.toLowerCase().includes(search.toLowerCase()) || l.fileName?.toLowerCase().includes(search.toLowerCase()))
               .length === 0 && (

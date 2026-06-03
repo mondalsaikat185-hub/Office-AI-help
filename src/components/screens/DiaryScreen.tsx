@@ -62,6 +62,7 @@ export default function DiaryScreen() {
   };
 
   const sortedDiary = [...diary]
+    .filter(i => !activeWorkspaceId || i.workspaceId === activeWorkspaceId)
     .filter(i => filter === 'all' || (filter === 'pending' ? !i.isCompleted : i.isCompleted))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 

@@ -19,7 +19,7 @@ export default function DemandScreen() {
   const addDemand = () => {
     if(newDemand.partyName && (newDemand.tax > 0 || newDemand.penalty > 0)) {
       const amount = (newDemand.tax || 0) + (newDemand.penalty || 0) + (newDemand.interest || 0);
-      saveUserData({ demands: [...demands, { ...newDemand, tax: newDemand.tax.toString(), penalty: newDemand.penalty.toString(), interest: newDemand.interest.toString(), party: newDemand.partyName, oio: newDemand.oioNo, recovered: newDemand.recoveredAmount, amount, id: Date.now().toString(), status: 'Pending' }] });
+      saveUserData({ demands: [...demands, { ...newDemand, tax: newDemand.tax.toString(), penalty: newDemand.penalty.toString(), interest: newDemand.interest.toString(), party: newDemand.partyName, oio: newDemand.oioNo, recovered: newDemand.recoveredAmount, amount, id: Date.now().toString(), status: 'Pending', workspaceId: activeWorkspaceId || '' }] });
       setNewDemand({ date: '', partyName: '', oioNo: '', oioDate: '', tax: 0, penalty: 0, interest: 0, recoveredAmount: 0, remarks: '' });
       setCalcFromDate('');
       setCalcToDate('');
@@ -65,8 +65,10 @@ export default function DemandScreen() {
     saveUserData({ demands: demands.filter((d:any) => d.id !== id) });
   };
 
-  const totalDemand = demands.reduce((acc:any, d:any) => acc + (d.amount || 0), 0);
-  const totalRecovered = demands.reduce((acc:any, d:any) => acc + (d.recoveredAmount || 0), 0);
+  const activeDemands = demands.filter((d: any) => !activeWorkspaceId || d.workspaceId === activeWorkspaceId);
+
+  const totalDemand = activeDemands.reduce((acc:any, d:any) => acc + (d.amount || 0), 0);
+  const totalRecovered = activeDemands.reduce((acc:any, d:any) => acc + (d.recoveredAmount || 0), 0);
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-20">
@@ -79,7 +81,7 @@ export default function DemandScreen() {
         </div>
         <button 
           onClick={() => {
-            generateDemandRegister(demands, officeName, new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
+            generateDemandRegister(activeDemands, officeName, new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
           }}
           className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs px-6 py-2 flex items-center gap-2"
         >
@@ -188,7 +190,7 @@ export default function DemandScreen() {
             </tr>
           </thead>
           <tbody className="text-xs">
-            {demands.map(d => (
+            {activeDemands.map(d => (
               <tr key={d.id} className="border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5">
                 <td className="p-2 font-bold">
                    <input type="text" value={d.partyName} onChange={e=>updateField(d.id, 'partyName', e.target.value)} className="bg-transparent border-b border-black/20 outline-none w-32" />
@@ -227,11 +229,12 @@ export default function DemandScreen() {
                 </td>
               </tr>
             ))}
-            {demands.length === 0 && (
+            {activeDemands.length === 0 && (
               <tr>
                 <td colSpan={9} className="p-8 text-center text-black/40 dark:text-white/40 font-bold uppercase tracking-widest text-xs">No demands found.</td>
               </tr>
             )}
+
           </tbody>
         </table>
       </div>

@@ -144,6 +144,40 @@ export interface DiaryItem {
   createdAt: number;
 }
 
+export interface EmployeeRecord {
+  id: string;
+  name: string;
+  designation: string;
+  phone: string;
+  dob: string;
+  doj: string;
+  dor: string;
+  gpfNo: string;
+  postingStation: string;
+  status: 'active' | 'retired' | 'transferred';
+  workspaceId: string;
+}
+
+export interface BondRecord {
+  id: string;
+  type: string;
+  party: string;
+  amount: string;
+  expiryDate: string;
+  status: string;
+  workspaceId: string;
+}
+
+export interface RevenueRecord {
+  id: string;
+  month: string;
+  totalRevenue: string;
+  customDuty: string;
+  cgst: string;
+  sgst: string;
+  workspaceId: string;
+}
+
 export interface AppState {
   profile: UserProfile | null;
   workspaces: Workspace[];
@@ -159,6 +193,9 @@ export interface AppState {
   tgChatId: string;
   diary?: DiaryItem[];
   demands?: DemandItem[];
+  employees?: EmployeeRecord[];
+  bonds?: BondRecord[];
+  revenue?: RevenueRecord[];
 }
 
 export interface DemandItem {
@@ -176,6 +213,7 @@ export interface DemandItem {
   recovered: number;
   recoveredAmount?: number;
   status: string;
+  workspaceId?: string;
 }
 
 export interface CaseItem {

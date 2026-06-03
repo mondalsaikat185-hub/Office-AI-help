@@ -1,32 +1,22 @@
 import React, { useState } from 'react';
 import { useStore } from '../../lib/store';
-import { BarChart2, UploadCloud, Users, Download, FileImage, Search, FileText, CalendarClock, ShieldAlert, IndianRupee } from 'lucide-react';
-import { generateEmployeeReport, EmployeeRecord, parseUploadedExcel, generateGenericExcel, generatePendencyStatement } from '../../lib/excelReports';
+import { BarChart2, UploadCloud, Users, Download, FileImage, Search, FileText, CalendarClock, ShieldAlert, IndianRupee, Trash2 } from 'lucide-react';
+import { generateEmployeeReport, parseUploadedExcel, generateGenericExcel, generatePendencyStatement } from '../../lib/excelReports';
 import { callGemini, callGeminiStream } from '../../lib/gemini';
+import { EmployeeRecord, BondRecord, RevenueRecord } from '../../types';
 
 export default function ReportScreen() {
-    const { activeWorkspaceId, workspaces, diary = [] } = useStore();
+    const { activeWorkspaceId, workspaces, diary = [], employees = [], bonds = [], revenue = [], saveUserData } = useStore();
     const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
     const officeName = activeWs?.name || 'OFFICE OF THE COMMISSIONER';
 
     const [activeTab, setActiveTab] = useState<'employees' | 'pendency' | 'retirement' | 'bonds' | 'revenue' | 'analyze' | 'image'>('employees');
-
-    // Employees State
-    const [employees, setEmployees] = useState<EmployeeRecord[]>([
-        { sl: 1, name: 'John Doe', designation: 'Superintendent', phone: '9876543210', dob: '1980-01-01', doj: '2005-06-15', dor: '2040-01-31', gpfNo: 'CGST/1234', postingStation: 'HQ', status: 'active' }
-    ]);
     const [period, setPeriod] = useState(new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
 
-    // Bonds State
-    const [bonds, setBonds] = useState([
-        { id: 1, type: 'Bank Guarantee', party: 'M/s XYZ Ltd', amount: '₹5,00,000', expiryDate: '2026-06-01', status: 'Active' },
-        { id: 2, type: 'Bond', party: 'M/s ABC Corp', amount: '₹10,00,000', expiryDate: '2026-05-20', status: 'Active' },
-    ]);
-
-    // Revenue State
-    const [revenue, setRevenue] = useState([
-        { id: 1, month: 'April 2026', totalRevenue: '8,45,00,000', customDuty: '2,50,00,000', cgst: '3,00,00,000', sgst: '2,95,00,000' }
-    ]);
+    // Filter registry data by active workspace
+    const filteredEmployees = employees.filter(emp => emp.workspaceId === activeWorkspaceId);
+    const filteredBonds = bonds.filter(bond => bond.workspaceId === activeWorkspaceId);
+    const filteredRevenue = revenue.filter(rev => rev.workspaceId === activeWorkspaceId);
 
     // Analyze State
     const [parsedData, setParsedData] = useState<any[][] | null>(null);
@@ -38,16 +28,80 @@ export default function ReportScreen() {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isExtracting, setIsExtracting] = useState(false);
 
+    // Employee Handlers
     const handleAddEmployee = () => {
-        setEmployees([...employees, {
-            sl: employees.length + 1, name: '', designation: '', phone: '', dob: '', doj: '', dor: '', gpfNo: '', postingStation: '', status: 'active'
-        }]);
+        const newEmp: EmployeeRecord = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            name: '',
+            designation: '',
+            phone: '',
+            dob: '',
+            doj: '',
+            dor: '',
+            gpfNo: '',
+            postingStation: '',
+            status: 'active',
+            workspaceId: activeWorkspaceId || ''
+        };
+        saveUserData({ employees: [...employees, newEmp] });
     };
 
-    const updateEmployee = (index: number, field: keyof EmployeeRecord, value: string) => {
-        const newEmps = [...employees];
-        (newEmps[index] as any)[field] = value;
-        setEmployees(newEmps);
+    const updateEmployee = (id: string, field: keyof EmployeeRecord, value: string) => {
+        const newEmps = employees.map(emp => emp.id === id ? { ...emp, [field]: value } : emp);
+        saveUserData({ employees: newEmps });
+    };
+
+    const deleteEmployee = (id: string) => {
+        const newEmps = employees.filter(emp => emp.id !== id);
+        saveUserData({ employees: newEmps });
+    };
+
+    // Bond Handlers
+    const handleAddBond = () => {
+        const newBond: BondRecord = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            type: 'Bank Guarantee',
+            party: '',
+            amount: '',
+            expiryDate: '',
+            status: 'Active',
+            workspaceId: activeWorkspaceId || ''
+        };
+        saveUserData({ bonds: [...bonds, newBond] });
+    };
+
+    const updateBond = (id: string, field: keyof BondRecord, value: string) => {
+        const newBonds = bonds.map(bond => bond.id === id ? { ...bond, [field]: value } : bond);
+        saveUserData({ bonds: newBonds });
+    };
+
+    const deleteBond = (id: string) => {
+        const newBonds = bonds.filter(bond => bond.id !== id);
+        saveUserData({ bonds: newBonds });
+    };
+
+    // Revenue Handlers
+    const handleAddRevenue = () => {
+        const newRev: RevenueRecord = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            month: '',
+            totalRevenue: '',
+            customDuty: '',
+            cgst: '',
+            sgst: '',
+            workspaceId: activeWorkspaceId || ''
+        };
+        saveUserData({ revenue: [...revenue, newRev] });
+    };
+
+    const updateRevenue = (id: string, field: keyof RevenueRecord, value: string) => {
+        const newRevenueList = revenue.map(rev => rev.id === id ? { ...rev, [field]: value } : rev);
+        saveUserData({ revenue: newRevenueList });
+    };
+
+    const deleteRevenue = (id: string) => {
+        const newRevenueList = revenue.filter(rev => rev.id !== id);
+        saveUserData({ revenue: newRevenueList });
     };
 
     const handleUploadExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +164,7 @@ export default function ReportScreen() {
         const oneYearFromNow = new Date();
         oneYearFromNow.setFullYear(now.getFullYear() + 1);
         
-        return employees.filter(emp => {
+        return filteredEmployees.filter(emp => {
             if (!emp.dor) return false;
             const dor = new Date(emp.dor);
             return dor > now && dor <= oneYearFromNow;
@@ -157,7 +211,7 @@ export default function ReportScreen() {
                             <label className="text-[10px] font-bold uppercase tracking-widest text-sky-500 block mb-1">Report Period</label>
                             <input type="text" value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-sm" />
                         </div>
-                        <button onClick={() => generateEmployeeReport(employees, officeName, period)} className="bg-sky-600 hover:bg-sky-500 text-white font-bold uppercase tracking-widest text-xs px-6 py-2 flex items-center gap-2">
+                        <button onClick={() => generateEmployeeReport(filteredEmployees, officeName, period)} className="bg-sky-600 hover:bg-sky-500 text-white font-bold uppercase tracking-widest text-xs px-6 py-2 flex items-center gap-2">
                             <Download className="w-4 h-4" /> Download Excel
                         </button>
                     </div>
@@ -166,29 +220,39 @@ export default function ReportScreen() {
                         <table className="w-full text-left text-xs whitespace-nowrap">
                             <thead>
                                 <tr className="border-b border-black/20 dark:border-white/20">
-                                    {['Name', 'Designation', 'Phone', 'DOB', 'DOJ', 'DOR', 'GPF No.', 'Station', 'Status'].map(h => <th key={h} className="p-2 font-bold uppercase tracking-widest text-[10px]">{h}</th>)}
+                                    {['Name', 'Designation', 'Phone', 'DOB', 'DOJ', 'DOR', 'GPF No.', 'Station', 'Status', 'Actions'].map(h => <th key={h} className="p-2 font-bold uppercase tracking-widest text-[10px]">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
-                                {employees.map((emp, idx) => (
-                                    <tr key={idx} className="border-b border-black/10 dark:border-white/10">
-                                        <td className="p-1"><input value={emp.name} onChange={e=>updateEmployee(idx, 'name', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input value={emp.designation} onChange={e=>updateEmployee(idx, 'designation', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input value={emp.phone} onChange={e=>updateEmployee(idx, 'phone', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input type="date" value={emp.dob} onChange={e=>updateEmployee(idx, 'dob', e.target.value)} className="w-28 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input type="date" value={emp.doj} onChange={e=>updateEmployee(idx, 'doj', e.target.value)} className="w-28 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input type="date" value={emp.dor} onChange={e=>updateEmployee(idx, 'dor', e.target.value)} className="w-28 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input value={emp.gpfNo} onChange={e=>updateEmployee(idx, 'gpfNo', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
-                                        <td className="p-1"><input value={emp.postingStation} onChange={e=>updateEmployee(idx, 'postingStation', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
+                                {filteredEmployees.map((emp) => (
+                                    <tr key={emp.id} className="border-b border-black/10 dark:border-white/10">
+                                        <td className="p-1"><input value={emp.name} onChange={e=>updateEmployee(emp.id, 'name', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input value={emp.designation} onChange={e=>updateEmployee(emp.id, 'designation', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input value={emp.phone} onChange={e=>updateEmployee(emp.id, 'phone', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input type="date" value={emp.dob} onChange={e=>updateEmployee(emp.id, 'dob', e.target.value)} className="w-28 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input type="date" value={emp.doj} onChange={e=>updateEmployee(emp.id, 'doj', e.target.value)} className="w-28 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input type="date" value={emp.dor} onChange={e=>updateEmployee(emp.id, 'dor', e.target.value)} className="w-28 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input value={emp.gpfNo} onChange={e=>updateEmployee(emp.id, 'gpfNo', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
+                                        <td className="p-1"><input value={emp.postingStation} onChange={e=>updateEmployee(emp.id, 'postingStation', e.target.value)} className="w-24 bg-transparent border-b border-black/20 outline-none" /></td>
                                         <td className="p-1">
-                                            <select value={emp.status} onChange={e=>updateEmployee(idx, 'status', e.target.value as any)} className="w-20 bg-transparent border-b border-black/20 outline-none">
+                                            <select value={emp.status} onChange={e=>updateEmployee(emp.id, 'status', e.target.value as any)} className="w-20 bg-transparent border-b border-black/20 outline-none">
                                                 <option value="active">Active</option>
                                                 <option value="retired">Retired</option>
                                                 <option value="transferred">Shared</option>
                                             </select>
                                         </td>
+                                        <td className="p-1 text-center">
+                                            <button onClick={() => deleteEmployee(emp.id)} className="text-red-500 hover:text-red-700 transition-colors p-1" title="Delete Employee">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
+                                {filteredEmployees.length === 0 && (
+                                    <tr>
+                                        <td colSpan={10} className="p-8 text-center text-black/40 dark:text-white/40 font-bold uppercase tracking-widest text-xs">No employee records in this workspace.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                         <button onClick={handleAddEmployee} className="mt-4 border border-black/20 p-2 text-xs font-bold uppercase hover:bg-black/5 dark:hover:bg-white/5 transition-colors w-full">+ Add Row</button>
@@ -270,7 +334,7 @@ export default function ReportScreen() {
                             <h3 className="text-xs font-bold uppercase tracking-widest text-red-500">Upcoming BG/Bond Expiries</h3>
                         </div>
                         <button onClick={() => {
-                            generateGenericExcel(bonds, 'Bond_Expiry_Alert');
+                            generateGenericExcel(filteredBonds, 'Bond_Expiry_Alert');
                         }} className="bg-red-600 hover:bg-red-500 text-white font-bold uppercase tracking-widest text-xs px-6 py-2 flex items-center gap-2">
                             <Download className="w-4 h-4" /> Export Register
                         </button>
@@ -280,24 +344,48 @@ export default function ReportScreen() {
                         <table className="w-full text-left text-xs whitespace-nowrap">
                             <thead>
                                 <tr className="border-b border-black/20 dark:border-white/20">
-                                    {['Type', 'Party Name', 'Amount', 'Expiry Date', 'Days Left'].map(h => <th key={h} className="p-2 font-bold uppercase tracking-widest text-[10px] text-red-600">{h}</th>)}
+                                    {['Type', 'Party Name', 'Amount', 'Expiry Date', 'Days Left', 'Status', 'Actions'].map(h => <th key={h} className="p-2 font-bold uppercase tracking-widest text-[10px] text-red-600">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
-                                {bonds.map((bond, idx) => {
-                                    const daysLeft = Math.ceil((new Date(bond.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                                {filteredBonds.map((bond) => {
+                                    const daysLeft = bond.expiryDate ? Math.ceil((new Date(bond.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 0;
                                     return (
-                                        <tr key={idx} className={`border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 font-bold ${daysLeft < 30 ? 'text-red-500' : 'text-black/70 dark:text-white/70'}`}>
-                                            <td className="p-2">{bond.type}</td>
-                                            <td className="p-2">{bond.party}</td>
-                                            <td className="p-2">{bond.amount}</td>
-                                            <td className="p-2">{new Date(bond.expiryDate).toLocaleDateString('en-IN')}</td>
-                                            <td className="p-2">{daysLeft > 0 ? `${daysLeft} days` : 'Expired!'}</td>
+                                        <tr key={bond.id} className={`border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 font-bold ${daysLeft < 30 && daysLeft > 0 ? 'text-red-500' : daysLeft <= 0 ? 'text-red-700' : 'text-black/70 dark:text-white/70'}`}>
+                                            <td className="p-1">
+                                                <select value={bond.type} onChange={e=>updateBond(bond.id, 'type', e.target.value)} className="bg-transparent border-b border-black/20 outline-none text-red-600 dark:text-red-400">
+                                                    <option value="Bank Guarantee">Bank Guarantee</option>
+                                                    <option value="Bond">Bond</option>
+                                                    <option value="Customs Bond">Customs Bond</option>
+                                                </select>
+                                            </td>
+                                            <td className="p-1"><input value={bond.party} onChange={e=>updateBond(bond.id, 'party', e.target.value)} className="w-full bg-transparent border-b border-black/20 outline-none text-red-600 dark:text-red-400" /></td>
+                                            <td className="p-1"><input value={bond.amount} onChange={e=>updateBond(bond.id, 'amount', e.target.value)} placeholder="e.g. ₹5,00,000" className="w-24 bg-transparent border-b border-black/20 outline-none text-red-600 dark:text-red-400" /></td>
+                                            <td className="p-1"><input type="date" value={bond.expiryDate} onChange={e=>updateBond(bond.id, 'expiryDate', e.target.value)} className="bg-transparent border-b border-black/20 outline-none text-red-600 dark:text-red-400" /></td>
+                                            <td className="p-2">{bond.expiryDate ? (daysLeft > 0 ? `${daysLeft} days` : 'Expired!') : '-'}</td>
+                                            <td className="p-1">
+                                                <select value={bond.status} onChange={e=>updateBond(bond.id, 'status', e.target.value)} className="bg-transparent border-b border-black/20 outline-none text-red-600 dark:text-red-400">
+                                                    <option value="Active">Active</option>
+                                                    <option value="Expired">Expired</option>
+                                                    <option value="Released">Released</option>
+                                                </select>
+                                            </td>
+                                            <td className="p-1 text-center">
+                                                <button onClick={() => deleteBond(bond.id)} className="text-red-500 hover:text-red-700 transition-colors p-1" title="Delete Bond">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </td>
                                         </tr>
                                     );
                                 })}
+                                {filteredBonds.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} className="p-8 text-center text-black/40 dark:text-white/40 font-bold uppercase tracking-widest text-xs">No bond records in this workspace.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
+                        <button onClick={handleAddBond} className="mt-4 border border-black/20 p-2 text-xs font-bold uppercase hover:bg-black/5 dark:hover:bg-white/5 transition-colors w-full">+ Add Bond / BG</button>
                     </div>
                 </div>
             )}
@@ -309,7 +397,7 @@ export default function ReportScreen() {
                             <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-500">Monthly Revenue Collection Statement</h3>
                         </div>
                         <button onClick={() => {
-                            generateGenericExcel(revenue, 'Revenue_Statement');
+                            generateGenericExcel(filteredRevenue, 'Revenue_Statement');
                         }} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs px-6 py-2 flex items-center gap-2">
                             <Download className="w-4 h-4" /> Download Statement
                         </button>
@@ -319,21 +407,32 @@ export default function ReportScreen() {
                         <table className="w-full text-left text-xs whitespace-nowrap">
                             <thead>
                                 <tr className="border-b border-black/20 dark:border-white/20">
-                                    {['Month', 'Total Revenue', 'Customs Duty', 'CGST', 'SGST'].map(h => <th key={h} className="p-2 font-bold uppercase tracking-widest text-[10px] text-emerald-600">{h}</th>)}
+                                    {['Month', 'Total Revenue', 'Customs Duty', 'CGST', 'SGST', 'Actions'].map(h => <th key={h} className="p-2 font-bold uppercase tracking-widest text-[10px] text-emerald-600">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
-                                {revenue.map((r, idx) => (
-                                    <tr key={idx} className="border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 font-bold">
-                                        <td className="p-2">{r.month}</td>
-                                        <td className="p-2">₹ {r.totalRevenue}</td>
-                                        <td className="p-2">₹ {r.customDuty}</td>
-                                        <td className="p-2">₹ {r.cgst}</td>
-                                        <td className="p-2">₹ {r.sgst}</td>
+                                {filteredRevenue.map((r) => (
+                                    <tr key={r.id} className="border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 font-bold">
+                                        <td className="p-1"><input value={r.month} onChange={e=>updateRevenue(r.id, 'month', e.target.value)} placeholder="e.g. April 2026" className="bg-transparent border-b border-black/20 outline-none text-emerald-600 dark:text-emerald-400" /></td>
+                                        <td className="p-1"><input value={r.totalRevenue} onChange={e=>updateRevenue(r.id, 'totalRevenue', e.target.value)} placeholder="e.g. 8,45,00,000" className="w-28 bg-transparent border-b border-black/20 outline-none text-emerald-600 dark:text-emerald-400" /></td>
+                                        <td className="p-1"><input value={r.customDuty} onChange={e=>updateRevenue(r.id, 'customDuty', e.target.value)} placeholder="e.g. 2,50,00,000" className="w-28 bg-transparent border-b border-black/20 outline-none text-emerald-600 dark:text-emerald-400" /></td>
+                                        <td className="p-1"><input value={r.cgst} onChange={e=>updateRevenue(r.id, 'cgst', e.target.value)} placeholder="e.g. 3,00,00,000" className="w-28 bg-transparent border-b border-black/20 outline-none text-emerald-600 dark:text-emerald-400" /></td>
+                                        <td className="p-1"><input value={r.sgst} onChange={e=>updateRevenue(r.id, 'sgst', e.target.value)} placeholder="e.g. 2,95,00,000" className="w-28 bg-transparent border-b border-black/20 outline-none text-emerald-600 dark:text-emerald-400" /></td>
+                                        <td className="p-1 text-center">
+                                            <button onClick={() => deleteRevenue(r.id)} className="text-red-500 hover:text-red-700 transition-colors p-1" title="Delete Revenue Month">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
+                                {filteredRevenue.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="p-8 text-center text-black/40 dark:text-white/40 font-bold uppercase tracking-widest text-xs">No revenue records in this workspace.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
+                        <button onClick={handleAddRevenue} className="mt-4 border border-black/20 p-2 text-xs font-bold uppercase hover:bg-black/5 dark:hover:bg-white/5 transition-colors w-full">+ Add Revenue Month</button>
                     </div>
                 </div>
             )}

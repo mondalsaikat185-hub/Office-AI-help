@@ -73,8 +73,20 @@ export default function BulkScreen() {
       if (officeIdx === -1 && rows[0].length > 2) officeIdx = 2;
       if (addrIdx === -1 && rows[0].length > 3) addrIdx = 3;
       if (phoneIdx === -1 && rows[0].length > 4) phoneIdx = 4;
-
-      const startRow = (nameIdx === 0 && (firstRow[0].includes('name') || firstRow[0].includes('sl') || firstRow[0].includes('no'))) ? 1 : 0;
+      const hasHeaders = firstRow.some(val => 
+        val.includes('name') || 
+        val.includes('official') || 
+        val.includes('designation') || 
+        val.includes('desig') || 
+        val.includes('office') || 
+        val.includes('dept') || 
+        val.includes('address') || 
+        val.includes('phone') || 
+        val.includes('mobile') || 
+        val.includes('sl') || 
+        val.includes('no')
+      );
+      const startRow = hasHeaders ? 1 : 0;
       const parsedRecipients: Recipient[] = [];
 
       for (let i = startRow; i < rows.length; i++) {

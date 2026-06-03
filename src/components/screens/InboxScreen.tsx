@@ -179,8 +179,9 @@ Do not include markdown language blocks, just raw JSON.`;
     }
   };
 
-  const markDone = async (id: string) => {
-    const newInbox = inbox.map(i => i.id === id ? { ...i, status: 'done' as 'done' } : i);
+  const toggleInboxStatus = async (id: string, currentStatus: 'pending' | 'done') => {
+    const newStatus: 'pending' | 'done' = currentStatus === 'pending' ? 'done' : 'pending';
+    const newInbox = inbox.map(i => i.id === id ? { ...i, status: newStatus } : i);
     await saveUserData({ inbox: newInbox });
   };
 
@@ -380,12 +381,12 @@ Do not include markdown language blocks, just raw JSON.`;
                     <Sparkles className="w-4 h-4" /> Smart Reply
                   </button>
                 )}
-                <button 
-                  onClick={() => markDone(item.id)}
-                  className="border border-black/20 dark:border-white/20 hover:border-white text-black dark:text-white px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
-                >
-                  {activeTab === 'pending' ? 'Mark Done' : 'Move to Pending'}
-                </button>
+                 <button 
+                   onClick={() => toggleInboxStatus(item.id, item.status)}
+                   className="border border-black/20 dark:border-white/20 hover:border-white text-black dark:text-white px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
+                 >
+                   {activeTab === 'pending' ? 'Mark Done' : 'Move to Pending'}
+                 </button>
               </div>
             </div>
           ))

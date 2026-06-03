@@ -54,6 +54,9 @@ export const useStore = create<GlobalStore>((set, get) => ({
   tgChatId: '',
   diary: [],
   demands: [],
+  employees: [],
+  bonds: [],
+  revenue: [],
 
   drafts: {},
 
@@ -90,10 +93,6 @@ export const useStore = create<GlobalStore>((set, get) => ({
   setActiveSignature: (id) => set({ activeSignatureId: id }),
   setDraft: (id, payload) => {
     set(state => ({ drafts: { ...state.drafts, [id]: payload } }));
-    if (saveDraftTimeout) clearTimeout(saveDraftTimeout);
-    saveDraftTimeout = setTimeout(() => {
-      get().saveUserData();
-    }, 5000);
   },
 
   loadUserData: async () => {
@@ -141,6 +140,22 @@ export const useStore = create<GlobalStore>((set, get) => ({
       const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
       const diarySnap = await getDocs(diaryRef);
       let loadedDiary = diarySnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      // Load employees from subcollection
+      const employeesRef = collection(db, 'officeai_users', user.uid, 'employees');
+      const employeesSnap = await getDocs(employeesRef);
+      let loadedEmployees = employeesSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      // Load bonds from subcollection
+      const bondsRef = collection(db, 'officeai_users', user.uid, 'bonds');
+      const bondsSnap = await getDocs(bondsRef);
+      let loadedBonds = bondsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      // Load revenue from subcollection
+      const revenueRef = collection(db, 'officeai_users', user.uid, 'revenue');
+      const revenueSnap = await getDocs(revenueRef);
+      let loadedRevenue = revenueSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
 
       // Migration fallback
       if (loadedWorkspaces.length === 0 && migratedWorkspaces.length > 0) {
@@ -204,6 +219,9 @@ export const useStore = create<GlobalStore>((set, get) => ({
       delete cleanCoreData.demands;
       delete cleanCoreData.diary;
       delete cleanCoreData.drafts;
+      delete cleanCoreData.employees;
+      delete cleanCoreData.bonds;
+      delete cleanCoreData.revenue;
 
       set((state) => ({
         ...state,
@@ -211,6 +229,9 @@ export const useStore = create<GlobalStore>((set, get) => ({
         workspaces: loadedWorkspaces,
         demands: loadedDemands,
         diary: loadedDiary,
+        employees: loadedEmployees,
+        bonds: loadedBonds,
+        revenue: loadedRevenue,
         inbox: loadedInbox,
         letters: loadedLetters,
         cases: loadedCases
@@ -261,11 +282,44 @@ export const useStore = create<GlobalStore>((set, get) => ({
             await setDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id), JSON.parse(JSON.stringify(d)));
           }
         }
+        if ('employees' in partialData) {
+          const oldEmps = get().employees || [];
+          const newEmps = partialData.employees || [];
+          const deleted = oldEmps.filter(oe => !newEmps.some(ne => ne.id === oe.id));
+          for (const e of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'employees', e.id));
+          }
+          for (const e of newEmps) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'employees', e.id), JSON.parse(JSON.stringify(e)));
+          }
+        }
+        if ('bonds' in partialData) {
+          const oldBonds = get().bonds || [];
+          const newBonds = partialData.bonds || [];
+          const deleted = oldBonds.filter(ob => !newBonds.some(nb => nb.id === ob.id));
+          for (const b of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'bonds', b.id));
+          }
+          for (const b of newBonds) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'bonds', b.id), JSON.parse(JSON.stringify(b)));
+          }
+        }
+        if ('revenue' in partialData) {
+          const oldRevenue = get().revenue || [];
+          const newRevenue = partialData.revenue || [];
+          const deleted = oldRevenue.filter(or => !newRevenue.some(nr => nr.id === or.id));
+          for (const r of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id));
+          }
+          for (const r of newRevenue) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id), JSON.parse(JSON.stringify(r)));
+          }
+        }
 
         set(partialData);
       } else {
         // Full sync
-        const { workspaces, demands, diary } = get();
+        const { workspaces, demands, diary, employees, bonds, revenue } = get();
         for (const w of workspaces) {
           await setDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), JSON.parse(JSON.stringify(w)));
         }
@@ -274,6 +328,15 @@ export const useStore = create<GlobalStore>((set, get) => ({
         }
         for (const d of diary) {
           await setDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id), JSON.parse(JSON.stringify(d)));
+        }
+        for (const e of (employees || [])) {
+          await setDoc(doc(db, 'officeai_users', user.uid, 'employees', e.id), JSON.parse(JSON.stringify(e)));
+        }
+        for (const b of (bonds || [])) {
+          await setDoc(doc(db, 'officeai_users', user.uid, 'bonds', b.id), JSON.parse(JSON.stringify(b)));
+        }
+        for (const r of (revenue || [])) {
+          await setDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id), JSON.parse(JSON.stringify(r)));
         }
       }
 

@@ -779,17 +779,33 @@ Return ONLY JSON mapping to: c-name, c-prefix, c-desg, c-posted, c-posting, c-gp
 // --- Init ---
 window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SET_LETTERHEAD') {
-      const lh = event.data.payload;
-      if (lh.l1) document.getElementById('s-lh-line1').value = lh.l1;
-      if (lh.l2) document.getElementById('s-lh-line2').value = lh.l2;
-      if (lh.l3) document.getElementById('s-lh-line3').value = lh.l3;
-      if (lh.l4) document.getElementById('s-lh-line4').value = lh.l4;
-      if (lh.l5) document.getElementById('s-lh-line5').value = lh.l5;
-      if (lh.l6) document.getElementById('s-lh-line6').value = lh.l6;
-      if (lh.logo1 || lh.logo2 || lh.logo3) {
-         document.getElementById('s-use-letterhead').value = 'yes';
-         toggleLetterheadFields();
+    if (event.data && event.data.type === 'SET_SYSTEM_STATE') {
+      const { letterhead, apiKeys, theme, selectedModel } = event.data.payload;
+      if (letterhead) {
+        if (letterhead.l1) document.getElementById('s-lh-line1').value = letterhead.l1;
+        if (letterhead.l2) document.getElementById('s-lh-line2').value = letterhead.l2;
+        if (letterhead.l3) document.getElementById('s-lh-line3').value = letterhead.l3;
+        if (letterhead.l4) document.getElementById('s-lh-line4').value = letterhead.l4;
+        if (letterhead.l5) document.getElementById('s-lh-line5').value = letterhead.l5;
+        if (letterhead.l6) document.getElementById('s-lh-line6').value = letterhead.l6;
+        if (letterhead.logo1 || letterhead.logo2 || letterhead.logo3) {
+           document.getElementById('s-use-letterhead').value = 'yes';
+        } else {
+           document.getElementById('s-use-letterhead').value = 'no';
+        }
+        toggleLetterheadFields();
+      }
+      if (apiKeys) {
+        localStorage.setItem('gpf-api-keys', JSON.stringify(apiKeys));
+        loadApiKeys();
+      }
+      if (selectedModel) {
+        const modelEl = document.getElementById('s-ai-model');
+        if (modelEl) modelEl.value = selectedModel;
+      }
+      if (theme) {
+        localStorage.setItem('gpf-theme', theme);
+        loadTheme();
       }
       saveSettings();
     }
@@ -806,4 +822,7 @@ window.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('input', () => { saveFormData(); calculate(); });
     el.addEventListener('change', () => { saveFormData(); calculate(); });
   });
+
+  // Handshake: notify parent that iframe is loaded and ready
+  window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
 });

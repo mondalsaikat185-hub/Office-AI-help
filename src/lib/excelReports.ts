@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 
 export interface EmployeeRecord {
-  sl: number;
+  sl?: number;
   name: string;
   designation: string;
   phone: string;

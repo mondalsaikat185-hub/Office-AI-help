@@ -1,8 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { initializeFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let app;
 let db;
+let auth;
 
 window.initCloudSync = async function() {
     try {
@@ -10,6 +12,22 @@ window.initCloudSync = async function() {
         const firebaseConfig = await response.json();
         app = initializeApp(firebaseConfig);
         db = initializeFirestore(app, {}, firebaseConfig.firestoreDatabaseId);
+        auth = getAuth(app);
+        
+        onAuthStateChanged(auth, (user) => {
+            const pinInput = document.getElementById('s-cloud-pin');
+            if (pinInput) {
+                if (user) {
+                    pinInput.value = user.email || user.uid;
+                    pinInput.disabled = true;
+                    pinInput.style.opacity = '0.7';
+                } else {
+                    pinInput.value = 'Not Logged In';
+                    pinInput.disabled = true;
+                    pinInput.style.opacity = '0.5';
+                }
+            }
+        });
     } catch(e) {
         console.error("Failed to load firebase config", e);
     }
@@ -18,6 +36,12 @@ window.initCloudSync = async function() {
 window.initCloudSync();
 
 window.syncToCloud = async function() {
+    if (!auth || !auth.currentUser) {
+        if(window.toast) window.toast('❌ You must be logged into Office AI to sync settings.', 'error');
+        return;
+    }
+    
+    const uid = auth.currentUser.uid;
     const btn = document.getElementById('btn-cloud-sync');
     if(btn) {
         btn.innerHTML = 'Uploading...';
@@ -35,16 +59,8 @@ window.syncToCloud = async function() {
         timestamp: new Date().toISOString()
     };
     
-    // We should probably use a user ID or a shared generic ID for now since auth isn't integrated in the pure HTML app
-    // Let's ask user for a "Sync PIN" or just use a generic path if they want it accessible from anywhere.
-    let syncPin = document.getElementById('s-cloud-pin').value;
-    if (!syncPin) {
-        syncPin = 'GPF-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        document.getElementById('s-cloud-pin').value = syncPin;
-    }
-
     try {
-        await setDoc(doc(db, "gpf-cloud-sync", syncPin), data);
+        await setDoc(doc(db, "gpf-cloud-sync", uid), data);
         if(window.toast) window.toast('✅ Successfully Synced to Cloud!');
     } catch(e) {
         console.error(e);
@@ -58,24 +74,20 @@ window.syncToCloud = async function() {
 };
 
 window.restoreFromCloud = async function() {
+    if (!auth || !auth.currentUser) {
+        if(window.toast) window.toast('❌ You must be logged into Office AI to restore settings.', 'error');
+        return;
+    }
+    
+    const uid = auth.currentUser.uid;
     const btn = document.getElementById('btn-cloud-restore');
     if(btn) {
         btn.innerHTML = 'Downloading...';
         btn.disabled = true;
     }
     
-    let syncPin = document.getElementById('s-cloud-pin').value;
-    if (!syncPin) {
-        if(window.toast) window.toast('❌ Please enter your Sync PIN to restore', 'error');
-        if(btn) {
-            btn.innerHTML = '⬇️ Restore from Cloud';
-            btn.disabled = false;
-        }
-        return;
-    }
-    
     try {
-        const d = await getDoc(doc(db, "gpf-cloud-sync", syncPin));
+        const d = await getDoc(doc(db, "gpf-cloud-sync", uid));
         if (d.exists()) {
             const data = d.data();
             if(data.settings) localStorage.setItem('gpf-settings', data.settings);
@@ -94,7 +106,7 @@ window.restoreFromCloud = async function() {
             
             if(window.toast) window.toast('✅ Settings Restored from Cloud!');
         } else {
-            if(window.toast) window.toast('ℹ️ No sync data found for this PIN', 'error');
+            if(window.toast) window.toast('ℹ️ No sync data found for this account', 'error');
         }
     } catch(e) {
         console.error(e);

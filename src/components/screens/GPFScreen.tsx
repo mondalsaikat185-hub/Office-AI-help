@@ -2,21 +2,38 @@ import React, { useEffect, useRef } from 'react';
 import { useStore } from '../../lib/store';
 
 export default function GPFScreen() {
-    const { workspaces, activeWorkspaceId } = useStore();
+    const { workspaces, activeWorkspaceId, apiKeys, selectedModel, theme } = useStore();
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
-    useEffect(() => {
+    const sendSystemState = () => {
         const ws = workspaces.find(w => w.id === activeWorkspaceId);
-        if (ws && ws.letterhead && iframeRef.current?.contentWindow) {
-            // Give iframe a moment to load
-            setTimeout(() => {
-                iframeRef.current?.contentWindow?.postMessage({
-                    type: 'SET_LETTERHEAD',
-                    payload: ws.letterhead
-                }, '*');
-            }, 1000);
+        if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage({
+                type: 'SET_SYSTEM_STATE',
+                payload: {
+                    letterhead: ws?.letterhead || null,
+                    apiKeys: apiKeys || [],
+                    selectedModel: selectedModel || 'gemini-1.5-flash',
+                    theme: theme || 'dark'
+                }
+            }, '*');
         }
-    }, [workspaces, activeWorkspaceId]);
+    };
+
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data && event.data.type === 'IFRAME_READY') {
+                sendSystemState();
+            }
+        };
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [workspaces, activeWorkspaceId, apiKeys, selectedModel, theme]);
+
+    // Push updates if workspace, key registries, model config, or theme settings update dynamically
+    useEffect(() => {
+        sendSystemState();
+    }, [workspaces, activeWorkspaceId, apiKeys, selectedModel, theme]);
 
     return (
         <div className="w-full h-[calc(100vh-80px)]">

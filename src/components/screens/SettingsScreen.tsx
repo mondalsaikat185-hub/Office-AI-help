@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { Key, Building2, PenTool, Database, LogOut, Moon, Sun, Plus, Trash2, Edit } from 'lucide-react';
 import { auth } from '../../lib/firebase';
@@ -477,6 +477,14 @@ export default function SettingsScreen() {
   const [customRpm, setCustomRpm] = useState<number>(rateLimiter.getRPM());
   
   const [activeSection, setActiveSection] = useState<'main'|'workspaces'|'phrases'|'templates'|'addressBook'>('main');
+  const [tgTokenVal, setTgTokenVal] = useState(tgBotToken || '');
+  const [tgChatVal, setTgChatVal] = useState(tgChatId || '');
+
+  useEffect(() => {
+    setTgTokenVal(tgBotToken || '');
+    setTgChatVal(tgChatId || '');
+  }, [tgBotToken, tgChatId]);
+
 
   const handleAddKey = async () => {
     if (!newKey.startsWith('AIza') || newKey.length < 30) {
@@ -650,61 +658,57 @@ export default function SettingsScreen() {
                <div>
                  <p className="font-bold text-sm tracking-wide mb-2 text-[#0088cc]">Telegram Integration</p>
                  <div className="space-y-4">
-                   <div className="space-y-2">
-                     <label className="text-[10px] uppercase font-bold text-black/50 dark:text-white/50">Bot Token</label>
-                     <input 
-                       type="password" 
-                       placeholder="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
-                       defaultValue={tgBotToken || ''} 
-                       id="tgBotTokenInput"
-                       className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs font-mono outline-none focus:border-[#0088cc]" 
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-[10px] uppercase font-bold text-black/50 dark:text-white/50">Chat ID</label>
-                     <input 
-                       type="text" 
-                       placeholder="e.g. 123456789 or @channelname" 
-                       defaultValue={tgChatId || ''} 
-                       id="tgChatIdInput"
-                       className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs font-mono outline-none focus:border-[#0088cc]" 
-                     />
-                   </div>
-                   <div className="flex gap-2">
-                     <button 
-                       onClick={() => {
-                         const token = (document.getElementById('tgBotTokenInput') as HTMLInputElement).value;
-                         const chatId = (document.getElementById('tgChatIdInput') as HTMLInputElement).value;
-                         saveUserData({ tgBotToken: token, tgChatId: chatId });
-                         alert("Telegram Configuration Saved Successfully!");
-                       }}
-                       className="flex-1 bg-[#0088cc] hover:bg-[#0077b3] text-white font-bold uppercase tracking-widest text-[10px] py-2 transition-colors"
-                     >
-                       Save
-                     </button>
-                     <button 
-                       onClick={async () => {
-                         const token = (document.getElementById('tgBotTokenInput') as HTMLInputElement).value;
-                         const chatId = (document.getElementById('tgChatIdInput') as HTMLInputElement).value;
-                         if (!token || !chatId) return alert("Please enter both Token and Chat ID.");
-                         try {
-                           const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                             method: 'POST',
-                             headers: { 'Content-Type': 'application/json' },
-                             body: JSON.stringify({ chat_id: chatId, text: "👋 *Connection Successful!*\n\nHello from your app! Telegram integration is working perfectly.", parse_mode: "Markdown" })
-                           });
-                           const data = await res.json();
-                           if (data.ok) alert("Test message sent! Check your Telegram app.");
-                           else alert("Failed: " + data.description);
-                         } catch (err: any) {
-                           alert("Error connecting: " + err.message);
-                         }
-                       }}
-                       className="flex-1 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-black dark:text-white font-bold uppercase tracking-widest text-[10px] py-2 transition-colors border border-black/20 dark:border-white/20"
-                     >
-                       Test
-                     </button>
-                   </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-black/50 dark:text-white/50">Bot Token</label>
+                      <input 
+                        type="password" 
+                        placeholder="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
+                        value={tgTokenVal} 
+                        onChange={e => setTgTokenVal(e.target.value)}
+                        className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs font-mono outline-none focus:border-[#0088cc]" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-black/50 dark:text-white/50">Chat ID</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 123456789 or @channelname" 
+                        value={tgChatVal} 
+                        onChange={e => setTgChatVal(e.target.value)}
+                        className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs font-mono outline-none focus:border-[#0088cc]" 
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          saveUserData({ tgBotToken: tgTokenVal, tgChatId: tgChatVal });
+                          alert("Telegram Configuration Saved Successfully!");
+                        }}
+                        className="flex-1 bg-[#0088cc] hover:bg-[#0077b3] text-white font-bold uppercase tracking-widest text-[10px] py-2 transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          if (!tgTokenVal || !tgChatVal) return alert("Please enter both Token and Chat ID.");
+                          try {
+                            const res = await fetch(`https://api.telegram.org/bot${tgTokenVal}/sendMessage`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ chat_id: tgChatVal, text: "👋 *Connection Successful!*\n\nHello from your app! Telegram integration is working perfectly.", parse_mode: "Markdown" })
+                            });
+                            const data = await res.json();
+                            if (data.ok) alert("Test message sent! Check your Telegram app.");
+                            else alert("Failed: " + data.description);
+                          } catch (err: any) {
+                            alert("Error connecting: " + err.message);
+                          }
+                        }}
+                        className="flex-1 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-black dark:text-white font-bold uppercase tracking-widest text-[10px] py-2 transition-colors border border-black/20 dark:border-white/20"
+                      >
+                        Test
+                      </button>
+                    </div>
                    <p className="text-[10px] text-black/50 dark:text-white/50 border-t border-black/10 dark:border-white/10 pt-2">
                      This token and ID are saved <strong>securely</strong> in your private database. Never share them publicly. Used for sending GPF or Diary updates via Telegram.
                    </p>
