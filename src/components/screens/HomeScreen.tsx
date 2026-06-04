@@ -1,13 +1,17 @@
 import { useStore } from '../../lib/store';
 import { Bot, FileSignature, Sparkles, Wand2, Inbox, Gavel, Search, Filter, CalendarDays, IndianRupee, BarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function HomeScreen() {
-  const { user, letters, inbox, workspaces, diary = [], demands = [], cases = [], activeWorkspaceId } = useStore();
+  const { user, letters, inbox, workspaces, diary = [], demands = [], cases = [], activeWorkspaceId, loadHomeData } = useStore();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<string>('all');
+
+  useEffect(() => {
+    loadHomeData();
+  }, [loadHomeData, activeWorkspaceId]);
 
   const greeting = () => {
     const h = new Date().getHours();

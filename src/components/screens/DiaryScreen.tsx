@@ -1,12 +1,16 @@
 import { useStore } from '../../lib/store';
 import { Calendar, Plus, Trash2, CalendarDays, Edit2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DiaryItem } from '../../types';
 
 export default function DiaryScreen() {
-  const { diary = [], saveUserData, activeWorkspaceId, tgBotToken, tgChatId } = useStore();
+  const { diary = [], saveUserData, activeWorkspaceId, tgBotToken, tgChatId, loadDiary } = useStore();
   const [filter, setFilter] = useState<'all' | 'pending' | 'done'>('pending');
   const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    loadDiary();
+  }, [loadDiary, activeWorkspaceId]);
   
   const [newItem, setNewItem] = useState<Partial<DiaryItem>>({
     date: new Date().toISOString().slice(0, 10),

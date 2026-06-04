@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { Briefcase, Plus, Search, CalendarDays, Trash2, Edit2, X, ChevronDown, IndianRupee } from 'lucide-react';
 import { CaseItem } from '../../types';
@@ -24,10 +24,14 @@ const emptyForm = (): Partial<CaseItem> => ({
 });
 
 export default function CaseRegisterScreen() {
-  const { activeWorkspaceId, cases, saveCase, updateCase, deleteCase } = useStore();
+  const { activeWorkspaceId, cases, saveCase, updateCase, deleteCase, loadCases } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    loadCases();
+  }, [loadCases, activeWorkspaceId]);
   const [editingCase, setEditingCase] = useState<CaseItem | null>(null);
   const [form, setForm] = useState<Partial<CaseItem>>(emptyForm());
   const [saving, setSaving] = useState(false);

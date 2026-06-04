@@ -1,16 +1,22 @@
 import { useStore } from '../../lib/store';
 import { Folder, FileText, ChevronRight, Edit2, Plus, CornerDownRight, Trash2, Search, ArrowRightLeft, Copy, Eye } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function FilesScreen() {
-  const { workspaces, activeWorkspaceId, setActiveWorkspace, setActiveDirectory, setActiveFile, saveUserData, deleteFileCascade, deleteDirCascade, letters, deleteLetter } = useStore();
+  const { workspaces, activeWorkspaceId, setActiveWorkspace, setActiveDirectory, setActiveFile, saveUserData, deleteFileCascade, deleteDirCascade, letters, deleteLetter, loadLettersForDirectory } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
   
   // Drill-down state
   const [currentDirId, setCurrentDirId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentDirId) {
+      loadLettersForDirectory(currentDirId);
+    }
+  }, [currentDirId, loadLettersForDirectory]);
 
   // Letter history modal state
   const [selectedFile, setSelectedFile] = useState<{

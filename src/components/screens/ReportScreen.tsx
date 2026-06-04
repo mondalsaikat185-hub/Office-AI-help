@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { BarChart2, UploadCloud, Users, Download, FileImage, Search, FileText, CalendarClock, ShieldAlert, IndianRupee, Trash2 } from 'lucide-react';
 import { generateEmployeeReport, parseUploadedExcel, generateGenericExcel, generatePendencyStatement } from '../../lib/excelReports';
@@ -6,12 +6,17 @@ import { callGemini, callGeminiStream } from '../../lib/gemini';
 import { EmployeeRecord, BondRecord, RevenueRecord } from '../../types';
 
 export default function ReportScreen() {
-    const { activeWorkspaceId, workspaces, diary = [], employees = [], bonds = [], revenue = [], saveUserData } = useStore();
+    const { activeWorkspaceId, workspaces, diary = [], employees = [], bonds = [], revenue = [], saveUserData, loadReportsData, loadDiary } = useStore();
     const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
     const officeName = activeWs?.name || 'OFFICE OF THE COMMISSIONER';
 
     const [activeTab, setActiveTab] = useState<'employees' | 'pendency' | 'retirement' | 'bonds' | 'revenue' | 'analyze' | 'image'>('employees');
     const [period, setPeriod] = useState(new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
+
+    useEffect(() => {
+        loadReportsData();
+        loadDiary();
+    }, [loadReportsData, loadDiary, activeWorkspaceId]);
 
     // Filter registry data by active workspace
     const filteredEmployees = employees.filter(emp => emp.workspaceId === activeWorkspaceId);

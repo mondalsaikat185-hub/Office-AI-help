@@ -1,12 +1,16 @@
 import { useStore } from '../../lib/store';
 import { InboxItem } from '../../types';
 import { Camera, Image as ImageIcon, Send, Sparkles, Loader2, Type, Folder, FileText } from 'lucide-react';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { callGemini } from '../../lib/gemini';
 import { useNavigate } from 'react-router-dom';
 
 export default function InboxScreen() {
-  const { inbox, saveUserData, workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, setActiveWorkspace, setActiveDirectory, setActiveFile } = useStore();
+  const { inbox, saveUserData, workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, setActiveWorkspace, setActiveDirectory, setActiveFile, loadInbox } = useStore();
+
+  useEffect(() => {
+    loadInbox();
+  }, [loadInbox]);
   const [activeTab, setActiveTab] = useState<'pending'|'done'>('pending');
   const [inputMode, setInputMode] = useState<'upload'|'text'>('upload');
   const [textInput, setTextInput] = useState('');

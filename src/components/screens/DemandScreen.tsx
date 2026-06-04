@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { IndianRupee, Plus, Trash2, Download } from 'lucide-react';
 import { generateDemandRegister } from '../../lib/excelReports';
 
 export default function DemandScreen() {
-  const { demands = [], saveUserData, activeWorkspaceId, workspaces } = useStore();
+  const { demands = [], saveUserData, activeWorkspaceId, workspaces, loadDemands } = useStore();
   const activeWs = workspaces.find(w => w.id === activeWorkspaceId);
   const officeName = activeWs?.name || 'COMMISSIONERATE OF CGST & CUSTOMS';
+
+  useEffect(() => {
+    loadDemands();
+  }, [loadDemands, activeWorkspaceId]);
   
   const [newDemand, setNewDemand] = useState({ 
     date: '', partyName: '', oioNo: '', oioDate: '', tax: 0, penalty: 0, interest: 0, recoveredAmount: 0, remarks: '' 

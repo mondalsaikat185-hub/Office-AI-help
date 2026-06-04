@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AppState, Workspace, Letter, InboxItem, ApiKey, CaseItem, DraftState } from '../types';
 import { db, auth } from './firebase';
-import { doc, getDoc, setDoc, collection, query, getDocs, limit, orderBy, deleteDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, getDocs, limit, orderBy, deleteDoc, writeBatch, where } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { learningEngine } from './learningEngine';
 
@@ -34,6 +34,14 @@ interface GlobalStore extends AppState {
   deleteCase: (id: string) => Promise<void>;
   deleteFileCascade: (wsId: string, dirId: string, fileId: string) => Promise<void>;
   deleteDirCascade: (wsId: string, dirId: string) => Promise<void>;
+  loadLettersForDirectory: (directoryId: string) => Promise<void>;
+  loadSingleLetter: (id: string) => Promise<Letter | null>;
+  loadCases: () => Promise<void>;
+  loadDiary: () => Promise<void>;
+  loadDemands: () => Promise<void>;
+  loadReportsData: () => Promise<void>;
+  loadInbox: () => Promise<void>;
+  loadHomeData: () => Promise<void>;
 }
 
 let saveDraftTimeout: any = null;
@@ -154,31 +162,10 @@ export const useStore = create<GlobalStore>((set, get) => ({
       const workspacesSnap = await getDocs(workspacesRef);
       let loadedWorkspaces = workspacesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Workspace));
 
-      // Load demands from subcollection
-      const demandsRef = collection(db, 'officeai_users', user.uid, 'demands');
-      const demandsSnap = await getDocs(demandsRef);
-      let loadedDemands = demandsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-
-      // Load diary from subcollection
-      const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
-      const diarySnap = await getDocs(diaryRef);
-      let loadedDiary = diarySnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-
-      // Load employees from subcollection
-      const employeesRef = collection(db, 'officeai_users', user.uid, 'employees');
-      const employeesSnap = await getDocs(employeesRef);
-      let loadedEmployees = employeesSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-
-      // Load bonds from subcollection
-      const bondsRef = collection(db, 'officeai_users', user.uid, 'bonds');
-      const bondsSnap = await getDocs(bondsRef);
-      let loadedBonds = bondsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-
-      // Load revenue from subcollection
-      const revenueRef = collection(db, 'officeai_users', user.uid, 'revenue');
-      const revenueSnap = await getDocs(revenueRef);
-      let loadedRevenue = revenueSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-
+      // Load pending inbox items only for startup reminders (minimizes read operations)
+      const inboxRef = collection(db, 'officeai_users', user.uid, 'inbox');
+      const inboxSnap = await getDocs(query(inboxRef, where('status', '==', 'pending')));
+      const loadedInbox = inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem));
 
       // Migration fallback
       if (loadedWorkspaces.length === 0 && migratedWorkspaces.length > 0) {
@@ -191,26 +178,6 @@ export const useStore = create<GlobalStore>((set, get) => ({
         loadedWorkspaces = migratedWorkspaces;
       }
 
-      if (loadedDemands.length === 0 && migratedDemands.length > 0) {
-        console.log("Migrating legacy demands...");
-        const batch = writeBatch(db);
-        migratedDemands.forEach(d => {
-          batch.set(doc(db, 'officeai_users', user.uid, 'demands', d.id), d);
-        });
-        await batch.commit();
-        loadedDemands = migratedDemands;
-      }
-
-      if (loadedDiary.length === 0 && migratedDiary.length > 0) {
-        console.log("Migrating legacy diary...");
-        const batch = writeBatch(db);
-        migratedDiary.forEach(d => {
-          batch.set(doc(db, 'officeai_users', user.uid, 'diary', d.id), d);
-        });
-        await batch.commit();
-        loadedDiary = migratedDiary;
-      }
-
       if (needsMigrationSave) {
         console.log("Cleaning up legacy core user document fields...");
         const cleanupData = {
@@ -221,21 +188,6 @@ export const useStore = create<GlobalStore>((set, get) => ({
         };
         await setDoc(userDocRef, cleanupData, { merge: true });
       }
-
-      // Load inbox
-      const inboxRef = collection(db, 'officeai_users', user.uid, 'inbox');
-      const inboxSnap = await getDocs(query(inboxRef, orderBy('createdAt', 'desc'), limit(50)));
-      const loadedInbox = inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem));
-
-      // Load letters
-      const lettersRef = collection(db, 'officeai_users', user.uid, 'letters');
-      const lettersSnap = await getDocs(query(lettersRef, orderBy('createdAt', 'desc'), limit(500)));
-      const loadedLetters = lettersSnap.docs.map(d => ({ id: d.id, ...d.data() } as Letter));
-
-      // Load cases
-      const casesRef = collection(db, 'officeai_users', user.uid, 'cases');
-      const casesSnap = await getDocs(query(casesRef, orderBy('createdAt', 'desc'), limit(200)));
-      const loadedCases = casesSnap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem));
 
       const cleanCoreData: any = { ...coreData };
       delete cleanCoreData.workspaces;
@@ -265,7 +217,6 @@ export const useStore = create<GlobalStore>((set, get) => ({
         // Both empty but current state has keys (shouldn't happen, but safety net)
         cleanCoreData.apiKeys = currentState.apiKeys;
       }
-      // else: all sources empty — user truly has no keys
 
       // Determine best selectedModel: Firestore > localStorage > default
       const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
@@ -288,20 +239,18 @@ export const useStore = create<GlobalStore>((set, get) => ({
         ...state,
         ...cleanCoreData,
         workspaces: loadedWorkspaces,
-        demands: loadedDemands,
-        diary: loadedDiary,
-        employees: loadedEmployees,
-        bonds: loadedBonds,
-        revenue: loadedRevenue,
+        demands: [],
+        diary: [],
+        employees: [],
+        bonds: [],
+        revenue: [],
         inbox: loadedInbox,
-        letters: loadedLetters,
-        cases: loadedCases
+        letters: [],
+        cases: []
       }));
 
     } catch (error) {
       console.error("Error loading user data:", error);
-      // On load failure, keep whatever is in localStorage/current state
-      // Do NOT reset to defaults
     }
   },
 
@@ -378,29 +327,19 @@ export const useStore = create<GlobalStore>((set, get) => ({
             await setDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id), JSON.parse(JSON.stringify(r)));
           }
         }
+        if ('inbox' in partialData) {
+          const oldInbox = get().inbox || [];
+          const newInbox = partialData.inbox || [];
+          const deleted = oldInbox.filter(oi => !newInbox.some(ni => ni.id === oi.id));
+          for (const i of deleted) {
+            await deleteDoc(doc(db, 'officeai_users', user.uid, 'inbox', i.id));
+          }
+          for (const i of newInbox) {
+            await setDoc(doc(db, 'officeai_users', user.uid, 'inbox', i.id), JSON.parse(JSON.stringify(i)));
+          }
+        }
 
         set(partialData);
-      } else {
-        // Full sync
-        const { workspaces, demands, diary, employees, bonds, revenue } = get();
-        for (const w of workspaces) {
-          await setDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), JSON.parse(JSON.stringify(w)));
-        }
-        for (const d of demands) {
-          await setDoc(doc(db, 'officeai_users', user.uid, 'demands', d.id), JSON.parse(JSON.stringify(d)));
-        }
-        for (const d of diary) {
-          await setDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id), JSON.parse(JSON.stringify(d)));
-        }
-        for (const e of (employees || [])) {
-          await setDoc(doc(db, 'officeai_users', user.uid, 'employees', e.id), JSON.parse(JSON.stringify(e)));
-        }
-        for (const b of (bonds || [])) {
-          await setDoc(doc(db, 'officeai_users', user.uid, 'bonds', b.id), JSON.parse(JSON.stringify(b)));
-        }
-        for (const r of (revenue || [])) {
-          await setDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id), JSON.parse(JSON.stringify(r)));
-        }
       }
 
       // Save core user doc without subcollection datasets and drafts
@@ -596,6 +535,154 @@ export const useStore = create<GlobalStore>((set, get) => ({
         batch.delete(doc(db, 'officeai_users', user.uid, 'letters', l.id));
       }
       await batch.commit().catch(e => console.error("Error deleting directory letters:", e));
+    }
+  },
+
+  loadLettersForDirectory: async (directoryId: string) => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      const lettersRef = collection(db, 'officeai_users', user.uid, 'letters');
+      const q = query(lettersRef, where('directoryId', '==', directoryId), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as Letter));
+      set({ letters: loaded });
+    } catch (e) {
+      console.error("Error loading letters for directory:", e);
+    }
+  },
+
+  loadSingleLetter: async (id: string) => {
+    const { user, letters } = get();
+    if (!user) return null;
+    const existing = letters.find(l => l.id === id);
+    if (existing) return existing;
+    try {
+      const docRef = doc(db, 'officeai_users', user.uid, 'letters', id);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const letter = { id: snap.id, ...snap.data() } as Letter;
+        set({ letters: [letter, ...letters] });
+        return letter;
+      }
+    } catch (e) {
+      console.error("Error loading single letter:", e);
+    }
+    return null;
+  },
+
+  loadCases: async () => {
+    const { user, activeWorkspaceId } = get();
+    if (!user || !activeWorkspaceId) return;
+    try {
+      const casesRef = collection(db, 'officeai_users', user.uid, 'cases');
+      const q = query(casesRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem));
+      set({ cases: loaded });
+    } catch (e) {
+      console.error("Error loading cases:", e);
+    }
+  },
+
+  loadDiary: async () => {
+    const { user, activeWorkspaceId } = get();
+    if (!user || !activeWorkspaceId) return;
+    try {
+      const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
+      const q = query(diaryRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      set({ diary: loaded });
+    } catch (e) {
+      console.error("Error loading diary:", e);
+    }
+  },
+
+  loadDemands: async () => {
+    const { user, activeWorkspaceId } = get();
+    if (!user || !activeWorkspaceId) return;
+    try {
+      const demandsRef = collection(db, 'officeai_users', user.uid, 'demands');
+      const q = query(demandsRef, where('workspaceId', '==', activeWorkspaceId));
+      const snap = await getDocs(q);
+      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      set({ demands: loaded });
+    } catch (e) {
+      console.error("Error loading demands:", e);
+    }
+  },
+
+  loadReportsData: async () => {
+    const { user, activeWorkspaceId } = get();
+    if (!user || !activeWorkspaceId) return;
+    try {
+      const empsRef = collection(db, 'officeai_users', user.uid, 'employees');
+      const empsSnap = await getDocs(query(empsRef, where('workspaceId', '==', activeWorkspaceId)));
+      const employees = empsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const bondsRef = collection(db, 'officeai_users', user.uid, 'bonds');
+      const bondsSnap = await getDocs(query(bondsRef, where('workspaceId', '==', activeWorkspaceId)));
+      const bonds = bondsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const revRef = collection(db, 'officeai_users', user.uid, 'revenue');
+      const revSnap = await getDocs(query(revRef, where('workspaceId', '==', activeWorkspaceId)));
+      const revenue = revSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      set({ employees, bonds, revenue } as any);
+    } catch (e) {
+      console.error("Error loading reports data:", e);
+    }
+  },
+
+  loadInbox: async () => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      const inboxRef = collection(db, 'officeai_users', user.uid, 'inbox');
+      const inboxSnap = await getDocs(query(inboxRef, orderBy('createdAt', 'desc'), limit(100)));
+      const loaded = inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem));
+      set({ inbox: loaded });
+    } catch (e) {
+      console.error("Error loading inbox:", e);
+    }
+  },
+
+  loadHomeData: async () => {
+    const { user, activeWorkspaceId } = get();
+    if (!user) return;
+    try {
+      const lettersRef = collection(db, 'officeai_users', user.uid, 'letters');
+      const lettersQuery = activeWorkspaceId 
+        ? query(lettersRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'), limit(10))
+        : query(lettersRef, orderBy('createdAt', 'desc'), limit(10));
+      const lettersSnap = await getDocs(lettersQuery);
+      const letters = lettersSnap.docs.map(d => ({ id: d.id, ...d.data() } as Letter));
+
+      const casesRef = collection(db, 'officeai_users', user.uid, 'cases');
+      const casesQuery = activeWorkspaceId
+        ? query(casesRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'), limit(10))
+        : query(casesRef, orderBy('createdAt', 'desc'), limit(10));
+      const casesSnap = await getDocs(casesQuery);
+      const cases = casesSnap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem));
+
+      const demandsRef = collection(db, 'officeai_users', user.uid, 'demands');
+      const demandsQuery = activeWorkspaceId
+        ? query(demandsRef, where('workspaceId', '==', activeWorkspaceId), limit(10))
+        : query(demandsRef, limit(10));
+      const demandsSnap = await getDocs(demandsQuery);
+      const demands = demandsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
+      const diaryQuery = activeWorkspaceId
+        ? query(diaryRef, where('workspaceId', '==', activeWorkspaceId), limit(10))
+        : query(diaryRef, limit(10));
+      const diarySnap = await getDocs(diaryQuery);
+      const diary = diarySnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      set({ letters, cases, demands, diary });
+    } catch (e) {
+      console.error("Error loading home data:", e);
     }
   }
 }));

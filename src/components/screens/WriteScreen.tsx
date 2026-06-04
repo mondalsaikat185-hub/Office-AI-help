@@ -19,7 +19,7 @@ export default function WriteScreen() {
   // =========================================================================
   const [params, setParams] = useSearchParams();
   const mode = params.get('mode') || 'ai';
-  const { user, workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, activeSignatureId, setActiveSignature, saveUserData, saveLetter, letters, drafts, setDraft, templates, phrases, addressBook } = useStore();
+  const { user, workspaces, activeWorkspaceId, activeDirectoryId, activeFileId, activeSignatureId, setActiveSignature, saveUserData, saveLetter, letters, drafts, setDraft, templates, phrases, addressBook, loadSingleLetter } = useStore();
   const ws = workspaces.find(w => w.id === activeWorkspaceId);
   const sig = ws?.signatures.find(s => s.id === activeSignatureId);
   const dir = ws?.directories.find(d => d.id === activeDirectoryId);
@@ -40,6 +40,7 @@ export default function WriteScreen() {
   const [salutation, setSalutation] = useState('');
   const [din, setDin] = useState('');
   const [includeDin, setIncludeDin] = useState(false);
+  const [includeLetterhead, setIncludeLetterhead] = useState(true);
   const [styleRefText, setStyleRefText] = useState('');
   const [styleImageBase64, setStyleImageBase64] = useState('');
   const [previewMode, setPreviewMode] = useState<'preview'|'edit'>('preview');
@@ -155,7 +156,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
   // =========================================================================
   const handleManualSave = useCallback(async () => {
     try {
-      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin };
+      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead };
       setDraft(currentDraftId, obj);
       await saveUserData();
 
@@ -179,7 +180,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       setSaveMessage('Local save only (cloud failed)');
       setTimeout(() => setSaveMessage(''), 3000);
     }
-  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft, saveUserData, user, mode]);
+  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, currentDraftId, setDraft, saveUserData, user, mode]);
 
   const applyTemplate = (tId: string) => {
     if (!tId) return;
@@ -203,7 +204,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
   useEffect(() => {
      const st = drafts[currentDraftId];
      const localSt = localStorage.getItem(`draft_${currentDraftId}`);
-     let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, styleRefText: '', styleImageBase64: '' };
+     let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, includeLetterhead: true, styleRefText: '', styleImageBase64: '' };
      if (localSt) {
        try { 
          const parsed = JSON.parse(localSt);
@@ -240,6 +241,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
      setSalutation(finalSt.salutation !== undefined && finalSt.salutation !== '' ? finalSt.salutation : 'Sir/Madam,');
      setOutput(finalSt.output || '');
      setIncludeDin(finalSt.includeDin || false);
+     setIncludeLetterhead(finalSt.includeLetterhead !== undefined ? finalSt.includeLetterhead : true);
 
      // Only load DIN if present, do not auto-generate
      setDin(finalSt.din || '');
@@ -247,10 +249,10 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
 
   // Auto-save draft on changes locally
   useEffect(() => {
-     const obj = { subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin };
+     const obj = { subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead };
      setDraft(currentDraftId, obj);
      localStorage.setItem(`draft_${currentDraftId}`, JSON.stringify(obj));
-  }, [subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, currentDraftId, setDraft]);
+  }, [subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, currentDraftId, setDraft]);
 
   // Handle Smart Reply from Inbox
   useEffect(() => {
@@ -292,27 +294,30 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
     }
   }, [params, refText, details, subject, recipientTo]);
 
-  // Handle editId from History
+  // Handle editId from History (loads on-demand if not already in store)
   useEffect(() => {
     const editId = params.get('editId');
     if (editId) {
-       const letter = letters.find(l => l.id === editId);
-       if (letter) {
-          setSubject(letter.subject || '');
-          setDetails('');
-          setRecipientTo(letter.recipient || '');
-          setOutput(letter.body || '');
-          if (letter.copyTo && letter.copyTo.length > 0) {
-             setCopyTo(letter.copyTo.join('\n'));
-          } else {
-             setCopyTo('');
+       const setupLetter = async () => {
+          const letter = await loadSingleLetter(editId);
+          if (letter) {
+             setSubject(letter.subject || '');
+             setDetails('');
+             setRecipientTo(letter.recipient || '');
+             setOutput(letter.body || '');
+             if (letter.copyTo && letter.copyTo.length > 0) {
+                setCopyTo(letter.copyTo.join('\n'));
+             } else {
+                setCopyTo('');
+             }
+             setEnclosures(letter.enclosures || '');
+             setSalutation(letter.salutation || '');
+             setLastSavedId(letter.id);
           }
-          setEnclosures(letter.enclosures || '');
-          setSalutation(letter.salutation || '');
-          setLastSavedId(letter.id);
-       }
+       };
+       setupLetter();
     }
-  }, [params, letters]);
+  }, [params, loadSingleLetter]);
 
   // =========================================================================
   // SECTION 4: GEMINI AI PROMPT ENGINE & STREAMING GENERATOR
@@ -616,7 +621,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         };
         const safeFileNo = file?.fileNumber || dir?.filePrefix || 'GEN-01';
 
-        if(!isNote) {
+        if(!isNote && includeLetterhead) {
             if (ws && ws.letterhead) {
                const fetchImageBuf = async (str: string): Promise<{ buf: Uint8Array, width: number, height: number } | null> => {
                   return new Promise((resolve) => {
@@ -1113,6 +1118,13 @@ DO NOT repeat what was already written. Just continue writing the next words sea
           </div>
 
           <div className="space-y-1">
+             <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E] flex items-center gap-2 cursor-pointer">
+               <input type="checkbox" checked={includeLetterhead} onChange={e => setIncludeLetterhead(e.target.checked)} className="accent-[#22C55E]" />
+               Include Letterhead (লেটারহেড অন্তর্ভুক্ত করুন)
+             </label>
+          </div>
+
+          <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Subject *</label>
             <div className="relative">
               <input 
@@ -1334,7 +1346,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                     
                     {/* Dynamic Letterhead for preview */}
                     <div contentEditable={false} className="select-none">
-                      {mode !== 'note' && ws?.letterhead && (
+                      {mode !== 'note' && includeLetterhead && ws?.letterhead && (
                         <div className="relative text-center mb-8 border-b-2 pb-4" style={{ borderColor: ws.letterhead.color ? `#${ws.letterhead.color}` : '#1a3a8a', color: ws.letterhead.color ? `#${ws.letterhead.color}` : '#1a3a8a' }}>
                           
                           <table style={{ width: '100%', marginBottom: '0.5rem', borderCollapse: 'collapse', border: 'none' }}>
@@ -1379,7 +1391,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                           </div>
                         </div>
                       )}
-                      {mode !== 'note' && !ws?.letterhead && (
+                      {mode !== 'note' && includeLetterhead && !ws?.letterhead && (
                         <div className="text-center mb-8 border-b-2 border-[#1a3a8a] pb-4">
                           {ws?.office_hi && <div className="text-xs text-gray-600 font-sans font-bold">{ws.office_hi}</div>}
                           <div className="text-xl font-bold text-[#1a3a8a] font-sans uppercase">{ws?.office_en || ws?.name || 'OFFICE NAME'}</div>
