@@ -602,14 +602,22 @@ DO NOT repeat what was already written. Just continue writing the next words sea
   };
 
   const handleWordDownload = async () => {
-    if (!ws || !sig || !file || !dir || !output) return displayAlert("Ensure workspace, directory, file, and generated text exists.");
+    if (!output || !output.trim()) return displayAlert("Ensure generated text exists.");
     try {
         const children = [];
         const isNote = mode === 'note';
         const isOrder = mode === 'order';
 
+        // Safe fallbacks for missing/incomplete elements
+        const safeSig = {
+          name: sig?.name || 'Authorized Signatory',
+          designation: sig?.designation || 'Officer',
+          section: sig?.section || ''
+        };
+        const safeFileNo = file?.fileNumber || dir?.filePrefix || 'GEN-01';
+
         if(!isNote) {
-            if (ws.letterhead) {
+            if (ws && ws.letterhead) {
                const fetchImageBuf = async (str: string): Promise<{ buf: Uint8Array, width: number, height: number } | null> => {
                   return new Promise((resolve) => {
                      const img = new Image();
@@ -640,9 +648,9 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                       rows: [
                          new TableRow({
                             children: [
-                               new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1 ? [new ImageRun({ data: logo1.buf, transformation: { width: logo1.width, height: logo1.height }, type: 'png' } as any)] : [] })] }),
-                               new TableCell({ width: { size: 5848, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2 ? [new ImageRun({ data: logo2.buf, transformation: { width: logo2.width, height: logo2.height }, type: 'png' } as any)] : [] })] }),
-                               new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3 ? [new ImageRun({ data: logo3.buf, transformation: { width: logo3.width, height: logo3.height }, type: 'png' } as any)] : [] })] }),
+                               (new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1 ? [new ImageRun({ data: logo1.buf, transformation: { width: logo1.width, height: logo1.height }, type: 'png' } as any)] : [] })] })),
+                               (new TableCell({ width: { size: 5848, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2 ? [new ImageRun({ data: logo2.buf, transformation: { width: logo2.width, height: logo2.height }, type: 'png' } as any)] : [] })] })),
+                               (new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3 ? [new ImageRun({ data: logo3.buf, transformation: { width: logo3.width, height: logo3.height }, type: 'png' } as any)] : [] })] })),
                             ]
                          })
                       ]
@@ -683,10 +691,11 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                addCenterRun(ws.letterhead.l5 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s5 || 14), color: ws.letterhead.color || '1A3A8A' });
                addCenterRun(ws.letterhead.l6 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s6 || 14), color: ws.letterhead.color || '1A3A8A' });
             } else {
-               if(ws.office_hi) children.push(new Paragraph({children:[new TextRun({text:ws.office_hi, bold:true, size:30})], alignment:AlignmentType.CENTER}));
-               children.push(new Paragraph({children:[new TextRun({text:ws.office_en||ws.name, bold:true, size:24, color:'1A3A8A'})], alignment:AlignmentType.CENTER}));
-               if(ws.address) children.push(new Paragraph({children:[new TextRun({text:ws.address, size:20})], alignment:AlignmentType.CENTER}));
-               if(ws.phone || ws.email) children.push(new Paragraph({children:[new TextRun({text:[ws.phone,ws.email].filter(Boolean).join(' • '), size:20})], alignment:AlignmentType.CENTER}));
+               const officeName = ws?.office_en || ws?.name || 'Office Assistant';
+               if(ws?.office_hi) children.push(new Paragraph({children:[new TextRun({text:ws.office_hi, bold:true, size:30})], alignment:AlignmentType.CENTER}));
+               children.push(new Paragraph({children:[new TextRun({text:officeName, bold:true, size:24, color:'1A3A8A'})], alignment:AlignmentType.CENTER}));
+               if(ws?.address) children.push(new Paragraph({children:[new TextRun({text:ws.address, size:20})], alignment:AlignmentType.CENTER}));
+               if(ws?.phone || ws?.email) children.push(new Paragraph({children:[new TextRun({text:[ws.phone,ws.email].filter(Boolean).join(' • '), size:20})], alignment:AlignmentType.CENTER}));
             }
             children.push(new Paragraph({
                 text: '',
@@ -702,7 +711,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                     rows: [
                         new TableRow({
                             children: [
-                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + (file.fileNumber || dir.filePrefix || ''), bold: true })] })] }),
+                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + safeFileNo, bold: true })] })] }),
                                 new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-GB').replace(/\//g, '.'), bold: true })] })] })
                             ]
                         })
@@ -737,7 +746,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                     rows: [
                         new TableRow({
                             children: [
-                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + (file.fileNumber || dir.filePrefix || ''), bold: true })] })] }),
+                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + safeFileNo, bold: true })] })] }),
                                 new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-IN'), bold: true })] })] })
                             ]
                         })
@@ -857,6 +866,9 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         });
         
         const makeDocxSignatureBlock = (sigName: string, sigDesig: string, sigSection?: string, includeYours: boolean = true, encText?: string) => {
+            const sigDesigLines = (sigDesig || '').split('\n').filter(Boolean);
+            const sigSectionLines = (sigSection || '').split('\n').filter(Boolean);
+            
             return new Table({
                 width: { size: 9746, type: WidthType.DXA },
                 borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
@@ -884,8 +896,8 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                                         new Paragraph({text: ''})
                                     ]),
                                     new Paragraph({children: [new TextRun({text: '(' + sigName + ')', bold: true})], alignment: AlignmentType.CENTER}),
-                                    ...sigDesig.split('\n').filter(Boolean).map(l => new Paragraph({children: [new TextRun({ text: l })], alignment: AlignmentType.CENTER})),
-                                    ...(sigSection ? sigSection.split('\n').filter(Boolean).map(l => new Paragraph({children: [new TextRun({ text: l })], alignment: AlignmentType.CENTER})) : [])
+                                    ...sigDesigLines.map(l => new Paragraph({children: [new TextRun({ text: l })], alignment: AlignmentType.CENTER})),
+                                    ...sigSectionLines.map(l => new Paragraph({children: [new TextRun({ text: l })], alignment: AlignmentType.CENTER}))
                                 ] 
                             })
                         ]
@@ -903,9 +915,9 @@ DO NOT repeat what was already written. Just continue writing the next words sea
             }
             
             if (isOrder) {
-                children.push(makeDocxSignatureBlock(sig.name, sig.designation, sig.section, false, encString || undefined));
+                children.push(makeDocxSignatureBlock(safeSig.name, safeSig.designation, safeSig.section, false, encString || undefined));
             } else {
-                children.push(makeDocxSignatureBlock(sig.name, sig.designation, sig.section, true, encString || undefined));
+                children.push(makeDocxSignatureBlock(safeSig.name, safeSig.designation, safeSig.section, true, encString || undefined));
             }
 
             if (copyTo) {
@@ -925,18 +937,20 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                 });
                 if (!isOrder) {
                     children.push(new Paragraph({text:''}));
-                    children.push(makeDocxSignatureBlock(sig.name, sig.designation, sig.section, false));
+                    children.push(makeDocxSignatureBlock(safeSig.name, safeSig.designation, safeSig.section, false));
                 }
             }
         } else {
             // Note sheet signature
             children.push(new Paragraph({text:''}));
-            children.push(new Paragraph({children:[new TextRun({text:'('+sig.name+')', bold:true})], alignment:AlignmentType.LEFT}));
-            sig.designation.split('\n').filter(Boolean).forEach(line => {
+            children.push(new Paragraph({children:[new TextRun({text:'('+safeSig.name+')', bold:true})], alignment:AlignmentType.LEFT}));
+            const sigDesigLines = (safeSig.designation || '').split('\n').filter(Boolean);
+            sigDesigLines.forEach(line => {
                 children.push(new Paragraph({children:[new TextRun({text:line})], alignment:AlignmentType.LEFT}));
             });
-            if(sig.section) {
-                sig.section.split('\n').filter(Boolean).forEach(line => {
+            if(safeSig.section) {
+                const sigSectionLines = (safeSig.section || '').split('\n').filter(Boolean);
+                sigSectionLines.forEach(line => {
                     children.push(new Paragraph({children:[new TextRun({text:line})], alignment:AlignmentType.LEFT}));
                 });
             }

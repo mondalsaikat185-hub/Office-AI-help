@@ -234,7 +234,13 @@ ${rawText}`;
     // using similar logic to WriteScreen's fetchImageAsBuffer + docx generation
     const ws = activeWorkspace;
     const sig = activeSignature;
-    if (!ws || !sig) throw new Error("Workspace and Signature required");
+    
+    // Safe fallbacks for missing/incomplete elements
+    const safeSig = {
+      name: sig?.name || 'Authorized Signatory',
+      designation: sig?.designation || 'Officer',
+      section: sig?.section || ''
+    };
 
     const fetchImg = async (url: string) => {
       try {
@@ -247,15 +253,15 @@ ${rawText}`;
     };
 
     let logo1Buf = null, logo2Buf = null, logo3Buf = null;
-    if (ws.letterhead?.logo1) logo1Buf = await fetchImg(ws.letterhead.logo1);
-    if (ws.letterhead?.logo2) logo2Buf = await fetchImg(ws.letterhead.logo2);
-    if (ws.letterhead?.logo3) logo3Buf = await fetchImg(ws.letterhead.logo3);
+    if (ws && ws.letterhead?.logo1) logo1Buf = await fetchImg(ws.letterhead.logo1);
+    if (ws && ws.letterhead?.logo2) logo2Buf = await fetchImg(ws.letterhead.logo2);
+    if (ws && ws.letterhead?.logo3) logo3Buf = await fetchImg(ws.letterhead.logo3);
 
-    let lColor = activeWorkspace?.letterhead?.color || '1a3a8a';
+    let lColor = ws?.letterhead?.color || '1a3a8a';
     lColor = lColor.replace('#', '');
     const children: any[] = [];
     
-    if (ws.letterhead) {
+    if (ws && ws.letterhead) {
        let lh = ws.letterhead;
        if (logo1Buf || logo2Buf || logo3Buf) {
           children.push(new Table({
@@ -290,10 +296,11 @@ ${rawText}`;
        addCenterRun((lh.l5||'').replace('|', '          '), { bold: true, size: pxToHalfPts(lh.s5 || 14), color: lh.color || '1A3A8A' });
        addCenterRun((lh.l6||'').replace('|', '          '), { bold: true, size: pxToHalfPts(lh.s6 || 14), color: lh.color || '1A3A8A' });
     } else {
-       if(ws.office_hi) children.push(new Paragraph({children:[new TextRun({text:ws.office_hi, bold:true, size:30})], alignment:AlignmentType.CENTER}));
-       children.push(new Paragraph({children:[new TextRun({text:ws.office_en||ws.name, bold:true, size:24, color:'1A3A8A'})], alignment:AlignmentType.CENTER}));
-       if(ws.address) children.push(new Paragraph({children:[new TextRun({text:ws.address, size:20})], alignment:AlignmentType.CENTER}));
-       if(ws.phone || ws.email) children.push(new Paragraph({children:[new TextRun({text:[ws.phone,ws.email].filter(Boolean).join(' • '), size:20})], alignment:AlignmentType.CENTER}));
+       const officeName = ws?.office_en || ws?.name || 'Office Assistant';
+       if(ws?.office_hi) children.push(new Paragraph({children:[new TextRun({text:ws.office_hi, bold:true, size:30})], alignment:AlignmentType.CENTER}));
+       children.push(new Paragraph({children:[new TextRun({text:officeName, bold:true, size:24, color:'1A3A8A'})], alignment:AlignmentType.CENTER}));
+       if(ws?.address) children.push(new Paragraph({children:[new TextRun({text:ws.address, size:20})], alignment:AlignmentType.CENTER}));
+       if(ws?.phone || ws?.email) children.push(new Paragraph({children:[new TextRun({text:[ws.phone,ws.email].filter(Boolean).join(' • '), size:20})], alignment:AlignmentType.CENTER}));
     }
     
     children.push(new Paragraph({
@@ -324,9 +331,18 @@ ${rawText}`;
     children.push(new Paragraph({ text: "Yours faithfully,", alignment: AlignmentType.RIGHT }));
     children.push(new Paragraph({ text: "" }));
     children.push(new Paragraph({ text: "" })); // Space for signature
-    children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `(${sig.name})`, bold: true })] }));
-    children.push(new Paragraph({ text: sig.designation, alignment: AlignmentType.RIGHT }));
-    if(sig.section) children.push(new Paragraph({ text: sig.section, alignment: AlignmentType.RIGHT }));
+    children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `(${safeSig.name})`, bold: true })] }));
+    
+    const sigDesigLines = (safeSig.designation || '').split('\n').filter(Boolean);
+    sigDesigLines.forEach(line => {
+      children.push(new Paragraph({ text: line, alignment: AlignmentType.RIGHT }));
+    });
+    if(safeSig.section) {
+      const sigSectionLines = (safeSig.section || '').split('\n').filter(Boolean);
+      sigSectionLines.forEach(line => {
+        children.push(new Paragraph({ text: line, alignment: AlignmentType.RIGHT }));
+      });
+    }
 
     const doc = new Document({
       sections: [{
