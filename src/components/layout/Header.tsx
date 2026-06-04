@@ -72,11 +72,22 @@ export default function Header() {
 
   const models = [
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', short: '2.5 Flash ⚡' },
-    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Plus)', short: '2.5 Pro' },
     { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', short: '2.0 Flash' },
     { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', short: '1.5 Pro' },
     { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', short: '1.5 Flash' },
   ];
+
+  const getSigDisplay = (s: any) => {
+    if (!s) return '—';
+    try {
+      const desigPart = s.designation ? s.designation.split(/[(\/]/)[0].trim() : 'Staff';
+      const nameParts = s.name ? s.name.trim().split(' ') : [];
+      const lastName = nameParts.length > 0 ? nameParts[nameParts.length - 1] : 'Officer';
+      return `${desigPart} - ${lastName}`;
+    } catch (e) {
+      return s.name || '—';
+    }
+  };
 
   // Make sure we have active items if none selected but available
   useEffect(() => {
@@ -247,9 +258,9 @@ export default function Header() {
 
   return (
     <header className="border-b-2 border-black/10 dark:border-white/10 bg-[#f8fafc] dark:bg-[#0A0A0A] px-3 py-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 relative" style={{ zIndex: 9999 }}>
-      <div className="flex flex-nowrap gap-2 items-center w-full overflow-x-auto scrollbar-none pb-1">
+      <div className="flex flex-wrap gap-2 items-center w-full pb-1">
         {/* Workspace Chip */}
-        <div className="relative flex items-center flex-shrink-0">
+        <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'workspace' ? 9999 : 'auto' }}>
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'workspace' ? null : 'workspace')}
             className="flex items-center gap-2 border border-[#22C55E]/30 bg-[#22C55E]/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-[#22C55E] transition-colors h-8"
@@ -287,7 +298,7 @@ export default function Header() {
         </div>
 
         {/* Directory Chip */}
-        <div className="relative flex items-center flex-shrink-0">
+        <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'dir' ? 9999 : 'auto' }}>
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'dir' ? null : 'dir')}
             className="flex items-center gap-2 border border-blue-500/30 bg-blue-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-blue-500 transition-colors h-8"
@@ -328,7 +339,7 @@ export default function Header() {
         </div>
 
         {/* File Chip */}
-        <div className="relative flex items-center flex-shrink-0">
+        <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'file' ? 9999 : 'auto' }}>
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'file' ? null : 'file')}
             className="flex items-center gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-amber-500 transition-colors h-8"
@@ -365,14 +376,14 @@ export default function Header() {
         </div>
         
         {/* Signature Chip */}
-        <div className="relative flex items-center flex-shrink-0">
+        <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'sig' ? 9999 : 'auto' }}>
           <div 
             onClick={() => setOpenDropdown(openDropdown === 'sig' ? null : 'sig')}
             className="flex items-center gap-2 border border-purple-500/30 bg-purple-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-purple-500 transition-colors h-8"
           >
             <Signature className="w-3.5 h-3.5 text-purple-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[80px] sm:max-w-[100px] truncate">
-              {sig ? `${sig.designation.split(/[(\/]/)[0].trim()} - ${sig.name.split(' ').slice(-1)[0]}` : '—'}
+              {getSigDisplay(sig)}
             </span>
             <ChevronDown className="w-3 h-3 text-purple-400" />
           </div>
@@ -409,7 +420,7 @@ export default function Header() {
           >
             {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-indigo-500" />}
           </button>
-          <div className="relative">
+          <div className="relative" style={{ zIndex: openDropdown === 'ai' ? 9999 : 'auto' }}>
             <div 
               onClick={() => setOpenDropdown(openDropdown === 'ai' ? null : 'ai')}
               className="flex items-center gap-2 border border-rose-500/30 bg-rose-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-rose-500 transition-colors h-8"
@@ -449,7 +460,7 @@ export default function Header() {
           </div>
 
           {/* ── Three-dot Menu ── */}
-          <div className="relative">
+          <div className="relative" style={{ zIndex: openDropdown === 'menu' ? 9999 : 'auto' }}>
             <button
               onClick={() => setOpenDropdown(openDropdown === 'menu' ? null : 'menu')}
               className="flex items-center justify-center p-1.5 border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition-colors h-8 w-8"

@@ -5,6 +5,7 @@ import { auth } from '../../lib/firebase';
 import { Workspace, SignatureBlock, Phrase, Template, Letterhead } from '../../types';
 import { defaultTemplates } from '../../lib/defaultTemplates';
 import { rateLimiter } from '../../lib/rateLimiter';
+import { testGeminiKey } from '../../lib/gemini';
 
 function AddressBookEditor({ addressBook = [], saveUserData, setActiveSection }: any) {
   const [newEntry, setNewEntry] = useState({ name: '', desig: '', office: '', address: '', salutation: 'Sir/Madam,' });
@@ -480,6 +481,28 @@ export default function SettingsScreen() {
   const [tgTokenVal, setTgTokenVal] = useState(tgBotToken || '');
   const [tgChatVal, setTgChatVal] = useState(tgChatId || '');
 
+  const [keyStatus, setKeyStatus] = useState<Record<string, { checking: boolean, status?: 'valid' | 'invalid' | 'quota', message?: string }>>({});
+
+  const handleTestKey = async (keyString: string) => {
+    setKeyStatus(prev => ({ ...prev, [keyString]: { checking: true } }));
+    const result = await testGeminiKey(keyString);
+    if (result.success) {
+      setKeyStatus(prev => ({ ...prev, [keyString]: { checking: false, status: 'valid', message: result.message } }));
+    } else {
+      const isQuota = /quota|limit|exhausted/i.test(result.message);
+      setKeyStatus(prev => ({ ...prev, [keyString]: { checking: false, status: isQuota ? 'quota' : 'invalid', message: result.message } }));
+    }
+  };
+
+  useEffect(() => {
+    // Auto-test all keys when Settings Screen loads
+    apiKeys.forEach(k => {
+      if (k.key && !keyStatus[k.key]) {
+        handleTestKey(k.key);
+      }
+    });
+  }, [apiKeys]);
+
   useEffect(() => {
     setTgTokenVal(tgBotToken || '');
     setTgChatVal(tgChatId || '');
@@ -540,19 +563,51 @@ export default function SettingsScreen() {
         </div>
         
         <div className="space-y-4 mb-6">
-          {apiKeys.map((k, i) => (
-            <div key={i} className="flex items-center justify-between p-4 border border-black/20 dark:border-white/20 bg-white/50 dark:bg-black/50">
-              <div>
-                <p className="font-bold text-sm tracking-wide">{k.label}</p>
-                <p className="text-[10px] text-black dark:text-white/50 font-mono mt-1">...{k.key.slice(-8)} • Used Today: {k.usage?.tokens || 0}</p>
+          {apiKeys.map((k, i) => {
+            const status = keyStatus[k.key];
+            return (
+              <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-black/20 dark:border-white/20 bg-white/50 dark:bg-black/50 gap-4">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-sm tracking-wide">{k.label}</p>
+                    {status?.checking && (
+                      <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 animate-pulse uppercase tracking-wider">Checking...</span>
+                    )}
+                    {status?.status === 'valid' && (
+                      <span className="text-[9px] font-bold text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/30 px-2 py-0.5 uppercase tracking-wider">Active & Working</span>
+                    )}
+                    {status?.status === 'invalid' && (
+                      <span className="text-[9px] font-bold text-red-500 bg-red-500/10 border border-red-500/30 px-2 py-0.5 uppercase tracking-wider cursor-help" title={status.message}>Invalid API Key</span>
+                    )}
+                    {status?.status === 'quota' && (
+                      <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 uppercase tracking-wider cursor-help" title={status.message}>Quota Exceeded</span>
+                    )}
+                    {!status && (
+                      <span className="text-[9px] font-bold text-gray-400 bg-gray-400/10 border border-gray-400/20 px-2 py-0.5 uppercase tracking-wider">Untested</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-black dark:text-white/50 font-mono mt-1">...{k.key.slice(-8)} • Used Today: {k.usage?.tokens || 0}</p>
+                  {status?.status === 'invalid' && (
+                    <p className="text-[10px] text-red-500 font-mono mt-1 max-w-md break-words">{status.message}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button 
+                    onClick={() => handleTestKey(k.key)}
+                    disabled={status?.checking}
+                    className="border border-[#22C55E]/50 text-[#22C55E] hover:bg-[#22C55E]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                  >
+                    {status?.checking ? 'Testing...' : 'Test Key'}
+                  </button>
+                  <button onClick={() => {
+                    const ks = [...apiKeys];
+                    ks.splice(i, 1);
+                    saveUserData({ apiKeys: ks });
+                  }} className="text-red-500 hover:bg-red-500/10 p-2 text-xs font-bold uppercase tracking-widest transition-colors"><Trash2 className="w-4 h-4" /></button>
+                </div>
               </div>
-              <button onClick={() => {
-                const ks = [...apiKeys];
-                ks.splice(i, 1);
-                saveUserData({ apiKeys: ks });
-              }} className="text-red-500 hover:bg-red-500/10 p-2 text-xs font-bold uppercase tracking-widest transition-colors"><Trash2 className="w-4 h-4" /></button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="flex gap-4">

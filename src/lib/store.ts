@@ -62,7 +62,11 @@ export const useStore = create<GlobalStore>((set, get) => ({
   profile: null,
   workspaces: [],
   apiKeys: readLocalJSON<ApiKey[]>('officeai_apiKeys', []),
-  selectedModel: localStorage.getItem('officeai_selectedModel') || 'gemini-2.5-flash',
+  selectedModel: (() => {
+    const local = localStorage.getItem('officeai_selectedModel');
+    const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+    return (local && VALID_MODELS.includes(local)) ? local : 'gemini-2.5-flash';
+  })(),
   mistralKey: '',
   tokenBudget: 0,
   addressBook: [],
@@ -264,17 +268,21 @@ export const useStore = create<GlobalStore>((set, get) => ({
       // else: all sources empty — user truly has no keys
 
       // Determine best selectedModel: Firestore > localStorage > default
+      const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
       const firestoreModel = cleanCoreData.selectedModel;
-      if (firestoreModel && typeof firestoreModel === 'string' && firestoreModel.length > 0) {
-        // Firestore has valid model — use it and update localStorage
-        localStorage.setItem('officeai_selectedModel', firestoreModel);
-      } else if (localModel && localModel.length > 0) {
-        // Firestore empty but localStorage has model — preserve it
-        console.warn('[OfficeAI] Firestore returned empty selectedModel, restoring from localStorage');
-        cleanCoreData.selectedModel = localModel;
+      
+      let finalModel = 'gemini-2.5-flash';
+      if (firestoreModel && VALID_MODELS.includes(firestoreModel)) {
+        finalModel = firestoreModel;
+      } else if (localModel && VALID_MODELS.includes(localModel)) {
+        finalModel = localModel;
+        console.warn('[OfficeAI] Stored model is invalid, fell back to local model:', localModel);
       } else {
-        cleanCoreData.selectedModel = 'gemini-2.5-flash';
+        console.warn('[OfficeAI] Stored and local models invalid, falling back to gemini-2.5-flash');
       }
+
+      cleanCoreData.selectedModel = finalModel;
+      localStorage.setItem('officeai_selectedModel', finalModel);
 
       set((state) => ({
         ...state,

@@ -494,3 +494,32 @@ export const RAG = {
     return ctx;
   }
 };
+
+export async function testGeminiKey(key: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Ping' }] }]
+      })
+    });
+    if (res.ok) {
+      return { success: true, message: 'Valid and Working' };
+    } else {
+      const errorText = await res.text();
+      let errorMsg = 'Error';
+      try {
+        const json = JSON.parse(errorText);
+        errorMsg = json.error?.message || json.error?.status || errorText;
+      } catch {
+        errorMsg = errorText || `HTTP ${res.status}`;
+      }
+      return { success: false, message: errorMsg };
+    }
+  } catch (e: any) {
+    return { success: false, message: e.message || 'Network error' };
+  }
+}
+
