@@ -1,0 +1,12 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.suo
+*.user
+
+# This guide file (optional — remove this line if you want it in repo)
+# MASTER_PROMPT_VERCEL_PWA.txt

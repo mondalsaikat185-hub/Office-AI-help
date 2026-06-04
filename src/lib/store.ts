@@ -38,12 +38,31 @@ interface GlobalStore extends AppState {
 
 let saveDraftTimeout: any = null;
 
+// Helper: safely read JSON from localStorage
+function readLocalJSON<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed ?? fallback;
+  } catch { return fallback; }
+}
+
+// Helper: safely write JSON to localStorage
+function writeLocalJSON(key: string, value: any): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.warn('[OfficeAI] localStorage write failed:', e);
+  }
+}
+
 export const useStore = create<GlobalStore>((set, get) => ({
   user: null,
   profile: null,
   workspaces: [],
-  apiKeys: [],
-  selectedModel: 'gemini-1.5-flash',
+  apiKeys: readLocalJSON<ApiKey[]>('officeai_apiKeys', []),
+  selectedModel: localStorage.getItem('officeai_selectedModel') || 'gemini-2.5-flash',
   mistralKey: '',
   tokenBudget: 0,
   addressBook: [],
@@ -223,6 +242,40 @@ export const useStore = create<GlobalStore>((set, get) => ({
       delete cleanCoreData.bonds;
       delete cleanCoreData.revenue;
 
+      // ── CRITICAL: Validate apiKeys and selectedModel before overwriting ──
+      // Never allow empty/stale Firestore data to destroy valid local state
+      const currentState = get();
+      const localApiKeys = readLocalJSON<ApiKey[]>('officeai_apiKeys', []);
+      const localModel = localStorage.getItem('officeai_selectedModel') || 'gemini-2.5-flash';
+
+      // Determine best apiKeys: Firestore > localStorage > current state
+      const firestoreApiKeys = cleanCoreData.apiKeys;
+      if (firestoreApiKeys && Array.isArray(firestoreApiKeys) && firestoreApiKeys.length > 0) {
+        // Firestore has valid keys — use them and update localStorage backup
+        writeLocalJSON('officeai_apiKeys', firestoreApiKeys);
+      } else if (localApiKeys.length > 0) {
+        // Firestore returned empty but localStorage has keys — preserve them
+        console.warn('[OfficeAI] Firestore returned empty apiKeys, restoring from localStorage backup');
+        cleanCoreData.apiKeys = localApiKeys;
+      } else if (currentState.apiKeys.length > 0) {
+        // Both empty but current state has keys (shouldn't happen, but safety net)
+        cleanCoreData.apiKeys = currentState.apiKeys;
+      }
+      // else: all sources empty — user truly has no keys
+
+      // Determine best selectedModel: Firestore > localStorage > default
+      const firestoreModel = cleanCoreData.selectedModel;
+      if (firestoreModel && typeof firestoreModel === 'string' && firestoreModel.length > 0) {
+        // Firestore has valid model — use it and update localStorage
+        localStorage.setItem('officeai_selectedModel', firestoreModel);
+      } else if (localModel && localModel.length > 0) {
+        // Firestore empty but localStorage has model — preserve it
+        console.warn('[OfficeAI] Firestore returned empty selectedModel, restoring from localStorage');
+        cleanCoreData.selectedModel = localModel;
+      } else {
+        cleanCoreData.selectedModel = 'gemini-2.5-flash';
+      }
+
       set((state) => ({
         ...state,
         ...cleanCoreData,
@@ -239,6 +292,8 @@ export const useStore = create<GlobalStore>((set, get) => ({
 
     } catch (error) {
       console.error("Error loading user data:", error);
+      // On load failure, keep whatever is in localStorage/current state
+      // Do NOT reset to defaults
     }
   },
 
@@ -345,7 +400,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
       const rawCoreToSave = {
         profile: state.profile ?? null,
         apiKeys: state.apiKeys ?? [],
-        selectedModel: state.selectedModel ?? '',
+        selectedModel: state.selectedModel || 'gemini-2.5-flash',
         mistralKey: state.mistralKey ?? '',
         tokenBudget: state.tokenBudget ?? 0,
         addressBook: state.addressBook ?? [],
@@ -361,8 +416,27 @@ export const useStore = create<GlobalStore>((set, get) => ({
         lastUpdate: Date.now()
       };
 
+      // ── CRITICAL: Always backup apiKeys and selectedModel to localStorage ──
+      // This ensures settings survive even if Firestore fails on next load
+      writeLocalJSON('officeai_apiKeys', rawCoreToSave.apiKeys);
+      localStorage.setItem('officeai_selectedModel', rawCoreToSave.selectedModel);
+
       const coreToSave = JSON.parse(JSON.stringify(rawCoreToSave));
-      await setDoc(doc(db, 'officeai_users', user.uid), coreToSave, { merge: true });
+      try {
+        await setDoc(doc(db, 'officeai_users', user.uid), coreToSave, { merge: true });
+      } catch (firestoreError) {
+        console.error("Firestore save failed, but localStorage backup is intact:", firestoreError);
+        // Don't throw — localStorage backup ensures data survives
+        // Schedule a retry after 5 seconds
+        setTimeout(async () => {
+          try {
+            await setDoc(doc(db, 'officeai_users', user.uid), coreToSave, { merge: true });
+            console.log('[OfficeAI] Firestore retry succeeded');
+          } catch (retryError) {
+            console.error('[OfficeAI] Firestore retry also failed:', retryError);
+          }
+        }, 5000);
+      }
     } catch (error) {
       console.error("Error saving user data:", error);
       throw error;

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Projects Dashboard</title>
+  <meta name="description" content="Saikat Mondal — Personal Project Dashboard" />
+  <meta name="theme-color" content="#22C55E" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --green: #22C55E;
+      --bg: #0a0a0a;
+      --card: #111111;
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --muted: rgba(255,255,255,0.45);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+    .logo span { color: var(--green); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    #installBtn {
+      background: var(--green);
+      color: #000;
+      border: none;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: none;
+      border-radius: 4px;
+    }
+    #installBtn:hover { background: #1eb354; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 56px 32px 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+    .hero h1 span { color: var(--green); }
+    .hero p {
+      color: var(--muted);
+      margin-top: 12px;
+      font-size: 15px;
+    }
+
+    /* ── Grid ── */
+    .grid {
+      padding: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: var(--green);
+      transform: translateY(-2px);
+    }
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .card-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--green);
+      border: 1px solid rgba(34,197,94,0.3);
+      padding: 2px 8px;
+      border-radius: 2px;
+      margin-bottom: 10px;
+    }
+    .card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .card-arrow {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      color: var(--muted);
+      font-size: 20px;
+      transition: color 0.2s;
+    }
+    .card:hover .card-arrow { color: var(--green); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    /* ── Install Banner ── */
+    #installBanner {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card);
+      border: 1px solid var(--green);
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      gap: 16px;
+      max-width: 480px;
+      width: calc(100% - 48px);
+    }
+    #installBanner p { font-size: 13px; flex: 1; }
+    #installBanner p span { color: var(--green); font-weight: 700; }
+    #bannerInstall {
+      background: var(--green);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    #bannerClose {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 16px 20px; }
+      .hero { padding: 36px 20px 20px; }
+      .grid { padding: 20px; gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo"><span>My</span> Projects</div>
+    <div class="header-right">
+      <button id="installBtn" onclick="triggerInstall()">⬇ Install App</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Project <span>Dashboard</span></h1>
+    <p>All your important applications — in one place.</p>
+  </div>
+
+  <div class="grid" id="projectGrid">
+    <!-- Cards are generated by JavaScript from PROJECTS array below -->
+  </div>
+
+  <div id="installBanner">
+    <p>Install <span>My Projects</span> as an app on your device for quick access.</p>
+    <button id="bannerInstall" onclick="triggerInstall()">Install</button>
+    <button id="bannerClose" onclick="closeBanner()">✕</button>
+  </div>
+
+  <footer>
+    <p>Saikat Mondal &nbsp;·&nbsp; All Rights Reserved &nbsp;·&nbsp; Secured &amp; Fast via Vercel</p>
+  </footer>
+
+  <script>
+    // ══════════════════════════════════════════════════════
+    //  EDIT YOUR PROJECTS HERE
+    //  Add or remove items from this array.
+    //  icon: any emoji
+    //  tag:  short label (e.g. "Office", "Finance", "AI")
+    //  url:  the Vercel/web link of your project
+    // ══════════════════════════════════════════════════════
+    const PROJECTS = [
+      {
+        icon: "📝",
+        tag: "Office AI",
+        title: "Office AI Assistant",
+        desc: "AI-powered letter writing, note sheets, orders, and file management for government office use.",
+        url: "https://YOUR-OFFICE-AI-APP.vercel.app"
+      },
+      {
+        icon: "📚",
+        tag: "Study",
+        title: "GK Static Files",
+        desc: "General knowledge study materials hosted and accessible from anywhere.",
+        url: "https://mondalsaikat185-hub.github.io/gk-static-files"
+      },
+      {
+        icon: "🔧",
+        tag: "Tool",
+        title: "Project 3",
+        desc: "Description of your third important project goes here.",
+        url: "https://your-project-3.vercel.app"
+      },
+      {
+        icon: "📊",
+        tag: "Reports",
+        title: "Project 4",
+        desc: "Description of your fourth project goes here.",
+        url: "https://your-project-4.vercel.app"
+      },
+      {
+        icon: "🛡️",
+        tag: "Secure",
+        title: "Project 5",
+        desc: "Description of your fifth project goes here.",
+        url: "https://your-project-5.vercel.app"
+      }
+    ];
+    // ══════════════════════════════════════════════════════
+
+    // Render cards
+    const grid = document.getElementById('projectGrid');
+    PROJECTS.forEach(p => {
+      grid.innerHTML += `
+        <a class="card" href="${p.url}" target="_blank" rel="noopener">
+          <span class="card-icon">${p.icon}</span>
+          <span class="card-tag">${p.tag}</span>
+          <h2>${p.title}</h2>
+          <p>${p.desc}</p>
+          <span class="card-arrow">↗</span>
+        </a>`;
+    });
+
+    // ── PWA Install Prompt ──
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').style.display = 'inline-block';
+      // Show banner after 3 seconds
+      setTimeout(() => {
+        const banner = document.getElementById('installBanner');
+        banner.style.display = 'flex';
+      }, 3000);
+    });
+
+    function triggerInstall() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(r => {
+        if (r.outcome === 'accepted') {
+          document.getElementById('installBtn').style.display = 'none';
+          closeBanner();
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    function closeBanner() {
+      document.getElementById('installBanner').style.display = 'none';
+    }
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('installBtn').style.display = 'none';
+      closeBanner();
+    });
+
+    // ── Service Worker ──
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

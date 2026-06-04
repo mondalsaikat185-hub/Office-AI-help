@@ -71,11 +71,11 @@ export default function Header() {
   const sig = ws?.signatures.find(s => s.id === activeSignatureId) || ws?.signatures[0];
 
   const models = [
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
-    { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B (Light)' },
-    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' }
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', short: '2.5 Flash ⚡' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Plus)', short: '2.5 Pro' },
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', short: '2.0 Flash' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', short: '1.5 Pro' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', short: '1.5 Flash' },
   ];
 
   // Make sure we have active items if none selected but available
@@ -416,7 +416,7 @@ export default function Header() {
             >
             <Cpu className="w-3.5 h-3.5 text-rose-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-white max-w-[120px] truncate">
-              {models.find(m => m.id === selectedModel)?.name.split(' ')[2] || models.find(m => m.id === 'gemini-2.0-flash')?.name.split(' ')[2] || 'AI'}
+              {models.find(m => m.id === selectedModel)?.short || '2.5 Flash'}
             </span>
             <ChevronDown className="w-3 h-3 text-rose-400" />
           </div>
@@ -439,7 +439,7 @@ export default function Header() {
                 {apiKeys.map(k => (
                   <div key={k.key} className="px-3 py-1 text-xs text-black/80 dark:text-white/80 border-b border-black/10 dark:border-white/10 last:border-0 flex justify-between">
                     <span>{k.label}</span>
-                    <button onClick={(e) => { e.stopPropagation(); saveUserData({ apiKeys: apiKeys.filter(ak => ak.key !== k.key) }); }} className="text-red-500 hover:text-red-400">Del</button>
+                    <button onClick={(e) => { e.stopPropagation(); if (apiKeys.length <= 1) { alert('Cannot remove the last API key. Add another key first.'); return; } saveUserData({ apiKeys: apiKeys.filter(ak => ak.key !== k.key) }); }} className="text-red-500 hover:text-red-400">Del</button>
                   </div>
                 ))}
                 {apiKeys.length === 0 && <p className="px-3 py-1 text-[10px] text-rose-400">No keys added. Go to settings.</p>}
