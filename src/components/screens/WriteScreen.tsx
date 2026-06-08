@@ -4,9 +4,12 @@ import { useStore } from '../../lib/store';
 import { callGemini, callGeminiStream, RAG } from '../../lib/gemini';
 import { Folder, FileText, Bot, PenTool, Mic, Paperclip, X } from 'lucide-react';
 import { Document, Packer, Paragraph, TextRun, AlignmentType, TabStopType, BorderStyle, ImageRun, Table, TableRow, TableCell, WidthType, UnderlineType } from 'docx';
-import { Letterhead } from '../../types';
+import { Letterhead, Template } from '../../types';
 import { defaultTemplates } from '../../lib/defaultTemplates';
 import { learningEngine } from '../../lib/learningEngine';
+import TemplateWizard from '../wizard/TemplateWizard';
+import WizardResult from '../wizard/WizardResult';
+import { TEMPLATE_RULES } from '../../lib/templateRules';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 // @ts-ignore
@@ -60,6 +63,21 @@ export default function WriteScreen() {
 
   const [templateSearch, setTemplateSearch] = useState('');
   const [templateCategory, setTemplateCategory] = useState<string>('All');
+
+  // Wizard state variables
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardTemplateId, setWizardTemplateId] = useState<string | undefined>(undefined);
+  const [wizardValues, setWizardValues] = useState<Record<string, string>>({});
+  const [wizardSelectedRules, setWizardSelectedRules] = useState<string[]>([]);
+  const [wizardSelectedTone, setWizardSelectedTone] = useState<'Formal' | 'Strong' | 'Moderate'>('Formal');
+  const [wizardSelectedLanguage, setWizardSelectedLanguage] = useState<string>('English');
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+
+  const wizardTemplate = useMemo(() => {
+    if (!wizardTemplateId) return null;
+    const all = [...defaultTemplates, ...(templates || [])];
+    return all.find(t => t.id === wizardTemplateId) || null;
+  }, [wizardTemplateId, templates]);
 
   const CATEGORIES = ['All', 'Leave & Service', 'GPF', 'GST', 'Customs', 'General', 'Custom'];
 
@@ -187,7 +205,10 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
   // =========================================================================
   const handleManualSave = useCallback(async () => {
     try {
-      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate };
+      const obj = { 
+        subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate,
+        wizardTemplateId, wizardValues, wizardSelectedRules, wizardSelectedTone, wizardSelectedLanguage
+      };
       setDraft(currentDraftId, obj);
       await saveUserData();
 
@@ -211,7 +232,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       setSaveMessage('Local save only (cloud failed)');
       setTimeout(() => setSaveMessage(''), 3000);
     }
-  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate, currentDraftId, setDraft, saveUserData, user, mode]);
+  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate, wizardTemplateId, wizardValues, wizardSelectedRules, wizardSelectedTone, wizardSelectedLanguage, currentDraftId, setDraft, saveUserData, user, mode]);
 
   const applyTemplate = (tId: string) => {
     if (!tId) return;
@@ -235,7 +256,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
   useEffect(() => {
      const st = drafts[currentDraftId];
      const localSt = localStorage.getItem(`draft_${currentDraftId}`);
-     let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, includeLetterhead: true, styleRefText: '', styleImageBase64: '', legalDocType: 'Refund Rejection Order (Section 27)', arnNo: '', arnDate: '', boeNo: '', boeDate: '', importerName: '', iec: '', amount: '', goods: '', scnDate: '' };
+     let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, includeLetterhead: true, styleRefText: '', styleImageBase64: '', legalDocType: 'Refund Rejection Order (Section 27)', arnNo: '', arnDate: '', boeNo: '', boeDate: '', importerName: '', iec: '', amount: '', goods: '', scnDate: '', wizardTemplateId: undefined as string | undefined, wizardValues: {} as Record<string, string>, wizardSelectedRules: [] as string[], wizardSelectedTone: 'Formal' as 'Formal' | 'Strong' | 'Moderate', wizardSelectedLanguage: 'English' };
      if (localSt) {
        try { 
          const parsed = JSON.parse(localSt);
@@ -284,14 +305,26 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
      setAmount(finalSt.amount || '');
      setGoods(finalSt.goods || '');
      setScnDate(finalSt.scnDate || '');
+     setWizardTemplateId(finalSt.wizardTemplateId || undefined);
+     setWizardValues(finalSt.wizardValues || {});
+     setWizardSelectedRules(finalSt.wizardSelectedRules || []);
+     setWizardSelectedTone(finalSt.wizardSelectedTone || 'Formal');
+     setWizardSelectedLanguage(finalSt.wizardSelectedLanguage || 'English');
   }, [currentDraftId]);
 
   // Auto-save draft on changes locally
   useEffect(() => {
-     const obj = { subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate };
+     const obj = { 
+       subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate,
+       wizardTemplateId, wizardValues, wizardSelectedRules, wizardSelectedTone, wizardSelectedLanguage
+     };
      setDraft(currentDraftId, obj);
      localStorage.setItem(`draft_${currentDraftId}`, JSON.stringify(obj));
-  }, [subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate, currentDraftId, setDraft]);
+  }, [
+    subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate, 
+    wizardTemplateId, wizardValues, wizardSelectedRules, wizardSelectedTone, wizardSelectedLanguage,
+    currentDraftId, setDraft
+  ]);
 
   // Handle Smart Reply from Inbox
   useEffect(() => {
@@ -572,6 +605,93 @@ DO NOT repeat what was already written. Just continue writing the next words sea
        setGenerating(false);
      }
   };
+
+  const regenerateFromWizard = useCallback(async (
+     template: Template,
+     values: Record<string, string>,
+     selectedRules: string[],
+     tone: 'Formal' | 'Strong' | 'Moderate',
+     language: string
+   ) => {
+     // Template-এর subject set করো
+     setSubject(template.subject
+       .replace(/\[ARN No\.\]/g, values.arnNo || '[ARN No.]')
+       .replace(/\[BoE No\.\]/g, values.boeNo || '[BoE No.]')
+       .replace(/\[Importer Name\]/g, values.importerName || '[Importer Name]')
+     );
+
+     // Selected rules থেকে rules text তৈরি করো
+     const allRules = TEMPLATE_RULES.find(r => r.templateId === template.id);
+     const selectedRuleTexts = selectedRules.map(ruleId => {
+       if (ruleId.startsWith('custom:')) return ruleId.replace('custom:', '');
+       const rule = allRules?.rules.find(r => r.id === ruleId);
+       return rule ? `${rule.section} of ${rule.act} (${rule.title})` : ruleId;
+     });
+
+     // Details build করো
+     const detailsLines: string[] = [
+       `Template: ${template.name}`,
+       '',
+       '--- CASE DETAILS ---',
+       ...Object.entries(values)
+         .filter(([, v]) => v)
+         .map(([k, v]) => `${k}: ${v}`),
+       '',
+       '--- APPLICABLE LAWS & RULES ---',
+       ...selectedRuleTexts.map(r => `• ${r}`),
+       '',
+       `Tone: ${tone}`,
+       `Language: ${language}`,
+     ];
+
+     if (values.extraIns) {
+       detailsLines.push('', '--- SPECIAL INSTRUCTIONS ---', values.extraIns);
+     }
+
+     setDetails(detailsLines.join('\n'));
+     setExtraIns('');
+
+     // Template opening text set করো
+     if (template.opening) {
+       setRefText(template.opening);
+     }
+
+     // Auto-generate trigger করো (URL param-এ 'ai' mode set করো)
+     setParams({ mode: 'ai' });
+
+     // ছোট delay-এর পর generate করো
+     await new Promise(r => setTimeout(r, 100));
+     
+     let truncated = await handleGenerate();
+     let continueCount = 0;
+     while (truncated && continueCount < 3) {
+        await new Promise(r => setTimeout(r, 1500)); // rate limit safety
+        truncated = await handleContinueGenerating();
+        continueCount++;
+     }
+   }, [setSubject, setDetails, setExtraIns, setRefText, setParams, handleGenerate, handleContinueGenerating]);
+
+   const handleWizardComplete = useCallback(async ({
+     template, values, selectedRules, tone, language
+   }: {
+     template: Template;
+     values: Record<string, string>;
+     selectedRules: string[];
+     tone: string;
+     language: string;
+   }) => {
+     // Wizard বন্ধ করো
+     setWizardOpen(false);
+
+     // Save wizard parameters to draft state
+     setWizardTemplateId(template.id);
+     setWizardValues(values);
+     setWizardSelectedRules(selectedRules);
+     setWizardSelectedTone(tone as any);
+     setWizardSelectedLanguage(language);
+
+     await regenerateFromWizard(template, values, selectedRules, tone as any, language);
+   }, [regenerateFromWizard]);
 
   // =========================================================================
   // SECTION 5: DOCUMENT EXPORTERS (PDF, DOCX, & PRINT)
@@ -1114,11 +1234,11 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         <h2 className="text-[#22C55E] font-bold uppercase tracking-widest text-xs border-b-2 border-black/10 dark:border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           Write Editor
           <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-            <button onClick={() => setParams({mode: 'ai'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'ai' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>AI Gen</button>
-            <button onClick={() => setParams({mode: 'format'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
-            <button onClick={() => setParams({mode: 'note'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
-            <button onClick={() => setParams({mode: 'order'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
-            <button onClick={() => setParams({mode: 'legal'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'legal' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Legal</button>
+            <button onClick={() => { setWizardTemplateId(undefined); setParams({mode: 'ai'}); }} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'ai' && !wizardTemplate ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>AI Gen</button>
+            <button onClick={() => { setWizardTemplateId(undefined); setParams({mode: 'format'}); }} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
+            <button onClick={() => { setWizardTemplateId(undefined); setParams({mode: 'note'}); }} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
+            <button onClick={() => { setWizardTemplateId(undefined); setParams({mode: 'order'}); }} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
+            <button onClick={() => { setWizardTemplateId(undefined); setParams({mode: 'legal'}); }} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'legal' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Legal</button>
           </div>
         </h2>
 
@@ -1129,7 +1249,78 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         )}
 
         {ws && (
-          <div className="mb-4 border border-[#22C55E]/50 bg-[#22C55E]/5 p-3">
+          <>
+            {/* Template Wizard Open Button */}
+            {!wizardTemplate && (
+              <button
+                onClick={() => {
+                  setWizardStep(1);
+                  setWizardOpen(true);
+                }}
+                className="w-full border-2 border-[#22C55E] bg-[#22C55E]/5
+                  hover:bg-[#22C55E] hover:text-black
+                  text-[#22C55E] font-bold uppercase tracking-widest
+                  py-3 text-xs transition-colors mb-4
+                  flex items-center justify-center gap-2 rounded"
+              >
+                ✨ Template Wizard খুলুন
+                <span className="text-[10px] opacity-60 normal-case font-normal">
+                  (ধাপে ধাপে document তৈরি করুন)
+                </span>
+              </button>
+            )}
+
+            {wizardTemplate ? (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center border-b border-black/10 dark:border-white/10 pb-2">
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#22C55E]">
+                    Wizard Active Mode
+                  </span>
+                  <button
+                    onClick={() => {
+                      setWizardTemplateId(undefined);
+                      setWizardValues({});
+                      setWizardSelectedRules([]);
+                      setWizardSelectedTone('Formal');
+                      setWizardSelectedLanguage('English');
+                    }}
+                    type="button"
+                    className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-wider"
+                  >
+                    ✕ সাধারণ মোডে ফিরে যান
+                  </button>
+                </div>
+                <WizardResult
+                  templateName={wizardTemplate.name}
+                  templateId={wizardTemplateId!}
+                  values={wizardValues}
+                  selectedRules={wizardSelectedRules}
+                  tone={wizardSelectedTone}
+                  onToneChange={(t) => {
+                    setWizardSelectedTone(t);
+                    regenerateFromWizard(wizardTemplate, wizardValues, wizardSelectedRules, t, wizardSelectedLanguage);
+                  }}
+                  language={wizardSelectedLanguage}
+                  onLanguageChange={(l) => {
+                    setWizardSelectedLanguage(l);
+                    regenerateFromWizard(wizardTemplate, wizardValues, wizardSelectedRules, wizardSelectedTone, l);
+                  }}
+                  onEditInfo={() => {
+                    setWizardStep(2);
+                    setWizardOpen(true);
+                  }}
+                  onEditRules={() => {
+                    setWizardStep(3);
+                    setWizardOpen(true);
+                  }}
+                  onRegenerate={() => {
+                    regenerateFromWizard(wizardTemplate, wizardValues, wizardSelectedRules, wizardSelectedTone, wizardSelectedLanguage);
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <div className="mb-4 border border-[#22C55E]/50 bg-[#22C55E]/5 p-3">
              <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E] flex items-center gap-2 mb-2">
                  ⚡ AI Magic Paste (Instantly populate fields)
              </label>
@@ -1150,10 +1341,8 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                 </button>
              </div>
           </div>
-        )}
 
-        {ws && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 items-start font-sans">
              <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]">Signatory Authority</label>
                 <select value={activeSignatureId || ''} onChange={e => setActiveSignature(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white cursor-pointer outline-none">
@@ -1225,9 +1414,8 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                 </div>
              </div>
           </div>
-        )}
 
-        <div className="space-y-4">
+          <div className="space-y-4">
           <div className="space-y-1">
             <div className="flex justify-between items-center">
                <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E] flex items-center gap-2">
@@ -1534,6 +1722,10 @@ DO NOT repeat what was already written. Just continue writing the next words sea
           </button>
           {saveMessage && <span className="text-xs text-[#22C55E] font-bold">{saveMessage}</span>}
         </div>
+      </>
+    )}
+  </>
+)}
       </div>
 
       {/* Right: Output Preview */}
@@ -1827,6 +2019,18 @@ DO NOT repeat what was already written. Just continue writing the next words sea
           </div>
         )}
       </div>
+
+      <TemplateWizard
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onComplete={handleWizardComplete}
+        initialTemplate={wizardTemplate}
+        initialStep={wizardStep}
+        initialValues={wizardValues}
+        initialSelectedRules={wizardSelectedRules}
+        initialTone={wizardSelectedTone}
+        initialLanguage={wizardSelectedLanguage}
+      />
     </div>
   );
 }
