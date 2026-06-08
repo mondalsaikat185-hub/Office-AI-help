@@ -1,6 +1,33 @@
 import { useStore } from './store';
 import { rateLimiter } from './rateLimiter';
 
+const MAX_AUTO_RETRIES = 2;
+const RETRY_DELAY_MS = [2000, 5000]; // 2s then 5s
+
+async function withAutoRetry<T>(
+  fn: () => Promise<T>,
+  attempt: number = 0,
+  canRetry: () => boolean = () => true
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (e: any) {
+    const isRetryable =
+      !e.message?.includes('429') &&
+      !e.message?.includes('quota') &&
+      !e.message?.includes('Quota') &&
+      canRetry() &&
+      attempt < MAX_AUTO_RETRIES;
+
+    if (isRetryable) {
+      console.warn(`[Gemini] Retry ${attempt + 1}/${MAX_AUTO_RETRIES} after ${RETRY_DELAY_MS[attempt]}ms due to error: ${e.message}`);
+      await new Promise(r => setTimeout(r, RETRY_DELAY_MS[attempt]));
+      return withAutoRetry(fn, attempt + 1, canRetry);
+    }
+    throw e;
+  }
+}
+
 export async function callGeminiStream(prompt: string, onChunk: (text: string) => void, opts: { temp?: number, maxOut?: number, imageBase64?: string, imageBase64s?: string[] } = {}) {
   let { apiKeys, mistralKey, selectedModel } = useStore.getState();
   
@@ -49,92 +76,100 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
         },
       };
       
-      // Wait for a rate limit slot before sending the request
-      await rateLimiter.waitForSlot(keyObj.key);
+      let hasSentChunk = false;
 
-      const controller = new AbortController();
-      let timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for connection
+      const result = await withAutoRetry(async () => {
+        // Wait for a rate limit slot before sending the request
+        await rateLimiter.waitForSlot(keyObj.key);
 
-      const res = await fetch(url, {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(body),
-        signal: controller.signal
-      });
-      
-      if (!res.ok) {
-         clearTimeout(timeoutId);
-         const errorText = await res.text();
-         if (res.status === 429 || /quota|exhausted/i.test(errorText)) {
-           await rateLimiter.handleRateLimit(keyObj.key);
-           errors.push(`${keyObj.label}: quota exceeded`);
-           continue;
-         }
-         throw new Error(errorText);
-      }
-      
-      if (!res.body) {
-         clearTimeout(timeoutId);
-         throw new Error("No response body");
-      }
+        const controller = new AbortController();
+        let timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for connection
 
-      // Record request slot on successful status response
-      rateLimiter.recordRequest(keyObj.key);
+        const res = await fetch(url, {
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(body),
+          signal: controller.signal
+        });
+        
+        if (!res.ok) {
+           clearTimeout(timeoutId);
+           const errorText = await res.text();
+           if (res.status === 429 || /quota|exhausted/i.test(errorText)) {
+             await rateLimiter.handleRateLimit(keyObj.key);
+             throw new Error(`quota exceeded: ${errorText}`);
+           }
+           throw new Error(errorText);
+        }
+        
+        if (!res.body) {
+           clearTimeout(timeoutId);
+           throw new Error("No response body");
+        }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let done = false;
-      let totalTokens = 0;
-      let truncated = false;
-      let buffer = '';
+        // Record request slot on successful status response
+        rateLimiter.recordRequest(keyObj.key);
 
-      // Reset activity timeout helper
-      const resetActivityTimeout = () => {
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => controller.abort(), 20000); // 20s inactivity timeout
-      };
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+        let totalTokens = 0;
+        let truncated = false;
+        let buffer = '';
 
-      // Clear connection timeout
-      clearTimeout(timeoutId);
+        // Reset activity timeout helper
+        const resetActivityTimeout = () => {
+          if (timeoutId) clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => controller.abort(), 20000); // 20s inactivity timeout
+        };
 
-      while (!done) {
-        resetActivityTimeout();
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          buffer += chunk;
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-          
-          for (const line of lines) {
-            if (line.trim() === '') continue;
-            if (line.startsWith('data: ')) {
-              const dataStr = line.slice(6);
-              if (dataStr === '[DONE]') continue;
-              try {
-                const data = JSON.parse(dataStr);
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) onChunk(text);
-                
-                if (data.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-                   truncated = true;
+        // Clear connection timeout
+        clearTimeout(timeoutId);
+
+        while (!done) {
+          resetActivityTimeout();
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            buffer += chunk;
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+              if (line.trim() === '') continue;
+              if (line.startsWith('data: ')) {
+                const dataStr = line.slice(6);
+                if (dataStr === '[DONE]') continue;
+                try {
+                  const data = JSON.parse(dataStr);
+                  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                  if (text) {
+                     onChunk(text);
+                     hasSentChunk = true;
+                  }
+                  
+                  if (data.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+                     truncated = true;
+                  }
+                  if (data.usageMetadata?.totalTokenCount) {
+                     totalTokens = data.usageMetadata.totalTokenCount;
+                  }
+                } catch (e) {
+                  console.error("Stream parse error:", e);
                 }
-                if (data.usageMetadata?.totalTokenCount) {
-                   totalTokens = data.usageMetadata.totalTokenCount;
-                }
-              } catch (e) {
-                console.error("Stream parse error:", e);
               }
             }
           }
         }
-      }
-      
-      if (timeoutId) clearTimeout(timeoutId);
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        return { tokens: totalTokens, truncated };
+      }, 0, () => !hasSentChunk);
       
       // Update key usage in store
-      if (totalTokens > 0 && keyObj.label !== 'Default Environment Key') {
+      if (result.tokens > 0 && keyObj.label !== 'Default Environment Key') {
         const store = useStore.getState();
         const updatedKeys = store.apiKeys.map(k => {
           if (k.key === keyObj.key) {
@@ -143,7 +178,7 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
               ...k,
               usage: {
                 date: new Date().toISOString().slice(0, 10),
-                tokens: (isToday ? (k.usage?.tokens || 0) : 0) + totalTokens
+                tokens: (isToday ? (k.usage?.tokens || 0) : 0) + result.tokens
               }
             };
           }
@@ -152,7 +187,7 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
         store.saveUserData({ apiKeys: updatedKeys });
       }
 
-      return { tokens: totalTokens, truncated };
+      return result;
     } catch (e: any) {
       errors.push(`${keyObj.label}: ${e.message}`);
     }
@@ -233,35 +268,46 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
         },
       };
       
-      // Wait for a rate limit slot before sending the request
-      await rateLimiter.waitForSlot(keyObj.key);
+      const result = await withAutoRetry(async () => {
+        // Wait for a rate limit slot before sending the request
+        await rateLimiter.waitForSlot(keyObj.key);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
 
-      const res = await fetch(url, {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(body),
-        signal: controller.signal
-      });
-      const json = await res.json();
-      clearTimeout(timeoutId);
-      
-      if (json.error) {
-        if (json.error.code === 429 || /quota|exhausted/i.test(json.error.message || '')) {
-          await rateLimiter.handleRateLimit(keyObj.key);
-          errors.push(`${keyObj.label}: quota exceeded`);
-          continue;
+        const res = await fetch(url, {
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(body),
+          signal: controller.signal
+        });
+        const json = await res.json();
+        clearTimeout(timeoutId);
+        
+        if (json.error) {
+          if (json.error.code === 429 || /quota|exhausted/i.test(json.error.message || '')) {
+            await rateLimiter.handleRateLimit(keyObj.key);
+            throw new Error(`quota exceeded: ${json.error.message || 'Quota error'}`);
+          }
+          throw new Error(json.error.message || 'Unknown API error');
         }
-        throw new Error(json.error.message || 'Unknown API error');
-      }
 
-      // Record request slot on successful response
-      rateLimiter.recordRequest(keyObj.key);
-      
-      let text = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const tokens = json.usageMetadata?.totalTokenCount || 0;
+        // Record request slot on successful response
+        rateLimiter.recordRequest(keyObj.key);
+        
+        let text = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const tokens = json.usageMetadata?.totalTokenCount || 0;
+        
+        // Auto-continuation logic for truncated output
+        const finishReason = json.candidates?.[0]?.finishReason || '';
+        let truncated = false;
+        if (finishReason === 'MAX_TOKENS') {
+           console.warn('Gemini output truncated (MAX_TOKENS)');
+           truncated = true;
+        }
+        
+        return { text, tokens, truncated };
+      });
       
       // Update key usage in store
       if (keyObj.label !== 'Default Environment Key') {
@@ -273,7 +319,7 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
               ...k,
               usage: {
                 date: new Date().toISOString().slice(0, 10),
-                tokens: (isToday ? (k.usage?.tokens || 0) : 0) + tokens
+                tokens: (isToday ? (k.usage?.tokens || 0) : 0) + result.tokens
               }
             };
           }
@@ -282,15 +328,7 @@ export async function callGemini(prompt: string, opts: { temp?: number, maxOut?:
         store.saveUserData({ apiKeys: updatedKeys });
       }
 
-      // Auto-continuation logic for truncated output
-      const finishReason = json.candidates?.[0]?.finishReason || '';
-      let truncated = false;
-      if (finishReason === 'MAX_TOKENS') {
-         console.warn('Gemini output truncated (MAX_TOKENS)');
-         truncated = true;
-      }
-      
-      return { text, tokens, truncated };
+      return result;
     } catch (e: any) {
       errors.push(`${keyObj.label}: ${e.message}`);
     }
@@ -485,41 +523,4 @@ export const RAG = {
     }
   },
   buildContext(query: string) {
-    const chunks = this.retrieve(query);
-    if(!chunks.length) return '';
-    let ctx = '\n\nREFERENCE FROM PREVIOUS CORRESPONDENCE (use for style, tone, and context \u2014 do NOT copy verbatim):\n';
-    chunks.forEach((c, i) => {
-      ctx += '--- Ref ' + (i+1) + ' [' + (c.mode||'letter') + ', ' + c.source + '] ---\n' + c.text.substring(0,400) + '\n';
-    });
-    return ctx;
-  }
-};
-
-export async function testGeminiKey(key: string): Promise<{ success: boolean; message: string }> {
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: 'Ping' }] }]
-      })
-    });
-    if (res.ok) {
-      return { success: true, message: 'Valid and Working' };
-    } else {
-      const errorText = await res.text();
-      let errorMsg = 'Error';
-      try {
-        const json = JSON.parse(errorText);
-        errorMsg = json.error?.message || json.error?.status || errorText;
-      } catch {
-        errorMsg = errorText || `HTTP ${res.status}`;
-      }
-      return { success: false, message: errorMsg };
-    }
-  } catch (e: any) {
-    return { success: false, message: e.message || 'Network error' };
-  }
-}
-
+    const chunks = this.retrieve

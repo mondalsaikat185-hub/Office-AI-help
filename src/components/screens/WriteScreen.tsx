@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../../lib/store';
 import { callGemini, callGeminiStream, RAG } from '../../lib/gemini';
@@ -57,6 +57,37 @@ export default function WriteScreen() {
   const [lastSavedId, setLastSavedId] = useState<string | null>(null);
   const [magicInput, setMagicInput] = useState('');
   const [isMagicLoading, setIsMagicLoading] = useState(false);
+
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templateCategory, setTemplateCategory] = useState<string>('All');
+
+  const CATEGORIES = ['All', 'Leave & Service', 'GPF', 'GST', 'Customs', 'General', 'Custom'];
+
+  const filteredTemplates = useMemo(() => {
+    const userTemplatesWithCategory = (templates || []).map(t => ({
+      ...t,
+      category: t.category || 'Custom'
+    }));
+    const all = [...defaultTemplates, ...userTemplatesWithCategory];
+    return all.filter(t => {
+      const matchCategory = templateCategory === 'All' || t.category === templateCategory;
+      const matchSearch = !templateSearch ||
+        t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+        t.subject.toLowerCase().includes(templateSearch.toLowerCase());
+      return matchCategory && matchSearch;
+    });
+  }, [templates, templateSearch, templateCategory]);
+
+  const [legalDocType, setLegalDocType] = useState('Refund Rejection Order (Section 27)');
+  const [arnNo, setArnNo] = useState('');
+  const [arnDate, setArnDate] = useState('');
+  const [boeNo, setBoeNo] = useState('');
+  const [boeDate, setBoeDate] = useState('');
+  const [importerName, setImporterName] = useState('');
+  const [iec, setIec] = useState('');
+  const [amount, setAmount] = useState('');
+  const [goods, setGoods] = useState('');
+  const [scnDate, setScnDate] = useState('');
 
   const handleMagicFill = async () => {
     if (!magicInput) return displayAlert("Please paste some text first!");
@@ -156,7 +187,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
   // =========================================================================
   const handleManualSave = useCallback(async () => {
     try {
-      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead };
+      const obj = { subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate };
       setDraft(currentDraftId, obj);
       await saveUserData();
 
@@ -180,7 +211,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       setSaveMessage('Local save only (cloud failed)');
       setTimeout(() => setSaveMessage(''), 3000);
     }
-  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, currentDraftId, setDraft, saveUserData, user, mode]);
+  }, [subject, details, refText, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate, currentDraftId, setDraft, saveUserData, user, mode]);
 
   const applyTemplate = (tId: string) => {
     if (!tId) return;
@@ -204,7 +235,7 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
   useEffect(() => {
      const st = drafts[currentDraftId];
      const localSt = localStorage.getItem(`draft_${currentDraftId}`);
-     let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, includeLetterhead: true, styleRefText: '', styleImageBase64: '' };
+     let finalSt = { subject: '', details: '', refText: '', extraIns: '', recipientTo: '', output: '', copyTo: '', enclosures: '', salutation: '', din: '', includeDin: false, includeLetterhead: true, styleRefText: '', styleImageBase64: '', legalDocType: 'Refund Rejection Order (Section 27)', arnNo: '', arnDate: '', boeNo: '', boeDate: '', importerName: '', iec: '', amount: '', goods: '', scnDate: '' };
      if (localSt) {
        try { 
          const parsed = JSON.parse(localSt);
@@ -242,17 +273,25 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
      setOutput(finalSt.output || '');
      setIncludeDin(finalSt.includeDin || false);
      setIncludeLetterhead(finalSt.includeLetterhead !== undefined ? finalSt.includeLetterhead : true);
-
-     // Only load DIN if present, do not auto-generate
      setDin(finalSt.din || '');
+     setLegalDocType(finalSt.legalDocType || 'Refund Rejection Order (Section 27)');
+     setArnNo(finalSt.arnNo || '');
+     setArnDate(finalSt.arnDate || '');
+     setBoeNo(finalSt.boeNo || '');
+     setBoeDate(finalSt.boeDate || '');
+     setImporterName(finalSt.importerName || '');
+     setIec(finalSt.iec || '');
+     setAmount(finalSt.amount || '');
+     setGoods(finalSt.goods || '');
+     setScnDate(finalSt.scnDate || '');
   }, [currentDraftId]);
 
   // Auto-save draft on changes locally
   useEffect(() => {
-     const obj = { subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead };
+     const obj = { subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate };
      setDraft(currentDraftId, obj);
      localStorage.setItem(`draft_${currentDraftId}`, JSON.stringify(obj));
-  }, [subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, currentDraftId, setDraft]);
+  }, [subject, details, refText, styleRefText, styleImageBase64, extraIns, recipientTo, output, copyTo, enclosures, salutation, din, includeDin, includeLetterhead, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate, currentDraftId, setDraft]);
 
   // Handle Smart Reply from Inbox
   useEffect(() => {
@@ -417,6 +456,32 @@ OUTPUT FORMAT (plain text):
 - The conclusion MUST explicitly seek permission/approval/guidance depending on the context.
 - Conclude with a bolded humble request for orders/approval, e.g., "**Put up for approval / orders, please.**" or "**May kindly grant permission, please.**"
 - DO NOT INCLUDE THE SUBJECT AGAIN IF NOT NECESSARY.`;
+      } else if (mode === 'legal') {
+         prompt = `You are an expert Customs/GST officer drafting a formal speaking order.
+Document Type: ${legalDocType}
+Jurisdiction: Gopalpur Customs Division, Odisha
+
+MANDATORY STRUCTURE (follow exactly):
+1. Preamble (appeal rights, court fee)
+2. Brief Facts (numbered paragraphs, use TABLE format for BoE details)
+3. Submissions of the Noticee (summarize their reply)
+4. Discussion (Issue-wise analysis)
+5. Findings and Grounds
+6. Appropriation
+7. ORDER (final dispositive order)
+8. Signature block + Copy to
+
+Case Details:
+ARN: ${arnNo} ${arnDate ? `dated ${arnDate}` : ''}
+Importer: ${importerName} ${iec ? `, IEC: ${iec}` : ''}
+Amount: Rs. ${amount}
+BoE: ${boeNo} ${boeDate ? `dated ${boeDate}` : ''}
+Goods: ${goods}
+SCN Date: ${scnDate || '[SCN Date]'}
+
+Write a complete, formal, legally sound speaking order in English.
+Use proper legal citations. Do NOT abbreviate. Write COMPLETE paragraphs.
+${extraIns ? '\nEXTRA INSTRUCTIONS: ' + extraIns : ''}${styleInstruction}`;
       }
 
       const ragQuery = subject + ' ' + details;
@@ -448,39 +513,61 @@ OUTPUT FORMAT (plain text):
       originalOutputRef.current = accumulated;
       setTokensUsed(res.tokens);
       setIsTruncated(res.truncated);
+      return res.truncated;
     } catch (e: any) {
       let msg = e.message || String(e);
-      if (msg.includes('Quota')) msg = 'API Quota Exhausted. Please use a different API key or try again later.';
-      else if (msg.includes('fetch') || msg.includes('Failed to fetch')) msg = 'Network connection failed. Please check your internet connection.';
-      else if (msg.includes('429')) msg = 'Rate limit exceeded. Please wait a moment and try again.';
-      displayAlert("Generation Error: " + msg);
+      const isNetworkError = msg.includes('fetch') || msg.includes('Failed to fetch') || msg.includes('abort');
+      const isQuotaError = msg.includes('Quota') || msg.includes('quota') || msg.includes('429');
+
+      if (isQuotaError) {
+        msg = '⚠️ API Quota শেষ। অন্য API key ব্যবহার করুন বা কিছুক্ষণ পরে চেষ্টা করুন।';
+      } else if (isNetworkError) {
+        msg = '🌐 নেটওয়ার্ক সমস্যা। ইন্টারনেট সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন।';
+      } else {
+        msg = `API Error: ${msg}\n\n💡 আবার Generate বাটন চাপুন — সাধারণত দ্বিতীয়বারে কাজ হয়।`;
+      }
+      displayAlert(msg);
       if (!output) setOutput('Generation failed. Please try again.\n\nError Details:\n' + msg);
+      return false;
     } finally {
       setGenerating(false);
     }
-  }, [ws, sig, details, subject, templates, styleRefText, styleImageBase64, mode, recipientTo, refText, extraIns, outputLang, displayAlert]);
+  }, [ws, sig, details, subject, templates, styleRefText, styleImageBase64, mode, recipientTo, refText, extraIns, outputLang, displayAlert, legalDocType, arnNo, arnDate, boeNo, boeDate, importerName, iec, amount, goods, scnDate]);
 
   const handleContinueGenerating = async () => {
      setGenerating(true);
      try {
        setIsTruncated(false);
-       const lastPortion = output.slice(-800);
+       const lastPortion = originalOutputRef.current.slice(-800);
        const continuePrompt = `You were drafting an official Indian Government letter/note. 
 Continue exactly from where you left off. 
 The text so far ends with: "...${lastPortion}"
 DO NOT repeat what was already written. Just continue writing the next words seamlessly. DO NOT add "Yours faithfully" or signatures.`;
        
+       let accumulated = originalOutputRef.current;
        const res = await callGeminiStream(continuePrompt, (chunk) => {
+          accumulated += chunk;
           setOutput(prev => prev + chunk);
        }, { temp: 0.35, maxOut: 16384 });
        
+       originalOutputRef.current = accumulated;
        setTokensUsed(prev => prev + res.tokens);
        setIsTruncated(res.truncated);
+       return res.truncated;
      } catch (e: any) {
        let msg = e.message || String(e);
-       if (msg.includes('Quota')) msg = 'API Quota Exhausted. Please use a different API key or try again later.';
-       else if (msg.includes('fetch') || msg.includes('Failed to fetch')) msg = 'Network connection failed. Please check your internet connection.';
-       displayAlert("Generation Error: " + msg);
+       const isNetworkError = msg.includes('fetch') || msg.includes('Failed to fetch') || msg.includes('abort');
+       const isQuotaError = msg.includes('Quota') || msg.includes('quota') || msg.includes('429');
+
+       if (isQuotaError) {
+         msg = '⚠️ API Quota শেষ। অন্য API key ব্যবহার করুন বা কিছুক্ষণ পরে চেষ্টা করুন।';
+       } else if (isNetworkError) {
+         msg = '🌐 নেটওয়ার্ক সমস্যা। ইন্টারনেট সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন।';
+       } else {
+         msg = `API Error: ${msg}\n\n💡 আবার Generate বাটন চাপুন — সাধারণত দ্বিতীয়বারে কাজ হয়।`;
+       }
+       displayAlert(msg);
+       return false;
      } finally {
        setGenerating(false);
      }
@@ -612,6 +699,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         const children = [];
         const isNote = mode === 'note';
         const isOrder = mode === 'order';
+        const isLegal = mode === 'legal';
 
         // Safe fallbacks for missing/incomplete elements
         const safeSig = {
@@ -709,7 +797,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
             }));
             children.push(new Paragraph({text:''}));
 
-            if (isOrder) {
+            if (isOrder || isLegal) {
                children.push(new Table({
                     width: { size: 9746, type: WidthType.DXA },
                     borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
@@ -730,11 +818,13 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                    }));
                    children.push(new Paragraph({text:''}));
                }
-               children.push(new Paragraph({
-                   children: [new TextRun({ text: 'आदेश / ORDER', bold: true, underline: { type: UnderlineType.SINGLE } })],
-                   alignment: AlignmentType.CENTER
-               }));
-               children.push(new Paragraph({text:''}));
+               if (isOrder) {
+                   children.push(new Paragraph({
+                       children: [new TextRun({ text: 'आदेश / ORDER', bold: true, underline: { type: UnderlineType.SINGLE } })],
+                       alignment: AlignmentType.CENTER
+                   }));
+                   children.push(new Paragraph({text:''}));
+               }
             } else {
                if (includeDin && din) {
                    children.push(new Paragraph({
@@ -911,7 +1001,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
             });
         };
 
-        if(!isNote) {
+        if(!isNote && !isLegal) {
             let encString = '';
             if (enclosures) {
                 encString = 'Enclosures: ' + enclosures;
@@ -988,7 +1078,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         });
         const blob = await Packer.toBlob(doc);
         const url = URL.createObjectURL(blob);
-        const fileName = `${isNote?'NoteSheet':'Letter'}_${subject.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_${new Date().toISOString().slice(0,10)}.docx`;
+        const fileName = `${isNote ? 'NoteSheet' : isLegal ? 'SpeakingOrder' : 'Letter'}_${subject.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_${new Date().toISOString().slice(0,10)}.docx`;
         
         setDownloadUrl(url);
         setDownloadName(fileName);
@@ -1028,6 +1118,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
             <button onClick={() => setParams({mode: 'format'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'format' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Format</button>
             <button onClick={() => setParams({mode: 'note'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'note' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Note</button>
             <button onClick={() => setParams({mode: 'order'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'order' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Order</button>
+            <button onClick={() => setParams({mode: 'legal'})} className={`px-3 py-1 text-[10px] uppercase font-bold ${mode === 'legal' ? 'bg-[#22C55E] text-black' : 'border border-black/20 dark:border-white/20'}`}>Legal</button>
           </div>
         </h2>
 
@@ -1062,7 +1153,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         )}
 
         {ws && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 items-start">
              <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]">Signatory Authority</label>
                 <select value={activeSignatureId || ''} onChange={e => setActiveSignature(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white cursor-pointer outline-none">
@@ -1072,23 +1163,66 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                 </select>
              </div>
              
-             <div className="space-y-1">
+             <div className="space-y-2 border border-black/10 dark:border-white/10 p-3 bg-black/5 dark:bg-white/5 rounded">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]">Apply Template</label>
-                <select onChange={e => applyTemplate(e.target.value)} defaultValue="" className="w-full bg-white dark:bg-neutral-900 border border-amber-500/50 p-2 text-xs text-black dark:text-white cursor-pointer outline-none">
-                   <option value="" disabled>-- Select a Template --</option>
-                   <optgroup label="Default Templates">
-                     {defaultTemplates.map(t => (
-                       <option key={t.id} value={t.id}>{t.name}</option>
-                     ))}
-                   </optgroup>
-                   {templates && templates.length > 0 && (
-                     <optgroup label="My Templates">
-                       {templates.map(t => (
-                         <option key={t.id} value={t.id}>{t.name}</option>
-                       ))}
-                     </optgroup>
+                
+                {/* Search Bar */}
+                <div className="relative">
+                   <input
+                     type="text"
+                     value={templateSearch}
+                     onChange={e => setTemplateSearch(e.target.value)}
+                     placeholder="🔍 Search templates..."
+                     className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white focus:border-[#22C55E] outline-none"
+                   />
+                   {templateSearch && (
+                      <button 
+                        type="button"
+                        onClick={() => setTemplateSearch('')} 
+                        className="absolute right-2 top-2 text-black/50 dark:text-white/50 hover:text-red-500 text-xs"
+                      >
+                        ✕
+                      </button>
                    )}
-                </select>
+                </div>
+
+                {/* Category Chips */}
+                <div className="flex flex-wrap gap-1 mt-1">
+                   {CATEGORIES.map(cat => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setTemplateCategory(cat)}
+                        className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                          templateCategory === cat
+                            ? 'bg-[#22C55E] text-black font-extrabold'
+                            : 'bg-black/10 dark:bg-white/10 text-black dark:text-white hover:bg-[#22C55E]/20'
+                        }`}
+                      >
+                        {cat === 'Leave & Service' ? 'Leave' : cat}
+                      </button>
+                   ))}
+                </div>
+
+                {/* Filtered Template List */}
+                <div className="max-h-40 overflow-y-auto border border-black/10 dark:border-white/10 mt-2 bg-white dark:bg-neutral-900 divide-y divide-black/5 dark:divide-white/5 rounded">
+                   {filteredTemplates.length === 0 ? (
+                      <div className="p-2 text-xs text-black/50 dark:text-white/50 text-center">No templates found</div>
+                   ) : (
+                      filteredTemplates.map(t => (
+                         <button
+                           key={t.id}
+                           type="button"
+                           onClick={() => applyTemplate(t.id)}
+                           className="w-full text-left p-2 hover:bg-[#22C55E]/10 text-xs text-black dark:text-white transition-colors block truncate"
+                           title={`${t.name}\nSubject: ${t.subject || ''}`}
+                         >
+                            <span className="font-semibold block truncate">{t.name}</span>
+                            <span className="text-[9px] opacity-65 block truncate">{t.subject}</span>
+                         </button>
+                      ))
+                   )}
+                </div>
              </div>
           </div>
         )}
@@ -1124,6 +1258,76 @@ DO NOT repeat what was already written. Just continue writing the next words sea
              </label>
           </div>
 
+          {mode === 'legal' && (
+            <div className="border border-[#22C55E]/30 bg-black/5 dark:bg-white/5 p-4 space-y-4 rounded">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[#22C55E] border-b border-[#22C55E]/20 pb-2">Speaking Order Details (Customs/GST)</h3>
+              
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Document Type *</label>
+                <select 
+                  value={legalDocType} 
+                  onChange={e => setLegalDocType(e.target.value)} 
+                  className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white cursor-pointer outline-none"
+                >
+                  <option value="Refund Rejection Order (Section 27)">Refund Rejection Order (Section 27)</option>
+                  <option value="Demand Cum SCN">Demand Cum SCN</option>
+                  <option value="Personal Hearing Notice">Personal Hearing Notice</option>
+                  <option value="OIO (Order-in-Original)">OIO (Order-in-Original)</option>
+                  <option value="Seizure Memo">Seizure Memo</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">ARN No.</label>
+                  <input type="text" value={arnNo} onChange={e => setArnNo(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]" placeholder="e.g. AD0506240001234"/>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">ARN Date</label>
+                  <input type="date" value={arnDate} onChange={e => setArnDate(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]"/>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">BoE / Invoice No.</label>
+                  <input type="text" value={boeNo} onChange={e => setBoeNo(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]" placeholder="e.g. 5463728"/>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">BoE Date</label>
+                  <input type="date" value={boeDate} onChange={e => setBoeDate(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]"/>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Importer Name</label>
+                  <input type="text" value={importerName} onChange={e => setImporterName(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]" placeholder="e.g. ABC Impex Pvt Ltd"/>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">IEC Code</label>
+                  <input type="text" value={iec} onChange={e => setIec(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]" placeholder="e.g. 0512345678"/>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Disputed Amount (Rs.)</label>
+                  <input type="text" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]" placeholder="e.g. 1,25,000"/>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">SCN Date</label>
+                  <input type="date" value={scnDate} onChange={e => setScnDate(e.target.value)} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]"/>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Description of Goods</label>
+                <textarea value={goods} onChange={e => setGoods(e.target.value)} rows={2} className="w-full bg-white dark:bg-neutral-900 border border-black/20 dark:border-white/20 p-2 text-xs text-black dark:text-white outline-none focus:border-[#22C55E]" placeholder="e.g. Coal, Iron Ore, Machinery parts..."/>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white/50">Subject *</label>
             <div className="relative">
@@ -1157,7 +1361,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
             </div>
           </div>
 
-          {mode !== 'note' && (
+          {mode !== 'note' && mode !== 'legal' && (
             <>
               <div className="space-y-1">
                 <div className="flex justify-between items-end">
@@ -1306,7 +1510,19 @@ DO NOT repeat what was already written. Just continue writing the next words sea
           </div>
         </div>
 
-        <button onClick={handleGenerate} disabled={generating || !details} className="w-full bg-[#22C55E] hover:bg-[#1fb355] text-black font-bold uppercase tracking-widest py-4 transition-colors disabled:opacity-50 mt-4 rounded">
+        <button 
+          onClick={async () => {
+             let truncated = await handleGenerate();
+             let continueCount = 0;
+             while (truncated && continueCount < 3) {
+                await new Promise(r => setTimeout(r, 1500)); // rate limit safety
+                truncated = await handleContinueGenerating();
+                continueCount++;
+             }
+          }} 
+          disabled={generating || !details} 
+          className="w-full bg-[#22C55E] hover:bg-[#1fb355] text-black font-bold uppercase tracking-widest py-4 transition-colors disabled:opacity-50 mt-4 rounded"
+        >
           {generating ? 'Generating...' : '✨ Generate Draft'}
         </button>
         {tokensUsed > 0 && <p className="text-center text-[10px] text-black/50 dark:text-white/50 mt-2 font-mono">Cost: ~{tokensUsed} tokens used</p>}
@@ -1403,215 +1619,4 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                       {mode === 'order' && (
                         <div className="mb-6 space-y-4">
                            <div className="flex justify-between font-bold mb-4">
-                             <span>C. No. {file?.fileNumber || dir?.filePrefix || '[FILE NO]'}</span>
-                             <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
-                           </div>
-                           {includeDin && din && <div className="text-center font-bold mb-4 tracking-widest uppercase">DIN: {din}</div>}
-                           <div className="text-center font-bold underline text-lg">आदेश / ORDER</div>
-                        </div>
-                      )}
-                      
-                      {mode === 'ai' && (
-                        <div className="mb-6 space-y-4">
-                          <div className="flex justify-between font-bold">
-                            <span>C. No. {file?.fileNumber || dir?.filePrefix || '[FILE NO]'}</span>
-                            <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
-                          </div>
-                          {includeDin && din && <div className="font-bold tracking-widest uppercase text-right">DIN: {din}</div>}
-                          {recipientTo && (
-                            <div className="mb-4">
-                              <div>To,</div>
-                              <div className="whitespace-pre-wrap ml-12">{recipientTo}</div>
-                            </div>
-                          )}
-                          {salutation && <div className="mt-4 mb-4">{salutation}</div>}
-                          {subject && <div className="font-bold underline ml-12 mb-4">Sub: {subject}</div>}
-                        </div>
-                      )}
-                      
-                      {mode === 'format' && (
-                        <div className="mb-6 space-y-4">
-                          <div className="flex justify-between font-bold">
-                            <span>C. No. {file?.fileNumber || dir?.filePrefix || '[FILE NO]'}</span>
-                            <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
-                          </div>
-                          {includeDin && din && <div className="font-bold tracking-widest uppercase text-right">DIN: {din}</div>}
-                          {recipientTo && (
-                            <div className="mb-4">
-                              <div>To,</div>
-                              <div className="whitespace-pre-wrap ml-12">{recipientTo}</div>
-                            </div>
-                          )}
-                          {salutation && <div className="mt-4 mb-4">{salutation}</div>}
-                          {subject && <div className="font-bold underline ml-12 mb-4">Sub: {subject}</div>}
-                        </div>
-                      )}
-                      
-                      {mode === 'note' && (
-                        <div className="mb-6 space-y-4">
-                          {subject && <div className="font-bold underline ml-12">Sub: {subject}</div>}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex justify-end mb-2 opacity-50 hover:opacity-100 transition-opacity print:hidden no-pdf">
-                      <button onClick={() => setPreviewMode('preview')} className={`text-[10px] uppercase font-bold px-3 py-1 border border-r-0 border-black/20 dark:border-white/20 ${previewMode === 'preview' ? 'bg-[#22C55E] text-black border-[#22C55E]' : ''}`}>Preview</button>
-                      <button onClick={() => setPreviewMode('edit')} className={`text-[10px] uppercase font-bold px-3 py-1 border border-black/20 dark:border-white/20 ${previewMode === 'edit' ? 'bg-[#22C55E] text-black border-[#22C55E]' : ''}`}>Edit Markdown</button>
-                    </div>
-
-                    <div className="relative group mb-10">
-                      {previewMode === 'edit' ? (
-                          <textarea
-                              value={output}
-                              onChange={(e) => setOutput(e.target.value)}
-                              className="w-full min-h-[300px] outline-none bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 p-2 font-mono text-sm block"
-                              placeholder="Generated letter body will appear here (Markdown supported)..."
-                           />
-                      ) : (
-                          <div className="text-justify text-[15px] leading-relaxed break-words px-2 font-serif">
-                            {output ? (
-                              <ReactMarkdown 
-                                 remarkPlugins={[remarkGfm]}
-                                 components={{
-                                    p: ({node, ...props}) => {
-                                        const childrenArr = React.Children.toArray(props.children);
-                                        const textContent = childrenArr.join('');
-                                        const isMainHeaders = typeof textContent === 'string' && (textContent.includes('Submitted') || textContent.includes('For kind perusal') || textContent.includes('Put up for'));
-                                        return <p className={`mb-4 ${isMainHeaders ? 'text-left font-bold' : 'indent-12 text-justify'}`} {...props} />;
-                                    },
-                                    table: ({node, ...props}) => <table className="w-full border-collapse border border-black/50 dark:border-white/50 my-4 table-auto text-[12pt]" {...props} />,
-                                    th: ({node, ...props}) => <th className="border border-black/50 dark:border-white/50 p-2 font-bold text-center" {...props} />,
-                                    td: ({node, ...props}) => <td className="border border-black/50 dark:border-white/50 p-2" {...props} />,
-                                    li: ({node, ...props}) => <li className="ml-8 list-decimal mb-1" {...props} />,
-                                    ul: ({node, ...props}) => <ul className="mb-4" {...props} />,
-                                    ol: ({node, ...props}) => <ol className="mb-4" {...props} />
-                                 }}
-                              >
-                                {output}
-                              </ReactMarkdown>
-                            ) : <span className="text-gray-400 italic">Generated letter body will appear here...</span>}
-                          </div>
-                      )}
-                      
-                      {isTruncated && !generating && (
-                        <div className="absolute -bottom-10 right-0 z-10 w-full flex justify-end print:hidden">
-                           <button 
-                             onClick={handleContinueGenerating}
-                             className="bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 font-bold uppercase tracking-widest text-xs flex items-center gap-2 shadow-lg rounded"
-                           >
-                              ⚠️ Output Cut Short - Continue Writing
-                           </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div contentEditable={false} className="select-none">
-                      {mode !== 'note' && (
-                        <>
-                          <div className="flex mt-2 mb-4">
-                             <div className="w-[55%] text-left">
-                                {enclosures ? (
-                                  <div className="font-bold text-left mb-8">Enclosures: {enclosures}</div>
-                               ) : (extraIns.toLowerCase().includes('encl') || output.toLowerCase().includes('encl')) ? (
-                                  <div className="font-bold text-left mb-8">Enclosures: As above</div>
-                               ) : null}
-                             </div>
-                             <div className="w-[45%] flex flex-col items-center text-center">
-                                  {mode !== 'order' && <p className="mb-12">Yours faithfully,</p>}
-                                  {mode === 'order' && <p className="mb-12"></p>}
-                                  <p className="font-bold">({sig?.name})</p>
-                                  <p className="whitespace-pre-line">{sig?.designation}</p>
-                                  {sig?.section && <p className="whitespace-pre-line">{sig?.section}</p>}
-                             </div>
-                          </div>
-                          
-
-                          {copyTo && (
-                             <div className="mt-16 text-left">
-                                <p className="font-bold mb-4">Copy to:</p>
-                                <div className="ml-4 mb-16">
-                                   {copyTo.split('\n').filter(Boolean).map((line, idx) => {
-                                      let text = line.trim();
-                                      if (text.toLowerCase().startsWith('copy to')) {
-                                         text = text.substring(7).trim();
-                                      }
-                                      return <div key={idx} className="indent-[-1.5rem] pl-6 mb-2">{idx + 1}. {text}</div>;
-                                   })}
-                                </div>
-                                {mode !== 'order' && (
-                                   <div className="flex justify-end">
-                                      <div className="w-[45%] flex flex-col items-center text-center">
-                                         <p className="font-bold">({sig?.name})</p>
-                                         <p className="whitespace-pre-line">{sig?.designation}</p>
-                                         {sig?.section && <p className="whitespace-pre-line">{sig?.section}</p>}
-                                      </div>
-                                   </div>
-                                )}
-                             </div>
-                          )}
-                        </>
-                      )}
-                      {mode === 'note' && (
-                        <div className="flex justify-start mt-12">
-                           <div className="w-[45%] flex flex-col items-start text-left">
-                             <p className="font-bold">({sig?.name})</p>
-                             <p className="whitespace-pre-line">{sig?.designation}</p>
-                             {sig?.section && <p className="whitespace-pre-line">{sig?.section}</p>}
-                           </div>
-                        </div>
-                      )}
-                    </div>
-
-                 </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-               <div>
-                  <select value={paperSize} onChange={e => setPaperSize(e.target.value as any)} className="w-full bg-white dark:bg-neutral-900 border border-[#22C55E] p-1 text-[10px] text-[#22C55E] outline-none font-bold uppercase tracking-widest cursor-pointer mb-2">
-                     <option value="Legal">Legal (8.5x14)</option>
-                     <option value="A3">A3 (11.7x16.5)</option>
-                     <option value="A4">A4 (8.3x11.7)</option>
-                  </select>
-                 <button onClick={handleWordDownload} className="w-full border-2 border-[#22C55E] text-[#22C55E] hover:bg-[#22C55E] hover:text-black font-bold uppercase tracking-widest py-3 transition-colors mb-2">
-                   Generate Word (.docx)
-                 </button>
-                 <button onClick={handleOldWordDownload} className="w-full border-2 border-[#22C55E]/50 text-[#22C55E]/80 hover:bg-[#22C55E]/20 font-bold uppercase tracking-widest py-3 transition-colors mb-2 text-[10px]">
-                   Word (Older Version 97-2003 .doc)
-                 </button>
-                 <button onClick={handlePdfDownload} className="w-full border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold uppercase tracking-widest py-3 transition-colors mb-2">
-                   Download PDF
-                 </button>
-                 <button onClick={() => window.print()} className="w-full border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-bold uppercase tracking-widest py-3 transition-colors">
-                   Print
-                 </button>
-               </div>
-               <div className="flex items-end">
-                 <button onClick={() => handleSaveToFirebase(false)} className="w-full bg-white/10 hover:bg-white/20 text-black dark:text-white font-bold uppercase tracking-widest py-3 transition-colors border border-black/10 dark:border-white/10">
-                   Save Record
-                 </button>
-               </div>
-            </div>
-            {downloadUrl && (
-              <div className="mt-4 p-4 border border-[#22C55E] bg-[#22C55E]/10 flex flex-col gap-2">
-                <p className="text-sm font-bold text-[#22C55E]">Download Ready</p>
-                <p className="text-xs">If the automatic download didn't work (due to preview restrictions), click the button below or right-click and choose "Save Link As..."</p>
-                <a 
-                  href={downloadUrl} 
-                  download={downloadName}
-                  className="bg-[#22C55E] text-black text-center font-bold uppercase tracking-widest p-2 block mt-2"
-                >
-                  Download {downloadName}
-                </a>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="h-64 border-2 border-dashed border-black/10 dark:border-white/10 flex items-center justify-center text-black dark:text-white/30 text-xs font-mono uppercase tracking-widest text-center px-8">
-            Output preview will appear here.<br/>Ensure API key is configured.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+                             <span>C. No. {file?.fileNumber || 
