@@ -1200,7 +1200,6 @@ The Noticee may request a personal hearing. Failure to reply within the stipulat
   },
   {
     id: "cus_22",
-    category: "Customs",
     name: "Rejection Order — Refund of Late Presentation Charges (Section 27)",
     subject: "Order for Rejection of Refund Claim of Late Presentation Charges paid under Section 27 of the Customs Act, 1962 against Supplementary Bill of Entry No. [BoE No.] dated [BoE Date]",
     opening: `ORDER FOR REJECTION OF REFUND CLAIM
@@ -1231,4 +1230,41 @@ ISSUE NO. 3 — Applicability of CESTAT decisions cited by the Importer:
 The decisions cited by the Importer, if any, are distinguishable on facts. In M/s Kai International [2026 (3) TMI 1545 - CESTAT Kolkata], the delay was found to be directly caused by the department's own refusal to allow IGM/BoE amendment, which is not the factual matrix of the present case. Further, those decisions arose at the stage of levy/assessment and not from a refund claim under Section 27 after the assessment had attained finality.
 
 GROUNDS FOR REJECTION:
-5.1 Late Presentation Charges are outside the scope of Section 27 — not 'duty or interest
+5.1 Late Presentation Charges are outside the scope of Section 27 — not 'duty or interest'.
+5.2 The levy was correct and in accordance with Section 46(3) and Regulation 4(3) — no erroneous or excess payment.
+5.3 The assessment has attained finality — no appeal filed under Section 128.
+5.4 No erroneous or excess payment — amount self-assessed and paid voluntarily.
+5.5 CESTAT decisions are distinguishable on facts and on the nature of proceedings.
+
+APPROPRIATION: The late presentation charges of Rs. [Amount]/- are squarely levied, recovered, and appropriated under Section 46(3) of the Customs Act, 1962 read with Regulation 4(3) of the 2018 Regulations.
+
+ORDER:
+The refund application filed by M/s [Importer Name] vide ARN: [ARN No.] dated [ARN Date] for refund of late presentation charges of Rs. [Amount]/- paid against Supplementary Bill of Entry No. [Supp BoE No.] dated [Supp BoE Date] under Section 27 of the Customs Act, 1962 is hereby REJECTED IN FULL.
+
+This order is issued without prejudice to any other action that may be taken against the Noticee under the Customs Act, 1962 or any other law for the time being in force.`,
+    closing: "",
+    copyTo: ["AC (Review), Customs (Preventive) Commissionerate, Bhubaneswar", "Guard File"]
+  },
+  {
+    id: "cus_23",
+    name: "Personal Hearing Notice — Refund/SCN Cases",
+    subject: "Personal Hearing Notice in the matter of Show Cause Notice No. [SCN No.] dated [SCN Date] — M/s [Noticee Name]",
+    opening: "With reference to the Show Cause Notice No. [SCN No.] dated [SCN Date] issued to M/s [Noticee Name] (IEC: [XXXX]) in connection with [brief subject], you are hereby informed that a Personal Hearing in the above matter has been fixed on [Date] at [Time] at this office.",
+    closing: "You are requested to attend the personal hearing on the said date along with your authorized representative, if any, and produce all relevant documents in support of your case. In the event of non-attendance without prior intimation, the matter will be decided ex-parte on the basis of records available.",
+    copyTo: []
+  },
+  {
+    id: "cus_24",
+    name: "Refund Sanction Order (Customs Duty / Fine) — Section 27",
+    subject: "Order Sanctioning Refund of Customs Duty / Fine under Section 27 of the Customs Act, 1962 — M/s [Noticee Name]",
+    opening: "With reference to the refund application filed by M/s [Applicant Name] (IEC: [XXXX]) vide ARN: [ARN No.] dated [Date] for refund of Rs. [Amount]/- on account of [excess duty paid / fine paid under Section 125 / late fee] against Bill of Entry / Order No. [No.] dated [Date], the claim has been examined and verified.",
+    closing: "After due examination of the refund application, relevant documents, and satisfaction of the unjust enrichment clause under Section 27(3) of the Customs Act, 1962, I hereby sanction a refund of Rs. [Amount]/- (Rupees [in words] only) to M/s [Applicant Name] and direct that the same be credited to the Consumer Welfare Fund / paid to the applicant as per verification."
+  },
+  {
+    id: "cus_25",
+    name: "Excess Bulk Cargo — Joint Survey Order/Note",
+    subject: "Order/Note for Conduct of Joint Survey for Quantification of Excess Bulk Cargo — M/s [Importer Name]",
+    opening: "This office has received a letter dated [Date] from M/s [Importer Name] (IEC: [XXXX]), the importer of [Goods Description] cleared vide Bill of Entry No. [BoE No.] dated [BoE Date] through [Port Name], requesting permission for removal of excess/leftover cargo of [Goods Description] lying at the port premises over and above the manifested quantity of [Qty] MTS.",
+    closing: "In terms of Public Notice No. 05/2023 and Standard Operating Procedure (SOP) for Delivery of Excess Dry Bulk Cargo dated 19.05.2023 issued by the Commissioner of Customs (P), Bhubaneswar Commissionerate, a Joint Survey of the excess cargo is directed to be conducted by a team comprising representatives of the Port Trust/Custodian, Customs Division, an independent Surveyor, and the CHA/representative of the importer, on [Date] at [Time]. All concerned may take note and make arrangements accordingly."
+  }
+];

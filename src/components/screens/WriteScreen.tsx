@@ -1614,9 +1614,219 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                           {ws?.address && <div className="text-xs text-gray-800 font-sans mt-1">{ws.address}</div>}
                         </div>
                       )}
-                      
                       {/* Letter mode specific fields */}
                       {mode === 'order' && (
                         <div className="mb-6 space-y-4">
                            <div className="flex justify-between font-bold mb-4">
-                             <span>C. No. {file?.fileNumber || 
+                             <span>C. No. {file?.fileNumber || dir?.filePrefix || '[FILE NO]'}</span>
+                             <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
+                           </div>
+                           {includeDin && din && <div className="text-center font-bold mb-4 tracking-widest uppercase">DIN: {din}</div>}
+                           <div className="text-center font-bold underline text-lg">आदेश / ORDER</div>
+                        </div>
+                      )}
+                      
+                      {mode === 'ai' && (
+                        <div className="mb-6 space-y-4">
+                          <div className="flex justify-between font-bold">
+                            <span>C. No. {file?.fileNumber || dir?.filePrefix || '[FILE NO]'}</span>
+                            <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
+                          </div>
+                          {includeDin && din && <div className="font-bold tracking-widest uppercase text-right">DIN: {din}</div>}
+                          {recipientTo && (
+                            <div className="mb-4">
+                              <div>To,</div>
+                              <div className="whitespace-pre-wrap ml-12">{recipientTo}</div>
+                            </div>
+                          )}
+                          {salutation && <div className="mt-4 mb-4">{salutation}</div>}
+                          {subject && <div className="font-bold underline ml-12 mb-4">Sub: {subject}</div>}
+                        </div>
+                      )}
+                      
+                      {mode === 'format' && (
+                        <div className="mb-6 space-y-4">
+                          <div className="flex justify-between font-bold">
+                            <span>C. No. {file?.fileNumber || dir?.filePrefix || '[FILE NO]'}</span>
+                            <span>Date: {new Date().toLocaleDateString('en-IN')}</span>
+                          </div>
+                          {includeDin && din && <div className="font-bold tracking-widest uppercase text-right">DIN: {din}</div>}
+                          {recipientTo && (
+                            <div className="mb-4">
+                              <div>To,</div>
+                              <div className="whitespace-pre-wrap ml-12">{recipientTo}</div>
+                            </div>
+                          )}
+                          {salutation && <div className="mt-4 mb-4">{salutation}</div>}
+                          {subject && <div className="font-bold underline ml-12 mb-4">Sub: {subject}</div>}
+                        </div>
+                      )}
+                      
+                      {mode === 'note' && (
+                        <div className="mb-6 space-y-4">
+                          {subject && <div className="font-bold underline ml-12">Sub: {subject}</div>}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end mb-2 opacity-50 hover:opacity-100 transition-opacity print:hidden no-pdf">
+                      <button onClick={() => setPreviewMode('preview')} className={`text-[10px] uppercase font-bold px-3 py-1 border border-r-0 border-black/20 dark:border-white/20 ${previewMode === 'preview' ? 'bg-[#22C55E] text-black border-[#22C55E]' : ''}`}>Preview</button>
+                      <button onClick={() => setPreviewMode('edit')} className={`text-[10px] uppercase font-bold px-3 py-1 border border-black/20 dark:border-white/20 ${previewMode === 'edit' ? 'bg-[#22C55E] text-black border-[#22C55E]' : ''}`}>Edit Markdown</button>
+                    </div>
+
+                    <div className="relative group mb-10">
+                      {previewMode === 'edit' ? (
+                          <textarea
+                              value={output}
+                              onChange={(e) => setOutput(e.target.value)}
+                              className="w-full min-h-[300px] outline-none bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 p-2 font-mono text-sm block"
+                              placeholder="Generated letter body will appear here (Markdown supported)..."
+                           />
+                      ) : (
+                          <div className="text-justify text-[15px] leading-relaxed break-words px-2 font-serif">
+                            {output ? (
+                              <ReactMarkdown 
+                                 remarkPlugins={[remarkGfm]}
+                                 components={{
+                                    p: ({node, ...props}) => {
+                                        const childrenArr = React.Children.toArray(props.children);
+                                        const textContent = childrenArr.join('');
+                                        const isMainHeaders = typeof textContent === 'string' && (textContent.includes('Submitted') || textContent.includes('For kind perusal') || textContent.includes('Put up for'));
+                                        return <p className={`mb-4 ${isMainHeaders ? 'text-left font-bold' : 'indent-12 text-justify'}`} {...props} />;
+                                    },
+                                    table: ({node, ...props}) => <table className="w-full border-collapse border border-black/50 dark:border-white/50 my-4 table-auto text-[12pt]" {...props} />,
+                                    th: ({node, ...props}) => <th className="border border-black/50 dark:border-white/50 p-2 font-bold text-center" {...props} />,
+                                    td: ({node, ...props}) => <td className="border border-black/50 dark:border-white/50 p-2" {...props} />,
+                                    li: ({node, ...props}) => <li className="ml-8 list-decimal mb-1" {...props} />,
+                                    ul: ({node, ...props}) => <ul className="mb-4" {...props} />,
+                                    ol: ({node, ...props}) => <ol className="mb-4" {...props} />
+                                 }}
+                              >
+                                {output}
+                              </ReactMarkdown>
+                            ) : <span className="text-gray-400 italic">Generated letter body will appear here...</span>}
+                          </div>
+                      )}
+                      
+                      {isTruncated && !generating && (
+                        <div className="absolute -bottom-10 right-0 z-10 w-full flex justify-end print:hidden">
+                           <button 
+                             onClick={handleContinueGenerating}
+                             className="bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 font-bold uppercase tracking-widest text-xs flex items-center gap-2 shadow-lg rounded"
+                           >
+                              ⚠️ Output Cut Short - Continue Writing
+                           </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div contentEditable={false} className="select-none">
+                      {mode !== 'note' && (
+                        <>
+                          <div className="flex mt-2 mb-4">
+                             <div className="w-[55%] text-left">
+                                {enclosures ? (
+                                  <div className="font-bold text-left mb-8">Enclosures: {enclosures}</div>
+                               ) : (extraIns.toLowerCase().includes('encl') || output.toLowerCase().includes('encl')) ? (
+                                  <div className="font-bold text-left mb-8">Enclosures: As above</div>
+                               ) : null}
+                             </div>
+                             <div className="w-[45%] flex flex-col items-center text-center">
+                                  {mode !== 'order' && <p className="mb-12">Yours faithfully,</p>}
+                                  {mode === 'order' && <p className="mb-12"></p>}
+                                  <p className="font-bold">({sig?.name})</p>
+                                  <p className="whitespace-pre-line">{sig?.designation}</p>
+                                  {sig?.section && <p className="whitespace-pre-line">{sig?.section}</p>}
+                             </div>
+                          </div>
+                          
+
+                          {copyTo && (
+                             <div className="mt-16 text-left">
+                                <p className="font-bold mb-4">Copy to:</p>
+                                <div className="ml-4 mb-16">
+                                   {copyTo.split('\n').filter(Boolean).map((line, idx) => {
+                                      let text = line.trim();
+                                      if (text.toLowerCase().startsWith('copy to')) {
+                                         text = text.substring(7).trim();
+                                      }
+                                      return <div key={idx} className="indent-[-1.5rem] pl-6 mb-2">{idx + 1}. {text}</div>;
+                                   })}
+                                </div>
+                                {mode !== 'order' && (
+                                   <div className="flex justify-end">
+                                      <div className="w-[45%] flex flex-col items-center text-center">
+                                         <p className="font-bold">({sig?.name})</p>
+                                         <p className="whitespace-pre-line">{sig?.designation}</p>
+                                         {sig?.section && <p className="whitespace-pre-line">{sig?.section}</p>}
+                                      </div>
+                                   </div>
+                                )}
+                             </div>
+                          )}
+                        </>
+                      )}
+                      {mode === 'note' && (
+                        <div className="flex justify-start mt-12">
+                           <div className="w-[45%] flex flex-col items-start text-left">
+                             <p className="font-bold">({sig?.name})</p>
+                             <p className="whitespace-pre-line">{sig?.designation}</p>
+                             {sig?.section && <p className="whitespace-pre-line">{sig?.section}</p>}
+                           </div>
+                        </div>
+                      )}
+                    </div>
+
+                 </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+               <div>
+                  <select value={paperSize} onChange={e => setPaperSize(e.target.value as any)} className="w-full bg-white dark:bg-neutral-900 border border-[#22C55E] p-1 text-[10px] text-[#22C55E] outline-none font-bold uppercase tracking-widest cursor-pointer mb-2">
+                     <option value="Legal">Legal (8.5x14)</option>
+                     <option value="A3">A3 (11.7x16.5)</option>
+                     <option value="A4">A4 (8.3x11.7)</option>
+                  </select>
+                 <button onClick={handleWordDownload} className="w-full border-2 border-[#22C55E] text-[#22C55E] hover:bg-[#22C55E] hover:text-black font-bold uppercase tracking-widest py-3 transition-colors mb-2">
+                   Generate Word (.docx)
+                 </button>
+                 <button onClick={handleOldWordDownload} className="w-full border-2 border-[#22C55E]/50 text-[#22C55E]/80 hover:bg-[#22C55E]/20 font-bold uppercase tracking-widest py-3 transition-colors mb-2 text-[10px]">
+                   Word (Older Version 97-2003 .doc)
+                 </button>
+                 <button onClick={handlePdfDownload} className="w-full border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-bold uppercase tracking-widest py-3 transition-colors mb-2">
+                   Download PDF
+                 </button>
+                 <button onClick={() => window.print()} className="w-full border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-bold uppercase tracking-widest py-3 transition-colors">
+                   Print
+                 </button>
+               </div>
+               <div className="flex items-end">
+                 <button onClick={() => handleSaveToFirebase(false)} className="w-full bg-white/10 hover:bg-white/20 text-black dark:text-white font-bold uppercase tracking-widest py-3 transition-colors border border-black/10 dark:border-white/10">
+                   Save Record
+                 </button>
+               </div>
+            </div>
+            {downloadUrl && (
+              <div className="mt-4 p-4 border border-[#22C55E] bg-[#22C55E]/10 flex flex-col gap-2">
+                <p className="text-sm font-bold text-[#22C55E]">Download Ready</p>
+                <p className="text-xs">If the automatic download didn't work (due to preview restrictions), click the button below or right-click and choose "Save Link As..."</p>
+                <a 
+                  href={downloadUrl} 
+                  download={downloadName}
+                  className="bg-[#22C55E] text-black text-center font-bold uppercase tracking-widest p-2 block mt-2"
+                >
+                  Download {downloadName}
+                </a>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="h-64 border-2 border-dashed border-black/10 dark:border-white/10 flex items-center justify-center text-black dark:text-white/30 text-xs font-mono uppercase tracking-widest text-center px-8">
+            Output preview will appear here.<br/>Ensure API key is configured.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

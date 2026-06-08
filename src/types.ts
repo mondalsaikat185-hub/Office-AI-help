@@ -87,11 +87,10 @@ export interface Phrase {
 export interface Template {
   id: string;
   name: string;
-  category?: 'Leave & Service' | 'GPF' | 'GST' | 'Customs' | 'General' | 'Custom';
   subject: string;
   opening: string;
   closing: string;
-  copyTo?: string[];
+  copyTo: string[];
 }
 
 export interface Letter {
@@ -104,7 +103,7 @@ export interface Letter {
   fileName: string;
   fileNumber: string;
   subject: string;
-  mode: 'ai' | 'format' | 'note' | 'order' | 'legal';
+  mode: 'ai' | 'format' | 'note' | 'order';
   body: string;
   bodyHtml: string;
   signatureId: string;
@@ -252,4 +251,9 @@ export interface DraftState {
   extraIns?: string;
   recipientTo?: string;
   output?: string;
-  din?: 
+  din?: string;
+  includeDin?: boolean;
+  styleRefText?: string;
+  styleImageBase64?: string;
+}
+
