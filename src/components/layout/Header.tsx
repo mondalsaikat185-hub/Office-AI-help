@@ -258,7 +258,7 @@ export default function Header() {
 
   return (
     <header className="border-b-2 border-black/10 dark:border-white/10 bg-[#f8fafc] dark:bg-[#0A0A0A] px-3 py-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 relative" style={{ zIndex: 9999 }}>
-      <div className="flex flex-wrap gap-2 items-center w-full pb-1">
+      <div className="flex flex-nowrap overflow-x-auto scrollbar-none gap-2 items-center w-full pb-1">
         {/* Workspace Chip */}
         <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'workspace' ? 9999 : 'auto' }}>
           <div 

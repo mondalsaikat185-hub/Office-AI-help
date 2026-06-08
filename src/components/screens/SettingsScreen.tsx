@@ -822,11 +822,321 @@ export default function SettingsScreen() {
                       reader.readAsText(file);
                     }}/>
                   </label>
-               </div>
-            </div>
+                </div>
+             </div>
           </div>
         </div>
       </section>
+
+      {/* Storage Mode */}
+      <section className="border-2 border-black/10 dark:border-white/10 p-6 bg-black/5 dark:bg-white/5">
+        <div className="flex items-center gap-3 mb-6">
+          <Database className="w-5 h-5 text-cyan-500" />
+          <h2 className="text-lg font-black uppercase tracking-widest text-cyan-500">Storage Mode</h2>
+        </div>
+
+        <StorageModePanel />
+      </section>
+    </div>
+  );
+}
+
+// =================== Storage Mode Panel ===================
+
+function StorageModePanel() {
+  const [mode, setMode] = useState<'firebase' | 'hybrid'>(() => {
+    return (localStorage.getItem('officeai_storageMode') as 'firebase' | 'hybrid') || 'firebase';
+  });
+  const [driveConnected, setDriveConnected] = useState(false);
+  const [clientId, setClientId] = useState('');
+  const [encPwd, setEncPwd] = useState('');
+  const [syncStatus, setSyncStatus] = useState('');
+  const [lastSync, setLastSync] = useState(0);
+  const [switching, setSwitching] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState(0);
+  const [migrationStatus, setMigrationStatus] = useState('');
+
+  useEffect(() => {
+    setClientId(localStorage.getItem('officeai_googleClientId') || '');
+    const lastSyncStr = localStorage.getItem('officeai_lastDriveSync');
+    if (lastSyncStr) setLastSync(parseInt(lastSyncStr, 10));
+
+    // Check Drive connection
+    try {
+      const cached = localStorage.getItem('officeai_driveToken');
+      if (cached) {
+        const { expiry } = JSON.parse(cached);
+        setDriveConnected(expiry > Date.now());
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleModeSwitch = async (newMode: 'firebase' | 'hybrid') => {
+    if (newMode === mode) return;
+    if (newMode === 'hybrid') {
+      if (!confirm('Hybrid Mode চালু করলে ডেটা IndexedDB-তে এনক্রিপ্টেড সংরক্ষণ হবে এবং Google Drive-এ ব্যাকআপ হবে। চালু করবেন?')) return;
+    } else {
+      if (!confirm('Firebase Mode-এ ফিরে যাবেন? Hybrid ডেটা IndexedDB-তে থাকবে।')) return;
+    }
+    setSwitching(true);
+    localStorage.setItem('officeai_storageMode', newMode);
+    setMode(newMode);
+    setSyncStatus(`${newMode === 'hybrid' ? 'Hybrid' : 'Firebase'} mode সক্রিয়। অ্যাপ রিফ্রেশ করুন।`);
+    setSwitching(false);
+  };
+
+  const handleConnectDrive = async () => {
+    if (!clientId || clientId.length < 20) {
+      alert('Google Client ID দিন। Google Cloud Console থেকে OAuth 2.0 Client ID তৈরি করুন।');
+      return;
+    }
+    localStorage.setItem('officeai_googleClientId', clientId);
+    setSyncStatus('Google Drive-এ সংযোগ করা হচ্ছে...');
+    try {
+      const { initTokenClient } = await import('../../lib/googleDriveSync');
+      await initTokenClient(clientId);
+      setDriveConnected(true);
+      setSyncStatus('✅ Google Drive সংযুক্ত!');
+    } catch (e: any) {
+      setSyncStatus('❌ সংযোগ ব্যর্থ: ' + e.message);
+    }
+  };
+
+  const handleDisconnectDrive = async () => {
+    if (!confirm('Google Drive সংযোগ বিচ্ছিন্ন করবেন?')) return;
+    const { disconnectDrive } = await import('../../lib/googleDriveSync');
+    disconnectDrive();
+    setDriveConnected(false);
+    setSyncStatus('Drive সংযোগ বিচ্ছিন্ন।');
+  };
+
+  const handleSetPassword = async () => {
+    if (!encPwd || encPwd.length < 6) {
+      alert('ন্যূনতম ৬ অক্ষরের পাসওয়ার্ড দিন।');
+      return;
+    }
+    localStorage.setItem('officeai_hybridPwd', encPwd);
+    try {
+      const { initEncryption } = await import('../../lib/indexedDBStore');
+      await initEncryption(encPwd);
+      setSyncStatus('✅ এনক্রিপশন পাসওয়ার্ড সেট হয়েছে।');
+    } catch (e: any) {
+      setSyncStatus('❌ পাসওয়ার্ড সেট ব্যর্থ: ' + e.message);
+    }
+  };
+
+  const handleManualSync = async () => {
+    setSyncStatus('সিঙ্ক চলছে...');
+    try {
+      const { HybridAdapter } = await import('../../lib/hybridAdapter');
+      const adapter = new HybridAdapter();
+      const user = useStore.getState().user;
+      if (!user) { setSyncStatus('❌ ব্যবহারকারী লগইন নেই'); return; }
+      await adapter.initialize(user.uid);
+      await adapter.sync();
+      setLastSync(Date.now());
+      setSyncStatus('✅ সিঙ্ক সম্পন্ন!');
+    } catch (e: any) {
+      setSyncStatus('❌ সিঙ্ক ব্যর্থ: ' + e.message);
+    }
+  };
+
+  const handleMigrate = async () => {
+    if (!confirm('Firebase থেকে সব ডেটা Local Hybrid মোডে নিয়ে আসা হবে। এটি আগের local ডেটা ওভাররাইট করতে পারে। প্রসিডিউর শুরু করবেন?')) return;
+    setMigrating(true);
+    setMigrationStatus('শুরু হচ্ছে...');
+    setMigrationProgress(0);
+    try {
+      const { migrateFirebaseToHybrid } = await import('../../lib/migration');
+      const user = useStore.getState().user;
+      if (!user) throw new Error('ব্যবহারকারী লগইন নেই');
+      await migrateFirebaseToHybrid(user.uid, (status, progress) => {
+        setMigrationStatus(status);
+        setMigrationProgress(Math.round(progress));
+      });
+      // reload store
+      await useStore.getState().loadUserData();
+      setSyncStatus('✅ মাইগ্রেশন সফল হয়েছে!');
+    } catch (e: any) {
+      setSyncStatus('❌ মাইগ্রেশন ব্যর্থ: ' + e.message);
+    } finally {
+      setMigrating(false);
+    }
+  };
+
+  const handleExportHybrid = async () => {
+    try {
+      const { exportAllData } = await import('../../lib/indexedDBStore');
+      const data = await exportAllData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `officeai_hybrid_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert('Export ব্যর্থ: ' + e.message);
+    }
+  };
+
+  const handleImportHybrid = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string);
+        if (!confirm('এই ডেটা IndexedDB-তে ইমপোর্ট করবেন?')) return;
+        const { importAllData } = await import('../../lib/indexedDBStore');
+        const count = await importAllData(json);
+        alert(`${count}টি রেকর্ড সফলভাবে ইমপোর্ট হয়েছে!`);
+      } catch (err: any) {
+        alert('ইমপোর্ট ব্যর্থ: ' + err.message);
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Mode Selection */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => handleModeSwitch('firebase')}
+          disabled={switching}
+          className={`p-4 border-2 transition-all text-left ${mode === 'firebase' ? 'border-cyan-500 bg-cyan-500/10' : 'border-black/10 dark:border-white/10 hover:border-cyan-500/50'}`}
+        >
+          <div className="font-black text-sm uppercase tracking-widest mb-1">🔥 Firebase</div>
+          <p className="text-[10px] text-black/60 dark:text-white/50">দ্রুত, রিয়েল-टाइम। কোটা সীমা আছে।</p>
+        </button>
+        <button
+          onClick={() => handleModeSwitch('hybrid')}
+          disabled={switching}
+          className={`p-4 border-2 transition-all text-left ${mode === 'hybrid' ? 'border-cyan-500 bg-cyan-500/10' : 'border-black/10 dark:border-white/10 hover:border-cyan-500/50'}`}
+        >
+          <div className="font-black text-sm uppercase tracking-widest mb-1">💾 Hybrid</div>
+          <p className="text-[10px] text-black/60 dark:text-white/50">IndexedDB + Drive। কোটা-মুক্ত, অফলাইন।</p>
+        </button>
+      </div>
+
+      {/* Current Mode Status */}
+      <div className="text-[10px] font-mono uppercase tracking-widest text-cyan-500 bg-cyan-500/5 border border-cyan-500/20 px-3 py-2">
+        বর্তমান মোড: <strong>{mode === 'firebase' ? 'Firebase (Default)' : 'Hybrid (Local + Drive)'}</strong>
+      </div>
+
+      {/* Hybrid Mode Settings */}
+      {mode === 'hybrid' && (
+        <div className="space-y-4 border-t border-black/10 dark:border-white/10 pt-4">
+          {/* Encryption Password */}
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-black/60 dark:text-white/50 mb-1 block">
+              🔐 এনক্রিপশন পাসওয়ার্ড
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={encPwd}
+                onChange={e => setEncPwd(e.target.value)}
+                placeholder="ন্যূনতম ৬ অক্ষর..."
+                className="flex-1 bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs outline-none focus:border-cyan-500"
+              />
+              <button
+                onClick={handleSetPassword}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-widest text-[10px] px-4 py-2"
+              >
+                Set
+              </button>
+            </div>
+            <p className="text-[9px] text-black/40 dark:text-white/30 mt-1">
+              ⚠️ এই পাসওয়ার্ড ভুলে গেলে এনক্রিপ্টেড ডেটা পুনরুদ্ধার সম্ভব নয়।
+            </p>
+          </div>
+
+          {/* Google Drive Connection */}
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-black/60 dark:text-white/50 mb-1 block">
+              ☁️ Google Drive সংযোগ
+            </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={clientId}
+                onChange={e => setClientId(e.target.value)}
+                placeholder="Google OAuth Client ID..."
+                className="flex-1 bg-white/50 dark:bg-black/50 border border-black/20 dark:border-white/20 p-2 text-xs font-mono outline-none focus:border-cyan-500"
+              />
+            </div>
+            <div className="flex gap-2">
+              {!driveConnected ? (
+                <button onClick={handleConnectDrive} className="bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest text-[10px] px-4 py-2">
+                  Connect Google Drive
+                </button>
+              ) : (
+                <>
+                  <span className="text-[10px] text-green-500 font-bold uppercase tracking-widest self-center">✅ Connected</span>
+                  <button onClick={handleDisconnectDrive} className="bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold uppercase tracking-widest text-[10px] px-4 py-2 border border-red-500/30">
+                    Disconnect
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Sync Controls */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleManualSync}
+              disabled={!driveConnected}
+              className="bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/50 text-cyan-400 font-bold uppercase tracking-widest text-[10px] px-4 py-2 disabled:opacity-30 transition-colors"
+            >
+              🔄 Manual Sync Now
+            </button>
+            <div className="text-[10px] text-black/50 dark:text-white/40 font-mono self-center">
+              {lastSync > 0 ? `শেষ সিঙ্ক: ${new Date(lastSync).toLocaleString('bn-IN')}` : 'এখনো সিঙ্ক হয়নি'}
+            </div>
+          </div>
+
+          {/* Hybrid Export/Import */}
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={handleExportHybrid} className="bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/50 text-purple-400 font-bold uppercase tracking-widest text-[10px] px-4 py-2 transition-colors">
+              ↓ Export Hybrid Backup
+            </button>
+            <label className="bg-purple-600 hover:bg-purple-500 text-white font-bold uppercase tracking-widest text-[10px] px-4 py-2 text-center cursor-pointer transition-colors relative">
+              ↑ Import Hybrid Data
+              <input type="file" accept=".json" className="opacity-0 absolute inset-0 cursor-pointer w-full" onChange={handleImportHybrid} />
+            </label>
+          </div>
+
+          {/* Migrate Data Button */}
+          <div className="border-t border-black/10 dark:border-white/10 pt-4 mt-2">
+            <button
+              onClick={handleMigrate}
+              disabled={migrating}
+              className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-widest text-[10px] px-4 py-2.5 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              🚀 {migrating ? `মাইগ্রেট হচ্ছে: ${migrationProgress}% (${migrationStatus})` : 'Migrate Firebase Data to Hybrid'}
+            </button>
+            {migrating && (
+              <div className="w-full bg-black/10 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="bg-cyan-500 h-full transition-all duration-300" 
+                  style={{ width: `${migrationProgress}%` }}
+                ></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Status Message */}
+      {syncStatus && (
+        <div className="text-[10px] font-mono bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2 text-black/70 dark:text-white/60">
+          {syncStatus}
+        </div>
+      )}
     </div>
   );
 }

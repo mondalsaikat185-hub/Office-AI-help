@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { AppState, Workspace, Letter, InboxItem, ApiKey, CaseItem, DraftState } from '../types';
-import { db, auth } from './firebase';
-import { doc, getDoc, setDoc, collection, query, getDocs, limit, orderBy, deleteDoc, writeBatch, where } from 'firebase/firestore';
+import { getAdapter, initializeAdapter } from './storageAdapter';
 import { User } from 'firebase/auth';
 import { learningEngine } from './learningEngine';
 
@@ -15,6 +14,9 @@ interface GlobalStore extends AppState {
   inbox: InboxItem[];
   cases: CaseItem[];
   drafts: Record<string, DraftState>;
+  homePreview: { letters: Letter[], cases: CaseItem[], diary: any[], demands: any[] };
+  loadingScreen: string | null;
+  errorToast: string | null;
   theme: 'dark' | 'light';
 
   // Actions
@@ -25,6 +27,7 @@ interface GlobalStore extends AppState {
   setActiveFile: (id: string) => void;
   setActiveSignature: (id: string) => void;
   setDraft: (id: string, payload: DraftState) => void;
+  setErrorToast: (msg: string | null) => void;
   loadUserData: () => Promise<void>;
   saveUserData: (data?: Partial<GlobalStore>) => Promise<void>;
   saveLetter: (letter: Letter) => Promise<void>;
@@ -90,6 +93,9 @@ export const useStore = create<GlobalStore>((set, get) => ({
   revenue: [],
 
   drafts: {},
+  homePreview: { letters: [], cases: [], diary: [], demands: [] },
+  loadingScreen: null,
+  errorToast: null,
 
   activeWorkspaceId: null,
   activeDirectoryId: null,
@@ -125,69 +131,73 @@ export const useStore = create<GlobalStore>((set, get) => ({
   setDraft: (id, payload) => {
     set(state => ({ drafts: { ...state.drafts, [id]: payload } }));
   },
+  setErrorToast: (msg) => {
+    set({ errorToast: msg });
+    if (msg) setTimeout(() => set({ errorToast: null }), 5000);
+  },
 
   loadUserData: async () => {
     const { user } = get();
     if (!user) return;
 
     try {
-      await learningEngine.load(user.uid);
-      const userDocRef = doc(db, 'officeai_users', user.uid);
-      const snap = await getDoc(userDocRef);
-      
-      let coreData: Partial<AppState> = {};
-      let migratedWorkspaces: Workspace[] = [];
-      let migratedDemands: any[] = [];
-      let migratedDiary: any[] = [];
-      let needsMigrationSave = false;
+      // Initialize the Storage Adapter
+      const adapter = await initializeAdapter(user.uid);
 
-      if (snap.exists()) {
-        coreData = snap.data() as Partial<AppState>;
-        if (coreData.workspaces && coreData.workspaces.length > 0) {
-          migratedWorkspaces = coreData.workspaces;
-          needsMigrationSave = true;
-        }
-        if (coreData.demands && coreData.demands.length > 0) {
-          migratedDemands = coreData.demands;
-          needsMigrationSave = true;
-        }
-        if (coreData.diary && coreData.diary.length > 0) {
-          migratedDiary = coreData.diary;
-          needsMigrationSave = true;
-        }
+      await learningEngine.load(user.uid);
+      
+      let coreData: any = {};
+      try {
+        coreData = await adapter.getUserDoc();
+      } catch (e) {
+        console.error("Error reading user settings doc:", e);
       }
 
       // Load workspaces from subcollection
-      const workspacesRef = collection(db, 'officeai_users', user.uid, 'workspaces');
-      const workspacesSnap = await getDocs(workspacesRef);
-      let loadedWorkspaces = workspacesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Workspace));
+      let loadedWorkspaces: Workspace[] = [];
+      try {
+        loadedWorkspaces = await adapter.queryDocs('workspaces');
+      } catch (e) {
+        console.error("Error loading workspaces:", e);
+      }
 
-      // Load pending inbox items only for startup reminders (minimizes read operations)
-      const inboxRef = collection(db, 'officeai_users', user.uid, 'inbox');
-      const inboxSnap = await getDocs(query(inboxRef, where('status', '==', 'pending')));
-      const loadedInbox = inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem));
-
-      // Migration fallback
-      if (loadedWorkspaces.length === 0 && migratedWorkspaces.length > 0) {
-        console.log("Migrating legacy workspaces...");
-        const batch = writeBatch(db);
-        migratedWorkspaces.forEach(w => {
-          batch.set(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), w);
+      // Load pending inbox items only for startup reminders
+      let loadedInbox: InboxItem[] = [];
+      try {
+        loadedInbox = await adapter.queryDocs('inbox', {
+          where: [{ field: 'status', op: '==', value: 'pending' }]
         });
-        await batch.commit();
-        loadedWorkspaces = migratedWorkspaces;
+      } catch (e) {
+        console.error("Error loading inbox reminders:", e);
       }
 
-      if (needsMigrationSave) {
-        console.log("Cleaning up legacy core user document fields...");
-        const cleanupData = {
-          workspaces: [],
-          demands: [],
-          diary: [],
-          drafts: {}
-        };
-        await setDoc(userDocRef, cleanupData, { merge: true });
+      // ── CRITICAL: Validate apiKeys and selectedModel before overwriting ──
+      const currentState = get();
+      const localApiKeys = readLocalJSON<ApiKey[]>('officeai_apiKeys', []);
+      const localModel = localStorage.getItem('officeai_selectedModel') || 'gemini-2.5-flash';
+
+      const firestoreApiKeys = coreData.apiKeys;
+      if (firestoreApiKeys && Array.isArray(firestoreApiKeys) && firestoreApiKeys.length > 0) {
+        writeLocalJSON('officeai_apiKeys', firestoreApiKeys);
+      } else if (localApiKeys.length > 0) {
+        console.warn('[OfficeAI] Adapter returned empty apiKeys, restoring from localStorage backup');
+        coreData.apiKeys = localApiKeys;
+      } else if (currentState.apiKeys.length > 0) {
+        coreData.apiKeys = currentState.apiKeys;
       }
+
+      const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+      const firestoreModel = coreData.selectedModel;
+      
+      let finalModel = 'gemini-2.5-flash';
+      if (firestoreModel && VALID_MODELS.includes(firestoreModel)) {
+        finalModel = firestoreModel;
+      } else if (localModel && VALID_MODELS.includes(localModel)) {
+        finalModel = localModel;
+      }
+
+      coreData.selectedModel = finalModel;
+      localStorage.setItem('officeai_selectedModel', finalModel);
 
       const cleanCoreData: any = { ...coreData };
       delete cleanCoreData.workspaces;
@@ -197,43 +207,6 @@ export const useStore = create<GlobalStore>((set, get) => ({
       delete cleanCoreData.employees;
       delete cleanCoreData.bonds;
       delete cleanCoreData.revenue;
-
-      // ── CRITICAL: Validate apiKeys and selectedModel before overwriting ──
-      // Never allow empty/stale Firestore data to destroy valid local state
-      const currentState = get();
-      const localApiKeys = readLocalJSON<ApiKey[]>('officeai_apiKeys', []);
-      const localModel = localStorage.getItem('officeai_selectedModel') || 'gemini-2.5-flash';
-
-      // Determine best apiKeys: Firestore > localStorage > current state
-      const firestoreApiKeys = cleanCoreData.apiKeys;
-      if (firestoreApiKeys && Array.isArray(firestoreApiKeys) && firestoreApiKeys.length > 0) {
-        // Firestore has valid keys — use them and update localStorage backup
-        writeLocalJSON('officeai_apiKeys', firestoreApiKeys);
-      } else if (localApiKeys.length > 0) {
-        // Firestore returned empty but localStorage has keys — preserve them
-        console.warn('[OfficeAI] Firestore returned empty apiKeys, restoring from localStorage backup');
-        cleanCoreData.apiKeys = localApiKeys;
-      } else if (currentState.apiKeys.length > 0) {
-        // Both empty but current state has keys (shouldn't happen, but safety net)
-        cleanCoreData.apiKeys = currentState.apiKeys;
-      }
-
-      // Determine best selectedModel: Firestore > localStorage > default
-      const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
-      const firestoreModel = cleanCoreData.selectedModel;
-      
-      let finalModel = 'gemini-2.5-flash';
-      if (firestoreModel && VALID_MODELS.includes(firestoreModel)) {
-        finalModel = firestoreModel;
-      } else if (localModel && VALID_MODELS.includes(localModel)) {
-        finalModel = localModel;
-        console.warn('[OfficeAI] Stored model is invalid, fell back to local model:', localModel);
-      } else {
-        console.warn('[OfficeAI] Stored and local models invalid, falling back to gemini-2.5-flash');
-      }
-
-      cleanCoreData.selectedModel = finalModel;
-      localStorage.setItem('officeai_selectedModel', finalModel);
 
       set((state) => ({
         ...state,
@@ -259,90 +232,35 @@ export const useStore = create<GlobalStore>((set, get) => ({
     if (!user) return;
 
     try {
+      const adapter = getAdapter();
+
       if (partialData) {
-        // Sync subcollections if they are updated in partialData
-        if ('workspaces' in partialData) {
-          const oldWs = get().workspaces;
-          const newWs = partialData.workspaces || [];
-          const deleted = oldWs.filter(ow => !newWs.some(nw => nw.id === ow.id));
-          for (const w of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id));
-          }
-          for (const w of newWs) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'workspaces', w.id), JSON.parse(JSON.stringify(w)));
-          }
-        }
-        if ('demands' in partialData) {
-          const oldDemands = get().demands;
-          const newDemands = partialData.demands || [];
-          const deleted = oldDemands.filter(od => !newDemands.some(nd => nd.id === od.id));
+        const ops: any[] = [];
+        const syncSub = (key: string, oldItems: any[], newItems: any[]) => {
+          const deleted = oldItems.filter((oi: any) => !newItems.some((ni: any) => ni.id === oi.id));
           for (const d of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'demands', d.id));
+            ops.push({ type: 'delete', collection: key, id: d.id });
           }
-          for (const d of newDemands) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'demands', d.id), JSON.parse(JSON.stringify(d)));
+          for (const n of newItems) {
+            ops.push({ type: 'set', collection: key, id: n.id, data: n });
           }
-        }
-        if ('diary' in partialData) {
-          const oldDiary = get().diary;
-          const newDiary = partialData.diary || [];
-          const deleted = oldDiary.filter(od => !newDiary.some(nd => nd.id === od.id));
-          for (const d of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id));
-          }
-          for (const d of newDiary) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'diary', d.id), JSON.parse(JSON.stringify(d)));
-          }
-        }
-        if ('employees' in partialData) {
-          const oldEmps = get().employees || [];
-          const newEmps = partialData.employees || [];
-          const deleted = oldEmps.filter(oe => !newEmps.some(ne => ne.id === oe.id));
-          for (const e of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'employees', e.id));
-          }
-          for (const e of newEmps) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'employees', e.id), JSON.parse(JSON.stringify(e)));
-          }
-        }
-        if ('bonds' in partialData) {
-          const oldBonds = get().bonds || [];
-          const newBonds = partialData.bonds || [];
-          const deleted = oldBonds.filter(ob => !newBonds.some(nb => nb.id === ob.id));
-          for (const b of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'bonds', b.id));
-          }
-          for (const b of newBonds) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'bonds', b.id), JSON.parse(JSON.stringify(b)));
-          }
-        }
-        if ('revenue' in partialData) {
-          const oldRevenue = get().revenue || [];
-          const newRevenue = partialData.revenue || [];
-          const deleted = oldRevenue.filter(or => !newRevenue.some(nr => nr.id === or.id));
-          for (const r of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id));
-          }
-          for (const r of newRevenue) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'revenue', r.id), JSON.parse(JSON.stringify(r)));
-          }
-        }
-        if ('inbox' in partialData) {
-          const oldInbox = get().inbox || [];
-          const newInbox = partialData.inbox || [];
-          const deleted = oldInbox.filter(oi => !newInbox.some(ni => ni.id === oi.id));
-          for (const i of deleted) {
-            await deleteDoc(doc(db, 'officeai_users', user.uid, 'inbox', i.id));
-          }
-          for (const i of newInbox) {
-            await setDoc(doc(db, 'officeai_users', user.uid, 'inbox', i.id), JSON.parse(JSON.stringify(i)));
-          }
+        };
+
+        if ('workspaces' in partialData) syncSub('workspaces', get().workspaces, partialData.workspaces || []);
+        if ('demands' in partialData) syncSub('demands', get().demands || [], partialData.demands || []);
+        if ('diary' in partialData) syncSub('diary', get().diary || [], partialData.diary || []);
+        if ('employees' in partialData) syncSub('employees', get().employees || [], partialData.employees || []);
+        if ('bonds' in partialData) syncSub('bonds', get().bonds || [], partialData.bonds || []);
+        if ('revenue' in partialData) syncSub('revenue', get().revenue || [], partialData.revenue || []);
+        if ('inbox' in partialData) syncSub('inbox', get().inbox || [], partialData.inbox || []);
+
+        if (ops.length > 0) {
+          await adapter.batchWrite(ops);
         }
 
         set(partialData);
       }
 
-      // Save core user doc without subcollection datasets and drafts
       const state = get();
       const rawCoreToSave = {
         profile: state.profile ?? null,
@@ -363,24 +281,19 @@ export const useStore = create<GlobalStore>((set, get) => ({
         lastUpdate: Date.now()
       };
 
-      // ── CRITICAL: Always backup apiKeys and selectedModel to localStorage ──
-      // This ensures settings survive even if Firestore fails on next load
       writeLocalJSON('officeai_apiKeys', rawCoreToSave.apiKeys);
       localStorage.setItem('officeai_selectedModel', rawCoreToSave.selectedModel);
 
-      const coreToSave = JSON.parse(JSON.stringify(rawCoreToSave));
       try {
-        await setDoc(doc(db, 'officeai_users', user.uid), coreToSave, { merge: true });
-      } catch (firestoreError) {
-        console.error("Firestore save failed, but localStorage backup is intact:", firestoreError);
-        // Don't throw — localStorage backup ensures data survives
-        // Schedule a retry after 5 seconds
+        await adapter.setUserDoc(rawCoreToSave);
+      } catch (adapterError) {
+        console.error("Adapter save failed, but localStorage backup is intact:", adapterError);
         setTimeout(async () => {
           try {
-            await setDoc(doc(db, 'officeai_users', user.uid), coreToSave, { merge: true });
-            console.log('[OfficeAI] Firestore retry succeeded');
+            await adapter.setUserDoc(rawCoreToSave);
+            console.log('[OfficeAI] Retry succeeded');
           } catch (retryError) {
-            console.error('[OfficeAI] Firestore retry also failed:', retryError);
+            console.error('[OfficeAI] Retry failed:', retryError);
           }
         }, 5000);
       }
@@ -394,11 +307,10 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user, letters } = get();
     if (!user) return;
 
-    set({ letters: [letter, ...letters] });
+    set({ letters: [letter, ...letters.filter(l => l.id !== letter.id)] });
 
     try {
-      const cleanLetter = JSON.parse(JSON.stringify(letter));
-      await setDoc(doc(db, 'officeai_users', user.uid, 'letters', letter.id), cleanLetter);
+      await getAdapter().setDoc('letters', letter.id, letter);
     } catch (error) {
       console.error("Error saving letter:", error);
       throw error;
@@ -412,7 +324,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
     set({ letters: letters.filter(l => l.id !== id) });
 
     try {
-      await deleteDoc(doc(db, 'officeai_users', user.uid, 'letters', id));
+      await getAdapter().deleteDoc('letters', id);
     } catch (error) {
       console.error("Error deleting letter:", error);
       set({ letters });
@@ -425,7 +337,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
     if (!user) return;
     set({ cases: [c, ...cases] });
     try {
-      await setDoc(doc(db, 'officeai_users', user.uid, 'cases', c.id), JSON.parse(JSON.stringify(c)));
+      await getAdapter().setDoc('cases', c.id, c);
     } catch (error) {
       console.error("Error saving case:", error);
       set({ cases });
@@ -438,7 +350,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
     if (!user) return;
     set({ cases: cases.map(x => x.id === c.id ? c : x) });
     try {
-      await setDoc(doc(db, 'officeai_users', user.uid, 'cases', c.id), JSON.parse(JSON.stringify(c)));
+      await getAdapter().setDoc('cases', c.id, c);
     } catch (error) {
       console.error("Error updating case:", error);
       throw error;
@@ -450,7 +362,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
     if (!user) return;
     set({ cases: cases.filter(c => c.id !== id) });
     try {
-      await deleteDoc(doc(db, 'officeai_users', user.uid, 'cases', id));
+      await getAdapter().deleteDoc('cases', id);
     } catch (error) {
       console.error("Error deleting case:", error);
       throw error;
@@ -458,7 +370,7 @@ export const useStore = create<GlobalStore>((set, get) => ({
   },
 
   deleteFileCascade: async (wsId: string, dirId: string, fileId: string) => {
-    const { workspaces, letters, drafts, user, saveUserData } = get();
+    const { workspaces, letters, drafts, user } = get();
     if (!user) return;
 
     const wsList = [...workspaces];
@@ -481,16 +393,13 @@ export const useStore = create<GlobalStore>((set, get) => ({
     await get().saveUserData({ workspaces: wsList, drafts: newDrafts });
 
     if (lettersToDelete.length > 0) {
-      const batch = writeBatch(db);
-      for (const l of lettersToDelete) {
-        batch.delete(doc(db, 'officeai_users', user.uid, 'letters', l.id));
-      }
-      await batch.commit().catch(e => console.error("Error deleting letters:", e));
+      const ops = lettersToDelete.map(l => ({ type: 'delete' as const, collection: 'letters', id: l.id }));
+      await getAdapter().batchWrite(ops).catch(e => console.error("Error deleting letters:", e));
     }
   },
 
   deleteDirCascade: async (wsId: string, dirId: string) => {
-    const { workspaces, letters, drafts, user, saveUserData } = get();
+    const { workspaces, letters, drafts, user } = get();
     if (!user) return;
 
     const wsList = [...workspaces];
@@ -530,11 +439,8 @@ export const useStore = create<GlobalStore>((set, get) => ({
     await get().saveUserData({ workspaces: wsList, drafts: newDrafts });
 
     if (lettersToDelete.length > 0) {
-      const batch = writeBatch(db);
-      for (const l of lettersToDelete) {
-        batch.delete(doc(db, 'officeai_users', user.uid, 'letters', l.id));
-      }
-      await batch.commit().catch(e => console.error("Error deleting directory letters:", e));
+      const ops = lettersToDelete.map(l => ({ type: 'delete' as const, collection: 'letters', id: l.id }));
+      await getAdapter().batchWrite(ops).catch(e => console.error("Error deleting directory letters:", e));
     }
   },
 
@@ -542,11 +448,16 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user } = get();
     if (!user) return;
     try {
-      const lettersRef = collection(db, 'officeai_users', user.uid, 'letters');
-      const q = query(lettersRef, where('directoryId', '==', directoryId), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as Letter));
-      set({ letters: loaded });
+      const loaded = await getAdapter().queryDocs('letters', {
+        where: [{ field: 'directoryId', op: '==', value: directoryId }],
+        orderBy: [{ field: 'createdAt', direction: 'desc' }]
+      });
+      set(state => ({
+        letters: [
+          ...state.letters.filter(l => l.directoryId !== directoryId),
+          ...loaded
+        ]
+      }));
     } catch (e) {
       console.error("Error loading letters for directory:", e);
     }
@@ -558,11 +469,9 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const existing = letters.find(l => l.id === id);
     if (existing) return existing;
     try {
-      const docRef = doc(db, 'officeai_users', user.uid, 'letters', id);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const letter = { id: snap.id, ...snap.data() } as Letter;
-        set({ letters: [letter, ...letters] });
+      const letter = await getAdapter().getDoc('letters', id);
+      if (letter) {
+        set({ letters: [letter, ...letters.filter(l => l.id !== letter.id)] });
         return letter;
       }
     } catch (e) {
@@ -575,10 +484,10 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user, activeWorkspaceId } = get();
     if (!user || !activeWorkspaceId) return;
     try {
-      const casesRef = collection(db, 'officeai_users', user.uid, 'cases');
-      const q = query(casesRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem));
+      const loaded = await getAdapter().queryDocs('cases', {
+        where: [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }],
+        orderBy: [{ field: 'createdAt', direction: 'desc' }]
+      });
       set({ cases: loaded });
     } catch (e) {
       console.error("Error loading cases:", e);
@@ -589,10 +498,10 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user, activeWorkspaceId } = get();
     if (!user || !activeWorkspaceId) return;
     try {
-      const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
-      const q = query(diaryRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      const loaded = await getAdapter().queryDocs('diary', {
+        where: [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }],
+        orderBy: [{ field: 'createdAt', direction: 'desc' }]
+      });
       set({ diary: loaded });
     } catch (e) {
       console.error("Error loading diary:", e);
@@ -603,10 +512,9 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user, activeWorkspaceId } = get();
     if (!user || !activeWorkspaceId) return;
     try {
-      const demandsRef = collection(db, 'officeai_users', user.uid, 'demands');
-      const q = query(demandsRef, where('workspaceId', '==', activeWorkspaceId));
-      const snap = await getDocs(q);
-      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      const loaded = await getAdapter().queryDocs('demands', {
+        where: [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }]
+      });
       set({ demands: loaded });
     } catch (e) {
       console.error("Error loading demands:", e);
@@ -617,17 +525,16 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user, activeWorkspaceId } = get();
     if (!user || !activeWorkspaceId) return;
     try {
-      const empsRef = collection(db, 'officeai_users', user.uid, 'employees');
-      const empsSnap = await getDocs(query(empsRef, where('workspaceId', '==', activeWorkspaceId)));
-      const employees = empsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const bondsRef = collection(db, 'officeai_users', user.uid, 'bonds');
-      const bondsSnap = await getDocs(query(bondsRef, where('workspaceId', '==', activeWorkspaceId)));
-      const bonds = bondsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const revRef = collection(db, 'officeai_users', user.uid, 'revenue');
-      const revSnap = await getDocs(query(revRef, where('workspaceId', '==', activeWorkspaceId)));
-      const revenue = revSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const adapter = getAdapter();
+      const employees = await adapter.queryDocs('employees', {
+        where: [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }]
+      });
+      const bonds = await adapter.queryDocs('bonds', {
+        where: [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }]
+      });
+      const revenue = await adapter.queryDocs('revenue', {
+        where: [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }]
+      });
 
       set({ employees, bonds, revenue } as any);
     } catch (e) {
@@ -639,9 +546,10 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user } = get();
     if (!user) return;
     try {
-      const inboxRef = collection(db, 'officeai_users', user.uid, 'inbox');
-      const inboxSnap = await getDocs(query(inboxRef, orderBy('createdAt', 'desc'), limit(100)));
-      const loaded = inboxSnap.docs.map(d => ({ id: d.id, ...d.data() } as InboxItem));
+      const loaded = await getAdapter().queryDocs('inbox', {
+        orderBy: [{ field: 'createdAt', direction: 'desc' }],
+        limit: 100
+      });
       set({ inbox: loaded });
     } catch (e) {
       console.error("Error loading inbox:", e);
@@ -652,35 +560,39 @@ export const useStore = create<GlobalStore>((set, get) => ({
     const { user, activeWorkspaceId } = get();
     if (!user) return;
     try {
-      const lettersRef = collection(db, 'officeai_users', user.uid, 'letters');
-      const lettersQuery = activeWorkspaceId 
-        ? query(lettersRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'), limit(10))
-        : query(lettersRef, orderBy('createdAt', 'desc'), limit(10));
-      const lettersSnap = await getDocs(lettersQuery);
-      const letters = lettersSnap.docs.map(d => ({ id: d.id, ...d.data() } as Letter));
+      const adapter = getAdapter();
+      
+      const lettersOptions: any = {
+        orderBy: [{ field: 'createdAt', direction: 'desc' }],
+        limit: 10
+      };
+      if (activeWorkspaceId) {
+        lettersOptions.where = [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }];
+      }
+      const letters = await adapter.queryDocs('letters', lettersOptions);
 
-      const casesRef = collection(db, 'officeai_users', user.uid, 'cases');
-      const casesQuery = activeWorkspaceId
-        ? query(casesRef, where('workspaceId', '==', activeWorkspaceId), orderBy('createdAt', 'desc'), limit(10))
-        : query(casesRef, orderBy('createdAt', 'desc'), limit(10));
-      const casesSnap = await getDocs(casesQuery);
-      const cases = casesSnap.docs.map(d => ({ id: d.id, ...d.data() } as CaseItem));
+      const casesOptions: any = {
+        orderBy: [{ field: 'createdAt', direction: 'desc' }],
+        limit: 10
+      };
+      if (activeWorkspaceId) {
+        casesOptions.where = [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }];
+      }
+      const cases = await adapter.queryDocs('cases', casesOptions);
 
-      const demandsRef = collection(db, 'officeai_users', user.uid, 'demands');
-      const demandsQuery = activeWorkspaceId
-        ? query(demandsRef, where('workspaceId', '==', activeWorkspaceId), limit(10))
-        : query(demandsRef, limit(10));
-      const demandsSnap = await getDocs(demandsQuery);
-      const demands = demandsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      const demandsOptions: any = { limit: 10 };
+      if (activeWorkspaceId) {
+        demandsOptions.where = [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }];
+      }
+      const demands = await adapter.queryDocs('demands', demandsOptions);
 
-      const diaryRef = collection(db, 'officeai_users', user.uid, 'diary');
-      const diaryQuery = activeWorkspaceId
-        ? query(diaryRef, where('workspaceId', '==', activeWorkspaceId), limit(10))
-        : query(diaryRef, limit(10));
-      const diarySnap = await getDocs(diaryQuery);
-      const diary = diarySnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      const diaryOptions: any = { limit: 10 };
+      if (activeWorkspaceId) {
+        diaryOptions.where = [{ field: 'workspaceId', op: '==', value: activeWorkspaceId }];
+      }
+      const diary = await adapter.queryDocs('diary', diaryOptions);
 
-      set({ letters, cases, demands, diary });
+      set({ homePreview: { letters, cases, demands, diary } });
     } catch (e) {
       console.error("Error loading home data:", e);
     }

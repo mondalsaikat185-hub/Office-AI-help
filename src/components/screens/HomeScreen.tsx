@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export default function HomeScreen() {
-  const { user, letters, inbox, workspaces, diary = [], demands = [], cases = [], activeWorkspaceId, loadHomeData } = useStore();
+  const { user, homePreview, inbox, workspaces, activeWorkspaceId, loadHomeData } = useStore();
+  const { letters, cases, diary, demands } = homePreview;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<string>('all');
