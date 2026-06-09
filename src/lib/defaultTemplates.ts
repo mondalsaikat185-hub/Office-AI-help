@@ -1432,6 +1432,215 @@ In case you are unable to attend on the scheduled date, please intimate this off
 O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]`
   },
   {
+    id: "gst_54",
+    category: "GST",
+    name: "Best Judgement Assessment Order — Section 62 (Non-Filer of Returns)",
+    subject: "Assessment Order under Section 62 of CGST Act, 2017 — GSTIN: [GSTIN] — M/s [Taxpayer Name] — Non-filing of Returns",
+    opening: `ASSESSMENT ORDER UNDER SECTION 62
+Central Goods and Services Tax Act, 2017
+
+Order No: [DIN] / CGST/[Division]/ASMT/[Year]/[No.]                     Date: [Date of Order]
+
+In the matter of:
+M/s [Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+SUBJECT: Assessment under Section 62(1) of the CGST Act, 2017 for non-filing of returns for the period [Period(s)].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) has failed to file the following return(s) despite being a registered taxable person:
+   GSTR-3B for [Month/Quarter, Year]
+   GSTR-3B for [Month/Quarter, Year]
+   [List all pending return periods]
+
+2. A notice was issued under Section 46 of the CGST Act on [Date of Section 46 Notice] calling upon the noticee to file the pending returns within 15 days.
+
+3. The noticee has failed to file the return(s) even after service of the Section 46 notice.
+
+4. In the absence of filed returns, this office has proceeded to assess the tax liability to the best of its judgement on the basis of the following information available:
+   a. Last filed return (GSTR-3B for [Period])    : Declared turnover Rs. [X]/-, Tax Rs. [X]/-
+   b. GSTR-1 data (if available)                  : Declared outward supplies Rs. [X]/-
+   c. Third-party data / E-way bill data           : Estimated turnover Rs. [X]/-
+   d. Previous years average monthly tax           : Rs. [X]/-
+
+ASSESSMENT:
+Estimated taxable turnover for [Period]   : Rs. [Assessed Turnover]/-
+CGST @ [Rate]%                            : Rs. [CGST]/-
+SGST @ [Rate]%                            : Rs. [SGST]/-
+IGST @ [Rate]%                            : Rs. [IGST]/-
+Total Tax assessed                        : Rs. [Total Tax]/-
+Interest u/s 50 @ 18% per annum          : Rs. [Interest]/-
+Penalty u/s 62(1)                         : Rs. [Penalty]/-
+Total Demand                              : Rs. [Total]/-`,
+    closing: `ORDER:
+
+In exercise of powers under Section 62(1) of the CGST Act, 2017, the tax liability of M/s [Taxpayer Name] (GSTIN: [GSTIN]) for the period [Period] is hereby ASSESSED at Rs. [Total Tax]/- (CGST: Rs. [X]/-, SGST: Rs. [X]/-, IGST: Rs. [X]/-) along with interest of Rs. [Interest]/- and penalty of Rs. [Penalty]/-, totalling Rs. [Grand Total]/-.
+
+NOTE ON WITHDRAWAL: This assessment order shall be deemed to have been withdrawn if the noticee files the outstanding returns within 30 days of service of this order and pays the tax, interest and late fee declared in such returns (Section 62(2) of the CGST Act, 2017).
+
+The noticee is directed to file all pending returns and pay outstanding dues immediately.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_55",
+    category: "GST",
+    name: "Scrutiny Notice — Form GST ASMT-10 (Return Discrepancy)",
+    subject: "Notice for Scrutiny of Returns — Form GST ASMT-10 — GSTIN: [GSTIN] — M/s [Taxpayer Name] — Period: [Tax Period]",
+    opening: `FORM GST ASMT-10
+Notice for Seeking Clarification / Additional Information / Documents
+(Under Section 61(1) of the CGST Act, 2017 read with Rule 99)
+
+Reference No: [DIN] / C.No. CGST/[Division]/ASMT-10/[Year]/[No.]        Date: [Date]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Notice for Scrutiny of Returns and seeking clarification — GSTIN [GSTIN] — Period [Tax Period].
+
+Sir/Madam,
+
+On scrutiny of your GST returns filed for the period [Tax Period], the following discrepancies / inconsistencies have been noticed which require clarification:
+
+─────────────────────────────────────────────────────────────────────
+DETAILS OF DISCREPANCIES OBSERVED
+─────────────────────────────────────────────────────────────────────
+
+Sr. | Nature of Discrepancy         | Amount (Rs.)  | Remarks
+----|-------------------------------|---------------|---------------------------
+ 1  | GSTR-1 vs GSTR-3B             |               |
+    | Taxable supplies in GSTR-1    | [Amount]      | As per portal data
+    | Taxable supplies in GSTR-3B   | [Amount]      | As declared
+    | Difference (short-reported)   | [Difference]  | Requires explanation
+----|-------------------------------|---------------|---------------------------
+ 2  | ITC in GSTR-3B vs GSTR-2B     |               |
+    | ITC as per GSTR-2B            | [Amount]      | Auto-populated
+    | ITC claimed in GSTR-3B        | [Amount]      | As claimed
+    | Excess ITC claimed            | [Excess]      | Requires reversal/explanation
+----|-------------------------------|---------------|---------------------------
+ 3  | [Other discrepancy]           | [Amount]      | [Remarks]
+
+Total discrepancy amount         : Rs. [Total]/-
+Estimated short-payment of tax  : Rs. [Short Tax]/-`,
+    closing: `You are requested to furnish your reply / clarification in Form GST ASMT-11 within 30 (thirty) days from the date of service of this notice, explaining the above discrepancies with supporting documents and evidence.
+
+If the discrepancies are found to be acceptable on the basis of your explanation, the matter will be dropped. If no reply is received, or the explanation is not satisfactory, the matter shall be referred for appropriate action including issuance of Show Cause Notice under Section 73/74 of the CGST Act, 2017.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_56",
+    category: "GST",
+    name: "Recovery Notice — Attachment of Bank Account (Section 79(1)(c))",
+    subject: "Notice under Section 79(1)(c) of CGST Act, 2017 for Recovery of Outstanding GST Dues — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `NOTICE FOR RECOVERY (BANK ATTACHMENT)
+Under Section 79(1)(c) of the Central Goods and Services Tax Act, 2017
+
+Reference No: [DIN] / C.No. CGST/[Division]/REC/[Year]/[No.]            Date: [Date]
+
+To,
+The Branch Manager,
+[Bank Name]
+[Branch Name & Address]
+
+ALSO TO:
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Notice for Recovery of outstanding GST dues from M/s [Taxpayer Name] (GSTIN: [GSTIN]) from amount held in bank account — under Section 79(1)(c) of the CGST Act, 2017.
+
+Sir,
+
+WHEREAS M/s [Taxpayer Name] (GSTIN: [GSTIN]) is in arrears of Central/Integrated/State Goods and Services Tax, interest and penalty totalling Rs. [Total Outstanding]/- (Rupees [Amount in words] only) as per the adjudication order / summary in Form GST DRC-07 No. [DRC-07 Reference] dated [Date], details of which are as under:
+
+Tax (CGST/IGST/SGST)              : Rs. [Tax]/-
+Interest u/s 50                   : Rs. [Interest]/-
+Penalty                           : Rs. [Penalty]/-
+Total Outstanding Demand          : Rs. [Total Outstanding]/-
+Amount already paid (if any)      : Rs. [Paid]/-
+Balance outstanding               : Rs. [Balance]/-
+
+The said dues have not been paid within the period of 3 months from the date of the order, nor has any stay been granted by any competent authority.
+
+YOU, THE BRANCH MANAGER of [Bank Name], [Branch], are hereby directed under Section 79(1)(c) of the CGST Act, 2017 to:
+
+(a) Hold and NOT release any amount standing to the credit of M/s [Taxpayer Name] in Account No. [Account Number] maintained with your branch, up to the extent of Rs. [Balance Outstanding]/-; and
+
+(b) Pay the said amount of Rs. [Balance Outstanding]/- to the credit of the Government account through [NEFT/RTGS to Account No. [Govt Account Details] / Challan in FORM GST PMT-07] within [3] working days of receipt of this notice.`,
+    closing: `In case you fail to comply with this notice without sufficient cause, you shall be deemed to be an assessee in default in respect of the above-mentioned amount under Section 79(1)(c) proviso, and shall be personally liable to pay the said amount.
+
+M/s [Taxpayer Name] (GSTIN: [GSTIN]) is separately being informed of this recovery action. They are directed not to withdraw or transfer any funds from the said account.
+
+Any compliance under this notice may be reported to this office immediately.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_57",
+    category: "GST",
+    name: "Cancellation of GST Registration SCN — Form REG-17 (Section 29(2))",
+    subject: "Show Cause Notice in Form REG-17 for Cancellation of GST Registration — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `FORM GST REG-17
+Show Cause Notice for Cancellation of Registration
+(Under Rule 22(1) of the CGST Rules, 2017 read with Section 29(2) of the CGST Act, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/REG-17/[Year]/[No.]         Date: [Date]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for cancellation of Goods and Services Tax Registration (GSTIN: [GSTIN]) under Section 29(2) of the CGST Act, 2017.
+
+Sir/Madam,
+
+WHEREAS it has come to the notice of this office that your GST Registration (GSTIN: [GSTIN]) is liable to be cancelled under Section 29(2) of the CGST Act, 2017 on account of the following reason(s):
+
+GROUNDS FOR PROPOSED CANCELLATION:
+[Select applicable ground:]
+
+☑  [Ground 1]: You have not filed returns for [X] consecutive tax periods as required under Section [39/44] of the CGST Act, 2017. Details of pending returns:
+   Period             : [List periods]
+   Returns pending    : GSTR-3B for [X] months / GSTR-1 for [X] months
+
+   [OR]
+
+☑  [Ground 2]: The registration has been obtained by means of fraud, wilful misstatement or suppression of facts. The business premises were found to be non-existent / not operational on physical verification conducted on [Date].
+
+   [OR]
+
+☑  [Ground 3]: You have voluntarily discontinued / wound up your business without applying for cancellation of registration.
+
+You are hereby called upon to show cause, within 7 (seven) working days from the date of service of this notice, as to why your GST Registration (GSTIN: [GSTIN]) should not be cancelled on the above grounds.`,
+    closing: `A personal hearing in this matter has been fixed on [Hearing Date] at [Hearing Time] at this office.
+
+If no reply is received within the stipulated time or the explanation furnished is not found satisfactory, the registration shall be cancelled in Form GST REG-19 without further notice.
+
+You are also directed to note that:
+(a) The registration shall be suspended with effect from [Suspension Date] pending this proceeding under Rule 21A of the CGST Rules.
+(b) You shall file all pending returns and pay all outstanding dues irrespective of the outcome of this proceeding.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Superintendent/AC/DC], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
     id: "cus_18",
     category: "Customs",
     name: "Bill of Entry Assessment Order",
