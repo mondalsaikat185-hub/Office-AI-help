@@ -64,10 +64,10 @@ export default function TemplateWizard({
 
       {/* Panel — slides down from top */}
       <div
-        className={`absolute inset-x-0 top-0 mx-auto
+        className={`absolute inset-x-0 top-16 mx-auto
           bg-white dark:bg-neutral-950
           w-full max-w-5xl
-          h-[92vh]
+          h-[calc(100vh-4rem)]
           rounded-b-2xl shadow-2xl
           flex flex-col
           transition-transform duration-300 ease-out
