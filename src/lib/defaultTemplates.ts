@@ -2029,6 +2029,389 @@ O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
 DIN: [DIN]`
   },
   {
+    id: "gst_65",
+    category: "GST",
+    name: "Provisional Refund Order — Section 54(6) (90% of Admissible Claim)",
+    subject: "Provisional Refund Order under Section 54(6) of CGST Act, 2017 — 90% of Admissible Amount — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-04
+Provisional Refund Order
+(Under Section 54(6) and Rule 91 of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-04/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Provisional Refund Order for 90% of admissible claim under Section 54(6) of CGST Act, 2017 — ARN: [ARN] — GSTIN [GSTIN].
+
+Sir/Madam,
+
+With reference to your refund application in Form GST RFD-01 (ARN: [ARN]) dated [Application Date] for refund of Rs. [Claimed Amount]/- on account of [zero-rated supply / export of goods without payment of IGST under Bond / LUT] for the period [Period], a provisional refund order is being passed as under:
+
+PROVISIONAL REFUND DETAILS:
+
+Total Amount Claimed                    : Rs. [Claimed Amount]/-
+Amount found prima facie admissible     : Rs. [Admissible Amount]/-
+90% Provisional Refund (Section 54(6)) : Rs. [Provisional Amount]/-  (= 90% of Rs. [Admissible])
+Balance 10% (to be released after final order): Rs. [Balance 10%]/-
+
+BASIS OF PRIMA FACIE ADMISSIBILITY:
+1. Zero-rated supplies verified from GSTR-1 / Shipping Bills / GSTIN of SEZ unit: ✓
+2. Bond / Letter of Undertaking (LUT) No. [X] dated [Date] verified: ✓
+3. No pending demand / audit / investigation against the applicant: ✓ [OR — Subject to final verification]
+4. ITC ledger balance confirmed: ✓`,
+    closing: `ORDER:
+
+In exercise of powers under Section 54(6) of the CGST Act, 2017 read with Rule 91, I hereby grant a PROVISIONAL REFUND of Rs. [Provisional Amount]/- (being 90% of Rs. [Admissible Amount]/-) to M/s [Applicant Name] (GSTIN: [GSTIN]).
+
+The balance 10% amount of Rs. [Balance 10%]/- shall be released upon final adjudication of the refund application after complete verification.
+
+The applicant is directed to:
+(a) Maintain all documents pertaining to this refund;
+(b) Not reverse any ITC corresponding to this provisional refund without prior permission;
+(c) Co-operate in the verification process for final sanction.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_66",
+    category: "GST",
+    name: "Withholding of Refund Notice — Section 54(10) (Audit / Investigation Pending)",
+    subject: "Notice of Withholding of Refund under Section 54(10) of CGST Act, 2017 — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-07 (Part B)
+Notice of Withholding of Refund
+(Under Section 54(10) of the CGST Act, 2017 read with Rule 92(2))
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-07/[Year]/[No.]         Date: [Date of Notice]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Withholding of refund amount — ARN: [ARN] for Rs. [Amount]/- — GSTIN [GSTIN] — Audit / Investigation pending.
+
+Sir/Madam,
+
+With reference to your refund application (ARN: [ARN]) dated [Date] for Rs. [Amount]/-, please take notice that the refund is being WITHHELD as per Section 54(10) of the CGST Act, 2017 for the following reason(s):
+
+REASON FOR WITHHOLDING:
+
+☑ [Select applicable ground:]
+
+Ground 1 — Audit Pending (Section 65 / 66):
+An audit under Section [65 / 66] of the CGST Act, 2017 is currently in progress for GSTIN [GSTIN] for the period [FY]. The refund is withheld pending completion of the said audit, as there is a likelihood that a demand may be raised as a result of audit findings.
+Audit Proceedings Reference: ADT-01 No. [X] dated [Date].
+
+[OR]
+
+Ground 2 — Investigation Pending (Section 67):
+An investigation / search under Section 67 of the CGST Act, 2017 is pending in your case. The refund amount may be required to be adjusted against any demand arising from the investigation.
+Investigation Reference: INS-01 / INS-02 No. [X] dated [Date].
+
+[OR]
+
+Ground 3 — SCN / Demand Proceedings Pending:
+A Show Cause Notice No. [DIN] dated [Date] is pending adjudication against you for a demand of Rs. [X]/-. The refund is withheld for possible adjustment.
+
+Amount Withheld: Rs. [Amount]/-
+Tentative period of withholding: Till completion of [audit / investigation / adjudication]`,
+    closing: `The withheld amount will be released, adjusted against any confirmed demand, or credited to Consumer Welfare Fund as the case may be, upon conclusion of the pending proceedings.
+
+Interest under Section 56 of the CGST Act, 2017 shall be payable at 6% per annum on the amount of refund so withheld if the same is eventually found admissible, for the period of delay beyond 60 days from complete application.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_67",
+    category: "GST",
+    name: "Show Cause Notice for Refund Rejection — Form RFD-08 (Before Rejection Order)",
+    subject: "Show Cause Notice in Form GST RFD-08 proposing Rejection of Refund Application — ARN: [ARN] — M/s [Applicant Name] — GSTIN: [GSTIN]",
+    opening: `FORM GST RFD-08
+Show Cause Notice for Rejection of Refund Application
+(Under Rule 92(3) of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-08/[Year]/[No.]         Date: [Date of Notice]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Show Cause Notice proposing rejection of refund application (ARN: [ARN] dated [Application Date]) for Rs. [Claimed Amount]/- — GSTIN [GSTIN] — Period: [Period].
+
+Sir/Madam,
+
+With reference to your refund application filed in Form GST RFD-01 on [Application Date] (ARN: [ARN]) for refund of Rs. [Claimed Amount]/- on account of [nature of refund — export / inverted duty / wrong head / excess payment] for the period [Period], the same has been examined.
+
+After examination of your application, documents and relevant records, it is proposed to REJECT your refund claim (fully / partially) for the following reason(s):
+
+GROUNDS FOR PROPOSED REJECTION:
+
+Ground 1: [State first ground clearly — e.g., "The application is time-barred under Section 54(1) as it was filed on [Date] which is beyond two years from the relevant date of [Relevant Date]..."]
+
+Ground 2: [If applicable — e.g., "The invoices / Shipping Bills submitted do not match the GSTR-1 data — Invoices worth Rs. [X]/- in Annexure-B are not reflected in GSTR-1 filed for the period [Period]..."]
+
+Ground 3: [If applicable — e.g., "The ITC claimed includes Rs. [X]/- attributable to blocked credits under Section 17(5)(b) which is ineligible..."]
+
+Proposed rejection amount: Rs. [Rejection Amount]/- [Full / Partial]
+Admissible amount (if partial): Rs. [Admissible Amount]/-`,
+    closing: `You are hereby called upon to show cause, within 15 (fifteen) days from the date of service of this notice, as to why the refund application (ARN: [ARN]) should not be rejected [wholly / to the extent of Rs. [Rejection Amount]/-] on the grounds stated above.
+
+You may submit your reply in Form GST RFD-09 along with supporting documents. A personal hearing in this matter is fixed on [Hearing Date] at [Hearing Time] at this office. You may attend in person or through an authorized representative.
+
+Failure to reply within the stipulated period shall result in the application being decided on the basis of available records.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_68",
+    category: "GST",
+    name: "Refund Sanction Order — SEZ Supply (Zero-Rated — Bond/LUT Route)",
+    subject: "Order Sanctioning Refund of Accumulated ITC — Zero-Rated Supply to SEZ Unit/Developer — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order Sanctioning Refund — Zero-Rated Supply to SEZ
+(Under Section 54(3)(i) read with Section 16(3)(b) of IGST Act, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order sanctioning refund of ITC on account of zero-rated supply to SEZ unit/developer under Bond/LUT — ARN: [ARN] — GSTIN [GSTIN] — Period: [Period].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Application Date] for refund of Rs. [Claimed Amount]/- being accumulated ITC on supplies made to SEZ unit/developer under Bond/LUT (without payment of IGST) during the period [Period].
+
+2. The SEZ unit / developer to whom supplies were made: M/s [SEZ Name] (GSTIN: [GSTIN of SEZ]).
+
+3. Nature of supply: [Goods / Services description]
+
+4. LUT / Bond Details:
+   LUT/Bond No. : [Number]
+   Valid from   : [Date] to [Date]
+   Verified     : ✓
+
+5. Endorsement by Specified Officer of SEZ: Obtained ✓ (as required by Rule 89(1)(b))
+
+6. ITC Verification:
+   - GSTR-2B ITC on inputs used for SEZ supply verified ✓
+   - Statement of invoices in Annexure-A verified ✓
+   - No tax payment made on these supplies (LUT route) ✓
+   - Unjust enrichment not applicable (supply to registered SEZ entity) ✓
+
+AMOUNT ADMITTED:
+Refund claimed    : Rs. [Claimed Amount]/-
+Refund admissible : Rs. [Admissible Amount]/-`,
+    closing: `ORDER:
+
+I hereby sanction refund of Rs. [Sanctioned Amount]/- (Rupees [Amount in words] only) to M/s [Applicant Name] (GSTIN: [GSTIN]) on account of zero-rated supply of [goods/services] to [SEZ Name] under the Bond/LUT route during the period [Period], under Section 54(3)(i) read with Section 16(3)(b) of the IGST Act, 2017.
+
+[If partial: The balance claim of Rs. [Rejected Amount]/- is rejected — reason: [X].]
+
+Payment shall be credited to the applicant's registered bank account.
+
+APPEAL: Under Section 107 of the CGST Act, 2017 within 3 months.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_69",
+    category: "GST",
+    name: "Interest on Delayed Refund — Section 56 Notice / Sanction",
+    subject: "Sanction of Interest on Delayed Refund under Section 56 of CGST Act, 2017 — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `Interest on Delayed Refund — Section 56 of the CGST Act, 2017
+
+Reference No: [DIN] / C.No. CGST/[Division]/INT-56/[Year]/[No.]          Date: [Date]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Sanction of interest on delayed refund under Section 56 of CGST Act, 2017 — ARN: [ARN] — Refund Order No. [Order No.] dated [Order Date].
+
+Sir/Madam,
+
+With reference to the refund sanctioned to you vide Order No. [Order No.] dated [Order Date] (ARN: [ARN]) for Rs. [Refund Amount]/-, interest under Section 56 of the CGST Act, 2017 is being computed and sanctioned as under:
+
+INTEREST CALCULATION:
+
+Date of receipt of complete application          : [Complete Application Date]
+Date by which refund should have been paid
+(60 days from above)                             : [Due Date — 60 days]
+Actual date of payment / credit of refund        : [Actual Payment Date]
+Delay (days)                                     : [No. of days beyond 60-day limit]
+
+Principal Refund Amount                          : Rs. [Refund Amount]/-
+Rate of Interest (Section 56)                   : 6% per annum
+Interest Amount = [Refund Amount × 6% × Days/365]: Rs. [Interest Amount]/-
+
+NOTE: Section 56 provides that if any tax ordered to be refunded is not refunded within 60 days from the date of receipt of an application complete in all respects, interest at the rate of 6% per annum shall be payable on the amount of refund not so refunded from the date immediately after the expiry of 60 days.`,
+    closing: `I hereby sanction interest of Rs. [Interest Amount]/- (Rupees [Amount in words] only) under Section 56 of the CGST Act, 2017 on the delayed refund of Rs. [Refund Amount]/- for the period of delay from [Start Date of Delay] to [End Date] ([X] days).
+
+The interest amount of Rs. [Interest Amount]/- shall be credited to your registered bank account along with / separately from the principal refund.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_70",
+    category: "GST",
+    name: "Refund Rejection — SEZ Supply Without Valid LUT/Bond",
+    subject: "Order Rejecting Refund Application — Zero-Rated SEZ Supply — No Valid LUT/Bond — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order Rejecting Refund — Zero-Rated Supply / SEZ — LUT/Bond Not Valid
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order rejecting refund application (ARN: [ARN]) — Zero-rated supply to SEZ — LUT/Bond not valid / not executed — GSTIN [GSTIN] — Period [Period].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Application Date] for Rs. [Claimed Amount]/- being ITC on supplies made to SEZ under the bond/LUT route for the period [Period].
+
+2. On verification of LUT/Bond:
+
+   ISSUE FOUND — [Select applicable:]
+   ☑ (a) No LUT/Bond was executed for the Financial Year [FY] prior to making the supplies;
+   ☑ (b) LUT/Bond No. [X] submitted has expired — valid up to [Date], supplies made on [Date] (after expiry);
+   ☑ (c) LUT/Bond executed by [Name] who was not an authorized signatory as per the GST portal for the relevant period;
+   ☑ (d) LUT not filed online on GST portal — only a physical LUT was submitted which is not permissible.
+
+3. As per Rule 96A of the CGST Rules, 2017, a zero-rated supply (export / SEZ) without payment of IGST is permissible only if a valid Bond or LUT has been executed before making the supply.
+
+4. Since no valid LUT/Bond was in place at the time of making the supply, the supply cannot be treated as a supply under Bond/LUT route. The applicant ought to have paid IGST on the supply.
+
+5. SCN in Form RFD-08 No. [DIN] dated [SCN Date] was issued. Reply [not received / received but not satisfactory — reason: [X]].`,
+    closing: `ORDER:
+
+In view of the above, the refund application (ARN: [ARN]) for Rs. [Claimed Amount]/- is hereby REJECTED IN FULL on the ground that no valid LUT/Bond was in existence at the time of making the zero-rated supplies to SEZ during the period [Period], as required under Rule 96A of the CGST Rules, 2017.
+
+APPEAL: Appeal may be filed before Commissioner (Appeals) within 3 months with 10% pre-deposit.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_71",
+    category: "GST",
+    name: "Refund Sanction Order — Excess Cash Balance in Electronic Cash Ledger",
+    subject: "Order Sanctioning Refund of Excess Balance in Electronic Cash Ledger under Section 54(1) of CGST Act, 2017 — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order Sanctioning Refund — Excess Cash Ledger Balance
+(Under Section 54(1) of the CGST Act, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order sanctioning refund of excess balance in Electronic Cash Ledger — ARN: [ARN] — GSTIN [GSTIN].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Application Date] for refund of Rs. [Claimed Amount]/- being excess balance lying in the Electronic Cash Ledger under [CGST / IGST / SGST / Cess] head.
+
+2. Reason for excess balance: [e.g., excess deposit made in anticipation of liability / payment made in wrong head / business closed / tax liability nil for the period].
+
+3. VERIFICATION:
+   Balance in Electronic Cash Ledger ([head]) as on [Date] : Rs. [Balance]/-
+   Outstanding liability (if any)                          : Rs. [Outstanding]/-
+   Refundable amount (Balance minus outstanding)           : Rs. [Refundable]/-
+   Amount claimed                                          : Rs. [Claimed]/-
+   Amount admissible                                       : Rs. [Admissible]/-
+
+4. No pending demand, audit, or investigation against the applicant in respect of the relevant tax period. ✓
+
+5. Unjust enrichment: Not applicable — cash ledger balance represents own funds of taxpayer. ✓`,
+    closing: `ORDER:
+
+I hereby sanction refund of Rs. [Sanctioned Amount]/- (Rupees [Amount in words] only) to M/s [Applicant Name] (GSTIN: [GSTIN]) being the excess balance in the Electronic Cash Ledger under [CGST/IGST/SGST] head, under Section 54(1) of the CGST Act, 2017.
+
+The refund amount shall be credited electronically to the registered bank account of the applicant.
+
+APPEAL: Under Section 107 of the CGST Act, 2017 within 3 months.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_72",
+    category: "GST",
+    name: "Notice for Clarification / Additional Documents — Refund Application",
+    subject: "Notice seeking Clarification / Additional Documents for processing Refund Application — ARN: [ARN] — M/s [Applicant Name] — GSTIN: [GSTIN]",
+    opening: `Notice for Clarification / Additional Documents
+(Refund Application Processing — under Rule 90(2) of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/REF-CLR/[Year]/[No.]        Date: [Date]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Request for clarification / additional documents for processing refund application (ARN: [ARN] dated [Date]) for Rs. [Amount]/- — GSTIN [GSTIN].
+
+Sir/Madam,
+
+Your refund application (ARN: [ARN] dated [Application Date]) for Rs. [Amount]/- on account of [nature of refund] for the period [Period] is under process. For expeditious processing, the following clarifications / additional documents are required:
+
+Sr. | Clarification / Document Required             | Reason
+----|------------------------------------------------|--------------------------------
+ 1  | [e.g., Invoice-wise reconciliation between     | [e.g., GSTR-1 data shows
+    | GSTR-1 declared outward supplies and           | difference of Rs. [X]/-
+    | Annexure-B of RFD-01 application]              | against application data]
+----|------------------------------------------------|--------------------------------
+ 2  | [e.g., Copy of Bank Realisation Certificate    | [e.g., As per RBI guidelines,
+    | (BRC/FIRC) for all export invoices]            | BRC is mandatory for services
+    |                                                | export refund]
+----|------------------------------------------------|--------------------------------
+ 3  | [e.g., CA Certificate in Form GST RFD-11       | [e.g., Required for ITC refund
+    | certifying amount of ITC / unjust enrichment]  | above Rs. 2 Lakhs as per
+    |                                                | CBIC Circular 125/44/2019-GST]
+----|------------------------------------------------|--------------------------------
+ 4  | [Additional document as needed]                | [Reason]`,
+    closing: `You are requested to furnish the above clarifications / documents within 15 (fifteen) days from the date of service of this notice. Kindly note that failure to furnish the requisite information within the stipulated time may result in rejection of the refund application on the basis of documents available.
+
+This notice is issued without prejudice to the right of the department to raise any other issue at the time of final processing.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
     id: "cus_18",
     category: "Customs",
     name: "Bill of Entry Assessment Order",
