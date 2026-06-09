@@ -292,7 +292,7 @@ const generatedRules: TemplateRuleSet[] = [];
 
 // Generate empty rules for other templates programmatically
 // This ensures every default template id from defaultTemplates has a rule entry.
-for (let i = 1; i <= 43; i++) {
+for (let i = 1; i <= 53; i++) {
   const tId = `gst_${i}`;
   // Map gst refund templates
   // gst_11 is Reply to Refund Rejection RFD-09
@@ -303,8 +303,11 @@ for (let i = 1; i <= 43; i++) {
       templateId: tId,
       rules: GST_REFUND_RULES
     });
-  } else if (i === 1 || i === 2 || i === 3 || i === 5 || i === 6) {
-    // gst_1, gst_2, gst_3 are SCN replies or internal note sheets before SCN
+  } else if (
+    i === 1 || i === 2 || i === 3 || i === 5 || i === 6 ||
+    (i >= 44 && i <= 53)
+  ) {
+    // SCN, OIO and Notices are demand-related
     generatedRules.push({
       templateId: tId,
       rules: GST_DEMAND_RULES

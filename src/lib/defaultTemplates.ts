@@ -1187,6 +1187,251 @@ export const defaultTemplates: Template[] = [
     closing: `You are hereby called upon to show cause, within 30 (thirty) days from the date of service of this notice, as to why:\n(a) The suppressed taxable turnover of Rs. [Suppressed Value]/- should not be determined.\n(b) The GST demand of Rs. [Tax Amount]/- should not be confirmed against you under Section 74(1) of the CGST Act, 2017.\n(c) Interest under Section 50(1) should not be recovered.\n(d) Penalty equivalent to 100% of the tax evaded should not be imposed under Section 74(1).\n\nA personal hearing has been fixed on [Hearing Date] at [Hearing Time]. Please submit a written reply and produce all documents, registers and books of accounts at the hearing.\n\n[Name of Proper Officer]\n[Designation]\nO/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]\nDIN: [DIN]`
   },
   {
+    id: "gst_49",
+    category: "GST",
+    name: "Order-in-Original — Full Confirmation of Demand (Section 73)",
+    subject: "Order-in-Original under Section 73(9) of CGST Act, 2017 confirming demand — GSTIN: [GSTIN] — M/s [Taxpayer Name] — SCN No: [SCN Reference]",
+    opening: `ORDER-IN-ORIGINAL
+(Under Section 73(9) of the Central Goods and Services Tax Act, 2017)
+
+Order No: [DIN] / CGST/[Division]/OIO/[Year]/[No.]                      Date: [Date of Order]
+
+In the matter of:
+M/s [Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+SUBJECT: Order under Section 73(9) of the CGST Act, 2017 in respect of SCN No. [DIN of SCN] dated [SCN Date] for the period [Tax Period].
+
+─────────────────────────────────────────────────────────────────────
+STATEMENT OF FACTS
+─────────────────────────────────────────────────────────────────────
+
+1. Show Cause Notice No. [DIN] dated [SCN Date] was issued to M/s [Taxpayer Name] (GSTIN: [GSTIN]) under Section 73(1) of the CGST Act, 2017 proposing a demand of Rs. [Proposed Tax]/- (Tax: Rs. [Tax]/- + Interest: Rs. [Interest]/- + Penalty: Rs. [Penalty]/-) for the period [Period] on account of [brief grounds from SCN].
+
+2. The noticee was served the SCN on [Date of Service].
+
+3. The noticee [filed a reply on [Date of Reply] / did not file any reply within the prescribed period of 30 days].
+
+4. A personal hearing was granted on [Hearing Date] at [Time]. The noticee [appeared through Shri/Smt. [Representative Name], [Designation/Advocate] / did not appear for the personal hearing without any prior intimation].
+
+─────────────────────────────────────────────────────────────────────
+CONSIDERATION OF REPLY AND FINDINGS
+─────────────────────────────────────────────────────────────────────
+
+5. The reply filed by the noticee has been carefully examined. The submissions made are not found acceptable for the following reasons:
+
+[Ground 1]: [State detailed finding — factual analysis]
+[Ground 2]: [State legal analysis and applicable sections/rules]
+[Ground 3]: [Distinguish case laws cited by noticee, if any]
+
+6. The data from the GST portal, GSTR-1, GSTR-3B and GSTR-2B for the period [Period] has been examined. The short-payment of tax / excess ITC availed as proposed in the SCN stands fully established.
+
+DEMAND CONFIRMED:
+Tax confirmed          : Rs. [Tax Confirmed]/-
+Interest u/s 50        : Rs. [Interest Confirmed]/- (calculated @ 18% per annum from [date] to [date])
+Penalty u/s 73(9) @ 10%: Rs. [Penalty Confirmed]/-
+Total Demand Confirmed : Rs. [Total Confirmed]/-`,
+    closing: `─────────────────────────────────────────────────────────────────────
+ORDER
+─────────────────────────────────────────────────────────────────────
+
+In view of the foregoing, I hereby confirm the demand of Rs. [Tax Confirmed]/- as tax, Rs. [Interest Confirmed]/- as interest under Section 50, and Rs. [Penalty Confirmed]/- as penalty under Section 73(9), aggregating to Rs. [Total Confirmed]/- (Rupees [Amount in words] only) against M/s [Taxpayer Name] (GSTIN: [GSTIN]) for the period [Period].
+
+The noticee is directed to deposit the above amount within 3 months from the date of service of this order, failing which recovery proceedings shall be initiated under Section 79 of the CGST Act, 2017.
+
+APPEAL CLAUSE: The noticee may prefer an appeal against this order before the Commissioner (Appeals), CGST & Central Excise, [Zone Name], under Section 107 of the CGST Act, 2017 within 3 months from the date of communication of this order. A pre-deposit of 10% of the disputed tax amount is required for filing the appeal under Section 107(6) of the Act.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_50",
+    category: "GST",
+    name: "Order-in-Original — Dropping of Proceedings (Section 73 — Demand Not Sustainable)",
+    subject: "Order under Section 73(3)/73(8) of CGST Act, 2017 — Dropping of Proceedings — GSTIN: [GSTIN] — SCN No: [SCN Reference]",
+    opening: `ORDER-IN-ORIGINAL
+Dropping of Proceedings under Section 73(3) / 73(8) of the CGST Act, 2017
+
+Order No: [DIN] / CGST/[Division]/OIO/[Year]/[No.]                      Date: [Date of Order]
+
+In the matter of:
+M/s [Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+SUBJECT: Order dropping proceedings pursuant to SCN No. [DIN of SCN] dated [SCN Date] for the period [Tax Period].
+
+STATEMENT OF FACTS:
+
+1. Show Cause Notice No. [DIN] dated [SCN Date] was issued to M/s [Taxpayer Name] (GSTIN: [GSTIN]) under Section 73(1) of the CGST Act, 2017 proposing a demand of Rs. [Proposed Amount]/- for the period [Period].
+
+2. The noticee filed a detailed reply dated [Date of Reply] and appeared for personal hearing on [Hearing Date].
+
+CONSIDERATION AND FINDINGS:
+
+3. The reply filed by the noticee has been examined carefully. The noticee has demonstrated that:
+   [Ground 1 — e.g., the alleged mismatch between GSTR-1 and GSTR-3B is reconciled through amended returns / credit notes issued]
+   [Ground 2 — e.g., the ITC availed is fully backed by valid invoices and appears in GSTR-2B]
+   [Ground 3 — other factual/legal grounds accepted]
+
+4. In view of the satisfactory explanation / payment of dues / successful reconciliation, the demand proposed in the SCN is not sustainable.`,
+    closing: `ORDER:
+
+In view of the above findings, I am satisfied that the demand proposed vide SCN No. [DIN] dated [SCN Date] is [not sustainable / has been settled by the noticee by payment of Rs. [Paid Amount]/- vide Challan No. [X] dated [Date]].
+
+The proceedings initiated vide the aforesaid SCN are hereby DROPPED. This order is issued without prejudice to any right of the department to initiate fresh proceedings if any new evidence comes to light.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_51",
+    category: "GST",
+    name: "Order-in-Original — Full Confirmation (Section 74 — Fraud/Suppression) with Mandatory 100% Penalty",
+    subject: "Order-in-Original under Section 74(9) of CGST Act, 2017 — Fraud/Suppression — GSTIN: [GSTIN] — SCN No: [SCN Reference]",
+    opening: `ORDER-IN-ORIGINAL
+(Under Section 74(9) of the Central Goods and Services Tax Act, 2017)
+
+Order No: [DIN] / CGST/[Division]/OIO/[Year]/[No.]                      Date: [Date of Order]
+
+In the matter of:
+M/s [Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+SUBJECT: Order under Section 74(9) of the CGST Act, 2017 (Fraud / Suppression / Wilful Misstatement) — SCN No. [DIN] dated [SCN Date] — Period [Tax Period].
+
+─────────────────────────────────────────────────────────────────────
+STATEMENT OF FACTS
+─────────────────────────────────────────────────────────────────────
+
+1. SCN No. [DIN] dated [SCN Date] was issued under Section 74(1) of the CGST Act, 2017 alleging fraud / wilful misstatement / suppression of facts with intent to evade tax of Rs. [Proposed Tax]/-.
+
+2. The extended limitation period of 5 years was invoked as the evasion involved fraud/suppression.
+
+3. The noticee [filed reply on [Date] / did not file any reply]. Personal hearing was conducted on [Date]. The noticee [appeared / did not appear].
+
+─────────────────────────────────────────────────────────────────────
+FINDINGS
+─────────────────────────────────────────────────────────────────────
+
+4. I have carefully examined the case records, investigation reports, statements recorded under Section 70, and the reply/submissions of the noticee, if any.
+
+5. The fraud / suppression is established on the following grounds:
+   [Para A]: [Describe evidence of fraud — e.g., suppliers found to be fake on verification]
+   [Para B]: [Describe suppression — e.g., actual turnover from seized documents vs. declared turnover]
+   [Para C]: [Describe false ITC claims — GSTR-2A confirmation of ineligibility]
+
+6. The noticee's reply is rejected because:
+   [Ground 1]: [Analysis]
+   [Ground 2]: [Analysis]
+
+DEMAND CONFIRMED (SECTION 74):
+Tax confirmed                    : Rs. [Tax Confirmed]/-
+Interest u/s 50 @ 18%           : Rs. [Interest Confirmed]/-
+Penalty u/s 74(9) @ 100% of tax : Rs. [Penalty Confirmed]/-   [Mandatory penalty]
+Total Demand                     : Rs. [Total Confirmed]/-`,
+    closing: `ORDER:
+
+In view of the foregoing findings establishing fraud/suppression, I hereby CONFIRM the demand of Rs. [Tax Confirmed]/- as tax + Rs. [Interest Confirmed]/- as interest + Rs. [Penalty Confirmed]/- as penalty (at 100% of tax under Section 74(9)) = Rs. [Total Confirmed]/- (Rupees [Amount in words] only) against M/s [Taxpayer Name] (GSTIN: [GSTIN]).
+
+The noticee is directed to pay the confirmed amount within 3 months, failing which recovery will be effected under Section 79 of the CGST Act.
+
+APPEAL CLAUSE: Appeal lies before the Commissioner (Appeals), CGST & Central Excise, [Zone], under Section 107 of the CGST Act, 2017 within 3 months of communication of this order. Pre-deposit of 10% of disputed tax is mandatory under Section 107(6).
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_52",
+    category: "GST",
+    name: "Order-in-Original — Ex-Parte (Noticee Did Not Appear or Reply)",
+    subject: "Ex-Parte Order under Section 73(9)/74(9) of CGST Act, 2017 — GSTIN: [GSTIN] — SCN No: [SCN Reference]",
+    opening: `ORDER-IN-ORIGINAL (EX-PARTE)
+Under Section 73(9) / 74(9) of the Central Goods and Services Tax Act, 2017
+
+Order No: [DIN] / CGST/[Division]/OIO/[Year]/[No.]                      Date: [Date of Order]
+
+In the matter of:
+M/s [Taxpayer Name]
+GSTIN: [GSTIN]
+[Address]
+
+SUBJECT: Ex-parte Order under Section [73(9)/74(9)] — SCN No. [DIN] dated [SCN Date].
+
+STATEMENT OF FACTS:
+
+1. Show Cause Notice No. [DIN] dated [SCN Date] was duly served on M/s [Taxpayer Name] (GSTIN: [GSTIN]) on [Date of Service] proposing a demand of Rs. [Proposed Amount]/-.
+
+2. The noticee was given 30 days to file a reply. No reply has been received till date.
+
+3. Personal hearing was fixed on [Hearing Date-1] and reminded on [Hearing Date-2]. The noticee failed to appear on both occasions without any prior intimation or request for adjournment.
+
+4. In view of the non-cooperation of the noticee, the matter is being decided ex-parte on the basis of records available with this office.
+
+FINDINGS ON MERITS:
+
+5. On examination of the records, returns, portal data, and investigation reports, the demand proposed in the SCN stands fully established:
+   [State factual basis of the demand briefly]
+   [Mention GSTR data, portal records, or investigation evidence used]
+
+DEMAND CONFIRMED:
+Tax            : Rs. [Tax]/-
+Interest u/s 50: Rs. [Interest]/-
+Penalty        : Rs. [Penalty]/-
+Total          : Rs. [Total]/-`,
+    closing: `ORDER:
+
+In view of the non-response and non-appearance of the noticee, and on the basis of records available, I hereby confirm the demand of Rs. [Total]/- against M/s [Taxpayer Name] (GSTIN: [GSTIN]).
+
+APPEAL CLAUSE: The noticee may prefer an appeal before the Commissioner (Appeals) within 3 months of communication of this order. Pre-deposit of 10% of the disputed tax amount is mandatory under Section 107(6).
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_53",
+    category: "GST",
+    name: "Personal Hearing Notice — GST Adjudication / SCN Proceedings",
+    subject: "Personal Hearing Notice in the matter of SCN No. [SCN Reference] dated [SCN Date] — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `Personal Hearing Notice
+
+Reference No: [DIN] / C.No. CGST/[Division]/PHN/[Year]/[No.]             Date: [Date]
+
+To,
+[Taxpayer Name / Authorized Representative]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Personal Hearing in the matter of Show Cause Notice No. [DIN of SCN] dated [SCN Date] — GSTIN [GSTIN] — M/s [Taxpayer Name].
+
+Sir/Madam,
+
+With reference to the Show Cause Notice No. [DIN] dated [SCN Date] issued to you / your firm under Section [73/74/74A/76] of the CGST Act, 2017 for the period [Tax Period], you are hereby informed that a Personal Hearing in the above matter has been fixed as under:
+
+Date of Hearing : [Hearing Date]
+Time            : [Hearing Time]
+Venue           : Office of the [Superintendent/AC/DC/Commissioner], CGST, [Division/Zone Address]
+
+You are requested to attend the personal hearing on the scheduled date either in person or through a duly authorized representative (Chartered Accountant / Tax Practitioner / Advocate) with proper authorization letter.`,
+    closing: `You are further requested to bring all relevant documents, books of accounts, invoices, returns, bank statements, and any other supporting material in support of your case at the time of hearing.
+
+In case you are unable to attend on the scheduled date, please intimate this office in advance so that a fresh date may be fixed. Non-attendance without prior intimation shall result in the matter being decided ex-parte on the basis of records available.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]`
+  },
+  {
     id: "cus_18",
     category: "Customs",
     name: "Bill of Entry Assessment Order",
