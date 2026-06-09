@@ -1050,6 +1050,290 @@ export const WIZARD_CONFIGS: WizardConfig[] = [
     ]
   },
   {
+    templateId: "gst_66",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "withholdingDetails",
+        groupTitle: "Withholding Details",
+        groupTitleBn: "আটকানোর বিবরণ",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "withheldAmount", label: "Amount Withheld (Rs.)", labelBn: "আটকানো পরিমাণ", type: "currency", required: true },
+          { id: "groundForWithholding", label: "Ground for Withholding", labelBn: "আটকানোর কারণ", type: "select", required: true,
+            options: [
+              "Audit Pending (Section 65/66)",
+              "Investigation Pending (Section 67)",
+              "SCN / Demand Proceedings Pending"
+            ]
+          },
+          { id: "proceedingReference", label: "Reference of Pending Proceeding", labelBn: "বিচারাধীন কার্যক্রমের রেফারেন্স", type: "text", required: false, placeholder: "e.g. ADT-01 No. / INS-01 No. / SCN DIN" },
+          { id: "proceedingDate", label: "Date of Pending Proceeding", labelBn: "কার্যক্রমের তারিখ", type: "date", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_67",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true },
+          { id: "address", label: "Address", labelBn: "ঠিকানা", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "scnDetails",
+        groupTitle: "SCN (RFD-08) Details",
+        groupTitleBn: "এসএনসি বিবরণ",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "rejectionAmount", label: "Amount Proposed for Rejection (Rs.)", labelBn: "প্রস্তাবিত প্রত্যাখ্যান", type: "currency", required: true },
+          { id: "admissibleAmount", label: "Admissible Amount (if partial) (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: false },
+          { id: "ground1", label: "Ground 1 for Rejection", labelBn: "প্রত্যাখ্যানের কারণ ১", type: "textarea", required: true },
+          { id: "ground2", label: "Ground 2 (if any)", labelBn: "কারণ ২", type: "textarea", required: false },
+          { id: "hearingDate", label: "Hearing Date", labelBn: "শুনানির তারিখ", type: "date", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_68",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "sezDetails",
+        groupTitle: "SEZ Supply Details",
+        groupTitleBn: "এসইজেড সরবরাহের তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "sanctionedAmount", label: "Amount Sanctioned (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "sezName", label: "SEZ Unit / Developer Name", labelBn: "এসইজেড ইউনিটের নাম", type: "text", required: false },
+          { id: "sezGstin", label: "SEZ GSTIN", labelBn: "এসইজেড জিএসটিএন", type: "text", required: false },
+          { id: "lutBondNo", label: "LUT/Bond No. & Date", labelBn: "এলইউটি/বন্ড নম্বর", type: "text", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_69",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "interestDetails",
+        groupTitle: "Interest Calculation (Section 56)",
+        groupTitleBn: "ধারা ৫৬ সুদ গণনা",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "refundOrderNo", label: "Refund Order No.", labelBn: "রিফান্ড আদেশ নম্বর", type: "text", required: true },
+          { id: "refundAmount", label: "Principal Refund Amount (Rs.)", labelBn: "মূল রিফান্ড", type: "currency", required: true },
+          { id: "completeAppDate", label: "Date of Complete Application", labelBn: "সম্পূর্ণ আবেদনের তারিখ", type: "date", required: true },
+          { id: "dueDate60", label: "60-Day Due Date", labelBn: "৬০ দিনের নির্ধারিত তারিখ", type: "date", required: false },
+          { id: "actualPaymentDate", label: "Actual Date of Refund Payment", labelBn: "প্রকৃত পেমেন্টের তারিখ", type: "date", required: true },
+          { id: "delayDays", label: "Delay in Days", labelBn: "বিলম্বের দিন", type: "text", required: false },
+          { id: "interestAmount", label: "Interest Amount @ 6% (Rs.)", labelBn: "৬% সুদের পরিমাণ", type: "currency", required: true }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_70",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "sezLutDetails",
+        groupTitle: "SEZ LUT/Bond Issue Details",
+        groupTitleBn: "এসইজেড এলইউটি সমস্যার তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "lutIssue", label: "LUT/Bond Issue", labelBn: "এলইউটি/বন্ড সমস্যা", type: "select", required: true,
+            options: [
+              "No LUT/Bond executed before supply",
+              "LUT/Bond expired at time of supply",
+              "LUT signed by unauthorized person",
+              "Only physical LUT, not filed online"
+            ]
+          },
+          { id: "supplyDate", label: "Date of Supply (when LUT was invalid)", labelBn: "সরবরাহের তারিখ", type: "date", required: false },
+          { id: "lutExpiryDate", label: "LUT Expiry Date (if applicable)", labelBn: "এলইউটি মেয়াদ শেষের তারিখ", type: "date", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_71",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "cashLedgerDetails",
+        groupTitle: "Cash Ledger Refund Details",
+        groupTitleBn: "ক্যাশ লেজার রিফান্ড তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "taxHead", label: "Tax Head", labelBn: "কর হেড", type: "select", required: true,
+            options: [
+              "CGST",
+              "IGST",
+              "SGST / UTGST",
+              "Cess"
+            ]
+          },
+          { id: "reasonForExcess", label: "Reason for Excess Balance", labelBn: "উদ্বৃত্তের কারণ", type: "textarea", required: true, placeholder: "e.g. Excess deposit / Wrong head / Business closed..." },
+          { id: "sanctionedAmount", label: "Amount Sanctioned (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: true }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_72",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "clarificationDetails",
+        groupTitle: "Clarification Required",
+        groupTitleBn: "প্রয়োজনীয় স্পষ্টীকরণ",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "refundAmount", label: "Refund Amount (Rs.)", labelBn: "রিফান্ড পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "clarification1", label: "Clarification / Document 1 Required", labelBn: "স্পষ্টীকরণ ১", type: "textarea", required: true },
+          { id: "clarification2", label: "Clarification / Document 2 (if any)", labelBn: "স্পষ্টীকরণ ২", type: "textarea", required: false },
+          { id: "clarification3", label: "Clarification / Document 3 (if any)", labelBn: "স্পষ্টীকরণ ৩", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
     templateId: "__default__",
     groups: [
       {
