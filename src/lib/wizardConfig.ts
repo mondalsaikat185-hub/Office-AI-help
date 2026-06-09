@@ -729,6 +729,327 @@ export const WIZARD_CONFIGS: WizardConfig[] = [
     ]
   },
   {
+    templateId: "gst_58",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name (M/s)", labelBn: "আবেদনকারীর নাম", type: "text", required: true, placeholder: "e.g. M/s ABC Exports Pvt Ltd" },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true, placeholder: "e.g. 21XXXXX1234Z5" },
+          { id: "address", label: "Address", labelBn: "ঠিকানা", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "refundDetails",
+        groupTitle: "Refund Application Details",
+        groupTitleBn: "রিফান্ড আবেদনের তথ্য",
+        fields: [
+          { id: "arn", label: "ARN (Application Reference Number)", labelBn: "এআরএন নম্বর", type: "text", required: true, placeholder: "e.g. AA210420123456X" },
+          { id: "applicationDate", label: "Date of Application", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Refund Amount Claimed (Rs.)", labelBn: "দাবিকৃত রিফান্ড", type: "currency", required: true },
+          { id: "period", label: "Tax Period", labelBn: "কর সময়কাল", type: "text", required: true, placeholder: "e.g. Apr 2022 to Mar 2023" },
+          { id: "shippingBills", label: "Shipping Bill No(s). & Date(s)", labelBn: "শিপিং বিল নম্বর", type: "textarea", required: false, placeholder: "e.g. SB No. 1234567 dt. 01.05.2022..." },
+          { id: "relevantDate", label: "Relevant Date (Date of Ship's Departure)", labelBn: "প্রাসঙ্গিক তারিখ", type: "date", required: true },
+          { id: "scnReference", label: "RFD-08 SCN No. / DIN", labelBn: "এসসিএন নম্বর", type: "text", required: false },
+          { id: "scnDate", label: "RFD-08 Date", labelBn: "এসসিএন তারিখ", type: "date", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer Details",
+        groupTitleBn: "কর্মকর্তার তথ্য",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তার নাম", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_59",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true },
+          { id: "address", label: "Address", labelBn: "ঠিকানা", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "refundDetails",
+        groupTitle: "Unjust Enrichment Details",
+        groupTitleBn: "অন্যায় সমৃদ্ধির বিবরণ",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "natureOfRefund", label: "Nature of Refund", labelBn: "রিফান্ডের প্রকৃতি", type: "text", required: false, placeholder: "e.g. Excess tax paid / Tax on cancelled supply" },
+          { id: "enrichmentEvidence", label: "Evidence of Unjust Enrichment", labelBn: "অন্যায় সমৃদ্ধির প্রমাণ", type: "textarea", required: true, placeholder: "e.g. Tax charged on invoices to buyers; buyers availed ITC in GSTR-2A..." }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_60",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "invertedDutyDetails",
+        groupTitle: "Inverted Duty Refund Details",
+        groupTitleBn: "ইনভার্টেড ডিউটি রিফান্ড তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "inputRate", label: "Input GST Rate (%)", labelBn: "ইনপুটের জিএসটি হার", type: "text", required: false, placeholder: "e.g. 18%" },
+          { id: "outputRate", label: "Output GST Rate (%)", labelBn: "আউটপুটের জিএসটি হার", type: "text", required: false, placeholder: "e.g. 5%" },
+          { id: "invTurnover", label: "Inverted Rated Turnover (Rs.)", labelBn: "ইনভার্টেড টার্নওভার", type: "currency", required: false },
+          { id: "netItc", label: "Net ITC (inputs only, Rs.)", labelBn: "নেট আইটিসি", type: "currency", required: false },
+          { id: "adjTurnover", label: "Adjusted Total Turnover (Rs.)", labelBn: "অ্যাডজাস্টেড টার্নওভার", type: "currency", required: false },
+          { id: "calculatedAmount", label: "Dept. Calculated Admissible Amount (Rs.)", labelBn: "বিভাগ কর্তৃক গণনাকৃত", type: "currency", required: false },
+          { id: "rejectionGround", label: "Specific Ground of Rejection", labelBn: "প্রত্যাখ্যানের কারণ", type: "textarea", required: true, placeholder: "e.g. ITC on capital goods included in Net ITC / excess over formula limit..." },
+          { id: "sanctionedAmount", label: "Amount Sanctioned (if partial) (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_61",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true },
+          { id: "address", label: "Address", labelBn: "ঠিকানা", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "deficiencyDetails",
+        groupTitle: "Deficiency Details",
+        groupTitleBn: "ঘাটতির বিবরণ",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "natureOfRefund", label: "Nature / Type of Refund", labelBn: "রিফান্ডের ধরন", type: "text", required: false, placeholder: "e.g. Export IGST / Inverted Duty / SEZ" },
+          { id: "deficiency1", label: "Deficiency 1", labelBn: "ঘাটতি ১", type: "textarea", required: true, placeholder: "Describe first missing document or error..." },
+          { id: "deficiency2", label: "Deficiency 2 (if any)", labelBn: "ঘাটতি ২", type: "textarea", required: false },
+          { id: "deficiency3", label: "Deficiency 3 (if any)", labelBn: "ঘাটতি ৩", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_62",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Exporter / Applicant Details",
+        groupTitleBn: "রপ্তানিকারকের তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true },
+          { id: "address", label: "Address", labelBn: "ঠিকানা", type: "textarea", required: false }
+        ]
+      },
+      {
+        groupId: "sanctionDetails",
+        groupTitle: "Export IGST Sanction Details",
+        groupTitleBn: "রপ্তানি আইজিএসটি স্বীকৃতির তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "sanctionedAmount", label: "Amount Sanctioned (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Tax Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "shippingBills", label: "Shipping Bill No(s). & IGST Paid", labelBn: "শিপিং বিল ও আইজিএসটি", type: "textarea", required: false, placeholder: "SB No. | Date | Port | FOB Value | IGST Paid" },
+          { id: "bankName", label: "Bank Name", labelBn: "ব্যাংকের নাম", type: "text", required: false },
+          { id: "accountNo", label: "Bank Account No.", labelBn: "অ্যাকাউন্ট নম্বর", type: "text", required: false },
+          { id: "ifscCode", label: "IFSC Code", labelBn: "আইএফএসসি কোড", type: "text", required: false },
+          { id: "interest56", label: "Interest u/s 56 (if applicable) (Rs.)", labelBn: "ধারা ৫৬ সুদ", type: "currency", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_63",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true },
+          { id: "businessDescription", label: "Business / Goods Description", labelBn: "ব্যবসার বিবরণ", type: "text", required: false, placeholder: "e.g. Manufacturer of Textile goods (HSN 5209)" }
+        ]
+      },
+      {
+        groupId: "formulaDetails",
+        groupTitle: "Rule 89(5) Formula Details",
+        groupTitleBn: "নিয়ম ৮৯(৫) সূত্রের তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "inputRate", label: "Input GST Rate", labelBn: "ইনপুটের জিএসটি হার", type: "text", required: false, placeholder: "e.g. 18%" },
+          { id: "outputRate", label: "Output GST Rate", labelBn: "আউটপুটের জিএসটি হার", type: "text", required: false, placeholder: "e.g. 5%" },
+          { id: "invertedTurnover", label: "Turnover of Inverted Supply — A (Rs.)", labelBn: "ইনভার্টেড টার্নওভার A", type: "currency", required: false },
+          { id: "netItc", label: "Net ITC — B (Rs.) [inputs only]", labelBn: "নেট আইটিসি B", type: "currency", required: false },
+          { id: "adjTurnover", label: "Adjusted Total Turnover — C (Rs.)", labelBn: "অ্যাডজাস্টেড টার্নওভার C", type: "currency", required: false },
+          { id: "taxPayable", label: "Tax Payable on Inverted Supply — D (Rs.)", labelBn: "কর প্রদেয় D", type: "currency", required: false },
+          { id: "sanctionedAmount", label: "Amount Sanctioned (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: true }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_64",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "wrongHeadDetails",
+        groupTitle: "Wrong Head Payment Details",
+        groupTitleBn: "ভুল হেড পেমেন্টের তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "claimedAmount", label: "Amount Claimed (Rs.)", labelBn: "দাবিকৃত পরিমাণ", type: "currency", required: true },
+          { id: "period", label: "Period", labelBn: "সময়কাল", type: "text", required: true },
+          { id: "wrongTaxPaid", label: "Wrong Tax Paid (Head & Amount)", labelBn: "ভুলে দেওয়া কর", type: "text", required: true, placeholder: "e.g. IGST Rs. 50,000 paid (should be CGST+SGST)" },
+          { id: "correctTaxPaid", label: "Correct Tax Paid (subsequent)", labelBn: "পরবর্তীতে সঠিক কর", type: "text", required: false, placeholder: "e.g. CGST+SGST Rs. 50,000 paid on [Date]" },
+          { id: "sanctionedAmount", label: "Amount Sanctioned (Rs.)", labelBn: "স্বীকৃত পরিমাণ", type: "currency", required: true }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
+    templateId: "gst_65",
+    groups: [
+      {
+        groupId: "applicantDetails",
+        groupTitle: "Applicant Details",
+        groupTitleBn: "আবেদনকারীর তথ্য",
+        fields: [
+          { id: "applicantName", label: "Applicant Name", labelBn: "আবেদনকারীর নাম", type: "text", required: true },
+          { id: "gstin", label: "GSTIN", labelBn: "জিএসটিএন", type: "text", required: true }
+        ]
+      },
+      {
+        groupId: "provisionalDetails",
+        groupTitle: "Provisional Refund Details",
+        groupTitleBn: "অস্থায়ী রিফান্ডের তথ্য",
+        fields: [
+          { id: "arn", label: "ARN", labelBn: "এআরএন", type: "text", required: true },
+          { id: "applicationDate", label: "Application Date", labelBn: "আবেদনের তারিখ", type: "date", required: true },
+          { id: "claimedAmount", label: "Total Amount Claimed (Rs.)", labelBn: "মোট দাবিকৃত", type: "currency", required: true },
+          { id: "admissibleAmount", label: "Amount Prima Facie Admissible (Rs.)", labelBn: "আনুমানিক স্বীকৃত", type: "currency", required: true },
+          { id: "provisionalAmount", label: "Provisional 90% Amount (Rs.)", labelBn: "৯০% অস্থায়ী", type: "currency", required: true },
+          { id: "balance10", label: "Balance 10% (to be released later) (Rs.)", labelBn: "বাকি ১০%", type: "currency", required: true },
+          { id: "lutBondRef", label: "LUT/Bond Reference", labelBn: "এলইউটি/বন্ড রেফারেন্স", type: "text", required: false }
+        ]
+      },
+      {
+        groupId: "officer",
+        groupTitle: "Officer",
+        groupTitleBn: "কর্মকর্তা",
+        fields: [
+          { id: "officerName", label: "Officer Name & Designation", labelBn: "কর্মকর্তা", type: "text", required: false },
+          { id: "din", label: "DIN", labelBn: "ডিআইএন", type: "text", required: false }
+        ]
+      },
+      AI_INSTRUCTIONS_GROUP
+    ]
+  },
+  {
     templateId: "__default__",
     groups: [
       {
