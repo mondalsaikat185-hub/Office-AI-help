@@ -1641,6 +1641,394 @@ O/o the [Superintendent/AC/DC], CGST [Division/Commissionerate]
 DIN: [DIN]`
   },
   {
+    id: "gst_58",
+    category: "GST",
+    name: "Refund Rejection Order — Export IGST (Time-Barred / Limitation Exceeded)",
+    subject: "Order Rejecting Refund Application under Section 54 of CGST Act, 2017 — ARN: [ARN] — M/s [Applicant Name] — Ground: Time Bar / Limitation",
+    opening: `FORM GST RFD-06
+Order of Rejection of Application for Refund
+(Under Rule 92(3) of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order rejecting refund application (ARN: [ARN] dated [Application Date]) for Rs. [Claimed Amount]/- on account of export of goods with payment of IGST — GSTIN [GSTIN] — Period: [Period].
+
+─────────────────────────────────────────────────────────────────────
+STATEMENT OF FACTS
+─────────────────────────────────────────────────────────────────────
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed a refund application in Form GST RFD-01 on [Application Date] (ARN: [ARN]) claiming refund of Rs. [Claimed Amount]/- on account of IGST paid on export of goods under Section 54(1) of the CGST Act, 2017 for the period [Period].
+
+2. The Shipping Bill(s) involved: [Shipping Bill No(s).] dated [Date(s)].
+
+3. On scrutiny of the application, it was found that the refund application has been filed after the expiry of the limitation period prescribed under Section 54(1) of the CGST Act, 2017.
+
+─────────────────────────────────────────────────────────────────────
+FINDINGS
+─────────────────────────────────────────────────────────────────────
+
+4. Section 54(1) of the CGST Act, 2017 provides that any person claiming refund of any tax and interest, if any, paid on such tax or any other amount paid by him, may make an application before the expiry of TWO YEARS from the relevant date.
+
+5. The relevant date in case of export of goods by sea or air is the date on which the ship or the aircraft in which the goods are loaded, leaves India [Section 54(14)(b)(i) of the CGST Act, 2017].
+
+6. Relevant date for the shipment in question: [Relevant Date (date of departure)]
+   Date of filing of refund application: [Application Date]
+   Period elapsed since relevant date:    [X years Y months — BEYOND 2 years]
+
+7. The refund claim is therefore TIME-BARRED under Section 54(1) of the CGST Act. The Hon'ble Supreme Court in Union of India v. VKC Footsteps India Pvt Ltd has held that the time limit under Section 54 is a mandatory statutory limitation and cannot be condoned.
+
+8. A Show Cause Notice in Form GST RFD-08 No. [DIN] dated [SCN Date] was issued on the above ground. [The applicant replied on [Date] but the reply does not address the limitation issue satisfactorily / No reply was received].`,
+    closing: `ORDER:
+
+In view of the above, the refund application (ARN: [ARN]) for Rs. [Claimed Amount]/- filed by M/s [Applicant Name] (GSTIN: [GSTIN]) is hereby REJECTED IN FULL on the ground that the application is time-barred under Section 54(1) of the CGST Act, 2017, having been filed beyond the prescribed period of two years from the relevant date.
+
+APPEAL CLAUSE: The applicant may prefer an appeal against this order before the Commissioner (Appeals), CGST & Central Excise, [Zone Name], under Section 107 of the CGST Act, 2017 within 3 months from the date of communication of this order. A pre-deposit of 10% of the disputed tax amount is mandatory under Section 107(6).
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_59",
+    category: "GST",
+    name: "Refund Rejection Order — Unjust Enrichment (Duty Burden Passed to Buyer)",
+    subject: "Order Rejecting Refund Application — Unjust Enrichment — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order of Rejection of Application for Refund
+(Under Rule 92(3) of the CGST Rules, 2017 — Unjust Enrichment)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order rejecting refund application (ARN: [ARN]) for Rs. [Claimed Amount]/- — Unjust Enrichment — GSTIN [GSTIN] — Period: [Period].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Date] for Rs. [Claimed Amount]/- on account of [excess tax paid / tax paid on cancelled supply / wrong head payment] for the period [Period].
+
+2. An Undertaking / Certificate was submitted by the applicant along with the refund application claiming that the burden of tax has not been passed on to any other person (buyer / recipient).
+
+FINDINGS:
+
+3. On verification of the invoices, books of account and GSTR-1 data, it is found that:
+   [State specific evidence of unjust enrichment — e.g.:
+   (a) The goods/services in respect of which refund is claimed were supplied to registered buyers;
+   (b) The tax amount of Rs. [X]/- was charged separately on the invoices raised on the buyers;
+   (c) The buyers have availed Input Tax Credit (ITC) on the said invoices as evidenced by their GSTR-2A / GSTR-2B;
+   (d) The applicant has thus passed on the incidence of tax to the buyers, constituting unjust enrichment.]
+
+4. Section 54(8)(d) of the CGST Act, 2017 provides that where the person claiming refund has passed on the incidence of tax to another person, the amount shall be credited to the Consumer Welfare Fund under Section 57.
+
+5. A Show Cause Notice in Form GST RFD-08 No. [DIN] dated [SCN Date] was issued. The reply dated [Reply Date] is not acceptable because: [reason — e.g., the applicant has not submitted any credit notes or documentary evidence to establish that the ITC availed by the buyers has been reversed].`,
+    closing: `ORDER:
+
+In view of the above, the refund application (ARN: [ARN]) for Rs. [Claimed Amount]/- filed by M/s [Applicant Name] (GSTIN: [GSTIN]) is hereby REJECTED on the ground of UNJUST ENRICHMENT under Section 54(8)(d) of the CGST Act, 2017, as the incidence of tax has been passed on to the buyers. The amount of Rs. [Claimed Amount]/- shall be credited to the Consumer Welfare Fund as per Section 57 of the CGST Act.
+
+APPEAL CLAUSE: Appeal may be filed before Commissioner (Appeals) within 3 months with 10% pre-deposit under Section 107(6).
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_60",
+    category: "GST",
+    name: "Refund Rejection Order — Inverted Duty Structure (Incorrect ITC Calculation / Ineligible ITC)",
+    subject: "Order Rejecting Refund Application — Accumulated ITC / Inverted Duty — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order of Rejection of Application for Refund
+(Under Rule 92(3) of the CGST Rules, 2017 — Inverted Duty Refund)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order rejecting refund application (ARN: [ARN]) for Rs. [Claimed Amount]/- — Accumulated ITC under Inverted Duty Structure — Section 54(3)(ii) of CGST Act, 2017 — GSTIN [GSTIN] — Period: [Period].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Date] for refund of Rs. [Claimed Amount]/- of accumulated ITC on account of inverted duty structure under Section 54(3)(ii) of the CGST Act, 2017 for the period [Period].
+
+2. The applicant is engaged in [nature of business], purchasing inputs at [higher rate, e.g., 18% GST] and supplying the output at [lower rate, e.g., 5% / 12% GST], resulting in accumulation of ITC.
+
+FINDINGS:
+
+3. On verification of the refund computation under Rule 89(5) of the CGST Rules, 2017, the following discrepancies are found:
+
+   (a) Incorrect formula application: The formula under Rule 89(5) is:
+       Maximum Refund Amount = [(Turnover of inverted rated supply) × (Net ITC)] / (Adjusted Total Turnover)] — Tax payable on inverted rated supply
+
+   (b) [State specific error — e.g.:
+       "The applicant has included ITC on capital goods / ITC on inputs used for exempt supplies / ITC attributable to nil-rated supplies in the 'Net ITC' figure used in the formula, which is not permissible as per the Explanation to Rule 89(5)."]
+
+   (c) Correct refund amount as per department calculation: Rs. [Correct Amount]/-
+       Amount claimed by applicant                        : Rs. [Claimed Amount]/-
+       Excess claimed                                     : Rs. [Excess]/-
+
+4. [Additionally / Alternatively] The following ITC availed is ineligible:
+   ITC on [blocked credits Section 17(5) — e.g., motor vehicles/food/catering]: Rs. [X]/-
+   ITC on non-business use inputs                                               : Rs. [X]/-
+
+5. Show Cause Notice in Form GST RFD-08 No. [DIN] dated [SCN Date] was issued. The reply is [not satisfactory / not received].`,
+    closing: `ORDER:
+
+In view of the above, the refund application (ARN: [ARN]) for Rs. [Claimed Amount]/- filed by M/s [Applicant Name] (GSTIN: [GSTIN]) is hereby:
+[Select as applicable:]
+  REJECTED IN FULL — as the computation under Rule 89(5) is entirely incorrect.
+  [OR]
+  PARTIALLY REJECTED — Refund sanctioned: Rs. [Sanctioned Amount]/-; Rejected: Rs. [Rejected Amount]/-.
+
+APPEAL: Appeal may be filed before Commissioner (Appeals) within 3 months with 10% pre-deposit.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_61",
+    category: "GST",
+    name: "Deficiency Memo — Form RFD-03 (Missing / Incomplete Documents)",
+    subject: "Deficiency Memo in Form GST RFD-03 — ARN: [ARN] dated [Date] — M/s [Applicant Name] — GSTIN: [GSTIN]",
+    opening: `FORM GST RFD-03
+Deficiency Memo
+(Under Rule 90(3) of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-03/[Year]/[No.]         Date: [Date of Memo]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Deficiency Memo — Refund Application ARN: [ARN] dated [Application Date] for Rs. [Claimed Amount]/- — GSTIN [GSTIN].
+
+Sir/Madam,
+
+With reference to your refund application filed in Form GST RFD-01 on [Application Date] (ARN: [ARN]) for refund of Rs. [Claimed Amount]/- on account of [Export of goods / Inverted duty / Excess tax paid / SEZ supply / Wrong head] for the period [Period], the application has been examined.
+
+The following deficiencies / shortcomings have been noticed in your application / the documents submitted therewith:
+
+Sr. | Deficiency Noticed                              | Required Action
+----|-------------------------------------------------|----------------------------------
+ 1  | [e.g., Statement of invoices in Annexure-B      | Please furnish correct and
+    | does not match with GSTR-1 — invoices for       | complete Annexure-B / Annexure-A
+    | Rs. [X]/- missing from Annexure-B]              | with all invoice details
+----|-------------------------------------------------|----------------------------------
+ 2  | [e.g., Shipping Bills No. [X] and [Y] not       | Furnish copy of all shipping
+    | submitted — only copy without EGM filed]        | bills with Let Export Order
+----|-------------------------------------------------|----------------------------------
+ 3  | [e.g., FIRC / BRC (Foreign Inward Remittance    | Submit FIRC or BRC for all
+    | Certificate) not submitted for services export] | foreign remittances received
+----|-------------------------------------------------|----------------------------------
+ 4  | [e.g., Undertaking / Declaration on Unjust      | Fresh undertaking on letterhead
+    | Enrichment not signed / on plain paper]         | with date and authorized signatory
+----|-------------------------------------------------|----------------------------------
+ 5  | [e.g., GSTR-2A / GSTR-2B reconciliation         | Submit ITC reconciliation
+    | statement not attached for ITC refund]          | statement for the claim period
+
+NOTE: As per Rule 90(3) of the CGST Rules, 2017, an application for refund shall be treated as complete only upon submission of the complete set of documents. A fresh application in Form RFD-01 shall be required to be filed after rectifying the above deficiencies.`,
+    closing: `You are requested to re-file a fresh refund application after rectifying all the above deficiencies and furnishing the complete set of required documents as prescribed under Rule 89 of the CGST Rules, 2017 and the relevant CBIC Circular.
+
+IMPORTANT: The time limit for filing a fresh application shall be reckoned from the relevant date as defined under Section 54(14) of the CGST Act, 2017. This memo does not extend the limitation period.
+
+This memo is being issued without prejudice to the right of the department to raise any other objection at the time of processing the fresh application.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_62",
+    category: "GST",
+    name: "Refund Sanction Order — Export IGST (Full Sanction — Form RFD-06)",
+    subject: "Order Sanctioning Refund under Section 54(1) of CGST Act, 2017 — Export of Goods with Payment of IGST — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order Sanctioning Refund
+(Under Rule 92(1) of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order sanctioning refund of IGST paid on export of goods — Section 54(1) of CGST Act, 2017 — ARN: [ARN] — GSTIN [GSTIN] — Period: [Period].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Application Date] for refund of IGST of Rs. [Claimed Amount]/- paid on export of goods during the period [Period].
+
+2. The Shipping Bills involved and corresponding IGST paid:
+
+   Shipping Bill No.   | Date       | Port      | FOB Value (Rs.) | IGST Paid (Rs.)
+   --------------------|------------|-----------|-----------------|----------------
+   [SB No. 1]          | [Date]     | [Port]    | [FOB Value]     | [IGST Amount]
+   [SB No. 2]          | [Date]     | [Port]    | [FOB Value]     | [IGST Amount]
+   Total               |            |           |                 | Rs. [Total IGST]/-
+
+3. The application has been acknowledged vide Form GST RFD-02. All required documents have been verified including:
+   (a) Shipping Bills with Let Export Order (LEO) — Verified ✓
+   (b) EGM (Export General Manifest) confirmation — Verified ✓
+   (c) Foreign Inward Remittance Certificate (FIRC) / Bank Realisation Certificate — Verified ✓
+   (d) GSTR-1 data — Cross-verified with ICEGATE ✓
+   (e) IGST payment in GSTR-3B — Verified ✓
+   (f) Unjust Enrichment — Not applicable for export refunds ✓
+
+4. The refund claim of Rs. [Claimed Amount]/- stands fully verified and is admissible.
+   Amount admitted for sanction : Rs. [Sanctioned Amount]/-
+   [If partial: Amount disallowed : Rs. [Disallowed]/-  — Reason: [X]]`,
+    closing: `ORDER:
+
+In view of the above, I hereby sanction refund of Rs. [Sanctioned Amount]/- (Rupees [Amount in words] only) to M/s [Applicant Name] (GSTIN: [GSTIN]) in respect of IGST paid on export of goods during the period [Period], under Section 54(1) of the CGST Act, 2017.
+
+Payment Details:
+Bank Name    : [Bank Name as per RFD-01]
+Account No.  : [Account Number]
+IFSC Code    : [IFSC Code]
+
+The sanctioned amount will be credited to the applicant's registered bank account electronically.
+
+Interest under Section 56 of the CGST Act, 2017: Since the refund is being sanctioned within 60 days from the date of receipt of complete application, no interest is payable. [OR: Interest of Rs. [X]/- at 6% per annum is also sanctioned for the period from [Date] to [Date] as the refund was not processed within 60 days.]
+
+APPEAL: Appeal may be filed before Commissioner (Appeals) within 3 months of this order under Section 107 of the CGST Act, 2017.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_63",
+    category: "GST",
+    name: "Refund Sanction Order — Accumulated ITC (Inverted Duty Structure — Rule 89(5))",
+    subject: "Order Sanctioning Refund of Accumulated ITC under Section 54(3)(ii) of CGST Act, 2017 — Inverted Duty — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order Sanctioning Refund — Accumulated ITC (Inverted Duty Structure)
+(Under Rule 92(1) read with Rule 89(5) of the CGST Rules, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order sanctioning refund of accumulated ITC under Section 54(3)(ii) of CGST Act, 2017 (Inverted Duty Structure) — ARN: [ARN] — GSTIN [GSTIN] — Period: [Period].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Application Date] claiming refund of accumulated ITC of Rs. [Claimed Amount]/- arising on account of inverted duty structure under Section 54(3)(ii) of the CGST Act, 2017 for the period [Period].
+
+2. Business: The applicant is engaged in manufacture/supply of [goods description] classifiable under HSN [Code], attracting output GST @ [X]%, while the major inputs attract GST @ [Y]% (higher rate), resulting in ITC accumulation.
+
+3. VERIFICATION OF REFUND FORMULA (Rule 89(5)):
+
+   Refund Amount = (Turnover of Inverted Supply × Net ITC) / Adjusted Total Turnover — Tax Payable on Inverted Supply
+
+   (a) Turnover of Inverted Rated Supply (A)     : Rs. [X]/-
+   (b) Net ITC (B) — eligible ITC on inputs only : Rs. [X]/-
+       [ITC on capital goods excluded as per Explanation (1) to Rule 89(5)]
+   (c) Adjusted Total Turnover (C)               : Rs. [X]/-
+   (d) Tax Payable on Inverted Supply (D)         : Rs. [X]/-
+   (e) Maximum Refund = (A × B / C) − D          : Rs. [Calculated Maximum]/-
+
+   Amount Claimed by Applicant                   : Rs. [Claimed Amount]/-
+   Admissible Amount (lesser of claimed/formula) : Rs. [Admissible Amount]/-
+
+4. ITC Verification:
+   - All ITC claimed is reflected in GSTR-2B ✓
+   - No blocked credits (Section 17(5)) included ✓
+   - Unjust enrichment certificate submitted ✓ [For B2C supplies]`,
+    closing: `ORDER:
+
+I hereby sanction refund of Rs. [Sanctioned Amount]/- (Rupees [Amount in words] only) to M/s [Applicant Name] (GSTIN: [GSTIN]) as accumulated ITC under the inverted duty structure as per Section 54(3)(ii) of the CGST Act, 2017 read with Rule 89(5) of the CGST Rules, 2017 for the period [Period].
+
+[If partial sanction: The balance claim of Rs. [Rejected Amount]/- is rejected on the ground that: [reason — excess over formula limit / ineligible ITC included].]
+
+Payment shall be made to the applicant's registered bank account.
+
+APPEAL: Appeal may be filed before Commissioner (Appeals) within 3 months under Section 107.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_64",
+    category: "GST",
+    name: "Refund Sanction Order — Wrong Head Payment (IGST paid instead of CGST+SGST — Section 77)",
+    subject: "Order Sanctioning Refund under Section 77 of CGST Act / Section 19 of IGST Act — Wrong Tax Head — ARN: [ARN] — M/s [Applicant Name]",
+    opening: `FORM GST RFD-06
+Order Sanctioning Refund — Wrong Head Payment
+(Under Section 77(1) of the CGST Act, 2017 / Section 19(1) of the IGST Act, 2017)
+
+Reference No: [DIN] / C.No. CGST/[Division]/RFD-06/[Year]/[No.]         Date: [Date of Order]
+
+To,
+[Applicant Name]
+GSTIN: [GSTIN]
+[Address]
+
+Subject: Order sanctioning refund under Section 77 of CGST Act, 2017 / Section 19 of IGST Act, 2017 — Wrong head payment — ARN: [ARN] — GSTIN [GSTIN].
+
+STATEMENT OF FACTS:
+
+1. M/s [Applicant Name] (GSTIN: [GSTIN]) filed refund application (ARN: [ARN]) dated [Date] for refund of Rs. [Claimed Amount]/- on account of IGST paid on a supply that was subsequently determined to be an intra-state supply [OR CGST+SGST paid on a supply that was an inter-state supply], resulting in a wrong head payment for the period [Period].
+
+2. Nature of wrong payment:
+   [Select applicable:]
+   CASE A — IGST paid on Intra-State Supply:
+   Supply in question     : [Description of supply]
+   IGST paid incorrectly  : Rs. [Amount]/-
+   CGST + SGST payable    : Rs. [Amount]/-
+   Correct tax paid after : Yes / No — Challan No. [X] dated [Date]
+
+   CASE B — CGST/SGST paid on Inter-State Supply:
+   Supply in question     : [Description of supply]
+   CGST+SGST paid wrongly : Rs. [Amount]/-
+   IGST payable           : Rs. [Amount]/-
+
+3. The applicant has:
+   (a) Paid the correct tax in the correct head subsequently;
+   (b) Submitted reconciliation showing the wrong payment and correct payment;
+   (c) The wrong tax amount has not been availed as ITC by any recipient.
+
+VERIFICATION:
+   Correct tax subsequently paid     : Rs. [Correct Tax]/-  ✓ verified via GSTR-3B
+   ITC not availed by recipients on wrong head: Verified ✓
+   Unjust enrichment: Not applicable (tax error — refund to original payer) ✓`,
+    closing: `ORDER:
+
+In view of the above, I hereby sanction refund of Rs. [Sanctioned Amount]/- (Rupees [Amount in words] only) to M/s [Applicant Name] (GSTIN: [GSTIN]) under Section 77(1) of the CGST Act, 2017 / Section 19(1) of the IGST Act, 2017, being the amount of [IGST / CGST+SGST] wrongly paid on a supply that was [intra-state / inter-state] in nature, for the period [Period].
+
+Payment shall be credited to the applicant's registered bank account.
+
+APPEAL: Appeal may be filed before Commissioner (Appeals) within 3 months under Section 107.
+
+[Name of Proper Officer]
+[Designation]
+O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
     id: "cus_18",
     category: "Customs",
     name: "Bill of Entry Assessment Order",
