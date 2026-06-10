@@ -1,0 +1,114 @@
+
+  // ── Phase 3: ITC Proceedings Template Rules (gst_73 to gst_87) ──────
+
+  {
+    templateId: "gst_73",
+    rules: [
+      { id: "gst73_r1", act: "CGST Rules, 2017", section: "Rule 86A(1)", title: "Conditions for Blocking ITC", description: "Commissioner or authorised officer may block ITC if there are reasons to believe it is fraudulently availed or ineligible (e.g., supplier non-existent, fake invoices, goods not received).", defaultSelected: true, required: true },
+      { id: "gst73_r2", act: "CGST Rules, 2017", section: "Rule 86A(1) Proviso", title: "Reasons to be Recorded in Writing", description: "The officer must record specific factual reasons in writing before restricting the use of ITC in the electronic credit ledger.", defaultSelected: true, required: true },
+      { id: "gst73_r3", act: "Legal Precedent", section: "High Court Guidelines", title: "Specific Reasons Mandatory", description: "Courts have held that blocking orders cannot be passed without specific reasons. Noticee must be informed of the exact grounds.", defaultSelected: false, required: false }
+    ]
+  },
+  {
+    templateId: "gst_74",
+    rules: [
+      { id: "gst74_r1", act: "CGST Rules, 2017", section: "Rule 86A(2)", title: "Unblocking of ITC upon Verification", description: "The officer may unblock the restricted ITC upon verification if satisfied that the conditions for disallowance no longer exist.", defaultSelected: true, required: true },
+      { id: "gst74_r2", act: "CGST Rules, 2017", section: "Rule 86A(3)", title: "One-Year Limitation for Blocking", description: "Any restriction imposed under Rule 86A shall cease to have effect after the expiry of one year from the date of imposing such restriction.", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_75",
+    rules: [
+      { id: "gst75_r1", act: "CGST Act, 2017", section: "Section 16(2)(b) Proviso", title: "180-Day Rule for Payment", description: "If recipient fails to pay the supplier the value of supply along with tax within 180 days from the invoice date, availed ITC must be reversed with interest.", defaultSelected: true, required: true },
+      { id: "gst75_r2", act: "CGST Rules, 2017", section: "Rule 37", title: "Reversal of ITC in case of Non-Payment", description: "Specifies the mechanics of reversing ITC when payment is not made within 180 days, including addition to output tax liability.", defaultSelected: true, required: true },
+      { id: "gst75_r3", act: "CGST Act, 2017", section: "Section 50(1)", title: "Interest @ 18% on Reversal", description: "Interest is payable on the reversed ITC from the date of availment till the date of reversal/payment.", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_76",
+    rules: [
+      { id: "gst76_r1", act: "CGST Act, 2017", section: "Section 73(9)", title: "Confirmation of ITC Reversal Demand", description: "Order confirming the demand for ITC reversal due to non-payment within 180 days.", defaultSelected: true, required: true },
+      { id: "gst76_r2", act: "CGST Act, 2017", section: "Section 16(2) Second Proviso", title: "Re-availment upon Subsequent Payment", description: "The recipient shall be entitled to re-avail the credit upon subsequent payment made to the supplier.", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_77",
+    rules: [
+      { id: "gst77_r1", act: "CGST Act, 2017", section: "Section 16(2)(a) & (b)", title: "ITC Admissibility — Fake Invoice", description: "ITC is inadmissible if goods or services are not actually received, or if the claim is based on fictitious/fake invoices.", defaultSelected: true, required: true },
+      { id: "gst77_r2", act: "CGST Act, 2017", section: "Section 74", title: "Fraud and Suppression", description: "Extended period of limitation and 100% penalty applies due to fraudulent availment of ITC without underlying supply.", defaultSelected: true, required: true },
+      { id: "gst77_r3", act: "CGST Act, 2017", section: "Section 122(1)(vii)", title: "Penalty for Fake Invoice", description: "Taking or utilizing input tax credit without actual receipt of goods or services attracts specific penalty.", defaultSelected: false, required: false }
+    ]
+  },
+  {
+    templateId: "gst_78",
+    rules: [
+      { id: "gst78_r1", act: "CGST Act, 2017", section: "Section 17(5)", title: "Blocked Credits", description: "ITC is expressly blocked on specified categories (e.g., motor vehicles, food & beverages, construction of immovable property).", defaultSelected: true, required: true },
+      { id: "gst78_r2", act: "CGST Act, 2017", section: "Section 73", title: "Demand for Ineligible ITC", description: "Recovery of blocked credit wrongly availed, subject to normal period of limitation if no fraud is involved.", defaultSelected: true, required: true },
+      { id: "gst78_r3", act: "CGST Act, 2017", section: "Section 50(3)", title: "Interest on Wrongly Availed ITC", description: "Interest is payable only if the blocked credit was availed and utilized.", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_79",
+    rules: [
+      { id: "gst79_r1", act: "CGST Act, 2017", section: "Section 16(2)(aa)", title: "ITC Restricted to GSTR-2B", description: "ITC cannot exceed the amount reflecting in GSTR-2B based on the supplier's GSTR-1/IFF filings.", defaultSelected: true, required: true },
+      { id: "gst79_r2", act: "CGST Rules, 2017", section: "Rule 36(4)", title: "Condition for Availing ITC", description: "Credit shall not be availed unless the details of invoices have been communicated to the registered person in Form GSTR-2B.", defaultSelected: true, required: true },
+      { id: "gst79_r3", act: "CBIC Circular", section: "Circular No. 183/15/2022-GST", title: "SOP for Mismatches", description: "Provides procedure for dealing with mismatches and seeking CA certificates for discrepancies for specific older periods.", defaultSelected: false, required: false }
+    ]
+  },
+  {
+    templateId: "gst_80",
+    rules: [
+      { id: "gst80_r1", act: "CGST Act, 2017", section: "Section 73(9)", title: "Order Confirming GSTR-2B Mismatch Demand", description: "Confirmation of demand for excess ITC claimed over and above GSTR-2B.", defaultSelected: true, required: true },
+      { id: "gst80_r2", act: "CGST Act, 2017", section: "Section 50(3)", title: "Interest @ 24% / 18%", description: "Interest on wrongly availed and utilized ITC. (Note: Retrospective amendment reduced rate to 18%).", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_81",
+    rules: [
+      { id: "gst81_r1", act: "CGST Rules, 2017", section: "Rule 42", title: "Apportionment of ITC on Inputs/Services", description: "Mandatory reversal formula for ITC on inputs and input services used partly for taxable and partly for exempt/non-business purposes.", defaultSelected: true, required: true },
+      { id: "gst81_r2", act: "CGST Rules, 2017", section: "Rule 43", title: "Apportionment of ITC on Capital Goods", description: "Specific procedure for reversal of ITC on capital goods used for both taxable and exempt supplies.", defaultSelected: true, required: false },
+      { id: "gst81_r3", act: "CGST Act, 2017", section: "Section 17(1) & (2)", title: "Restriction on Exempt Supply ITC", description: "ITC is restricted to the extent attributable to taxable supplies including zero-rated supplies.", defaultSelected: true, required: true }
+    ]
+  },
+  {
+    templateId: "gst_82",
+    rules: [
+      { id: "gst82_r1", act: "CGST Act, 2017", section: "Section 140", title: "Transitional Arrangements", description: "Conditions for availing CENVAT credit and VAT credit as transitional ITC in TRAN-1/TRAN-2.", defaultSelected: true, required: true },
+      { id: "gst82_r2", act: "CGST Act, 2017", section: "Section 74", title: "Recovery of Wrongful TRAN Credit (Fraud)", description: "Invocation of extended period for recovery of fraudulent or ineligible transitional credit claims.", defaultSelected: true, required: true }
+    ]
+  },
+  {
+    templateId: "gst_83",
+    rules: [
+      { id: "gst83_r1", act: "CGST Act, 2017", section: "Section 29(5)", title: "Reversal on Cancellation of Registration", description: "Every person whose registration is cancelled shall pay an amount equivalent to the credit of input tax in respect of inputs held in stock.", defaultSelected: true, required: true },
+      { id: "gst83_r2", act: "CGST Rules, 2017", section: "Rule 44", title: "Manner of Reversal (ITC-03)", description: "Formula to calculate the ITC to be reversed on closing stock and capital goods upon cancellation of registration.", defaultSelected: true, required: true }
+    ]
+  },
+  {
+    templateId: "gst_84",
+    rules: [
+      { id: "gst84_r1", act: "CGST Rules, 2017", section: "Rule 142(5)", title: "Issuance of DRC-07 Summary Order", description: "A summary of the order issued under section 73 or section 74 or section 76 shall be uploaded electronically in FORM GST DRC-07.", defaultSelected: true, required: true },
+      { id: "gst84_r2", act: "CGST Act, 2017", section: "Section 78", title: "Recovery Proceedings Initiation", description: "Any amount payable in pursuance of an order shall be paid within 3 months, failing which recovery proceedings shall be initiated.", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_85",
+    rules: [
+      { id: "gst85_r1", act: "Internal Guidelines", section: "Audit/Scrutiny Manual", title: "Reconciliation of ITC", description: "Internal working sheet mapping ITC availed in GSTR-3B against GSTR-2B, blocked credits, and Rule 42 reversals.", defaultSelected: true, required: false }
+    ]
+  },
+  {
+    templateId: "gst_86",
+    rules: [
+      { id: "gst86_r1", act: "CGST Act, 2017", section: "Section 10(4)", title: "Composition Dealer Not Eligible for ITC", description: "A taxable person opting to pay tax under the composition scheme shall not take any input tax credit.", defaultSelected: true, required: true },
+      { id: "gst86_r2", act: "CGST Act, 2017", section: "Section 17(2)", title: "Exempt Supplier Not Eligible", description: "A person making wholly exempt supplies is not eligible to take input tax credit.", defaultSelected: true, required: true }
+    ]
+  },
+  {
+    templateId: "gst_87",
+    rules: [
+      { id: "gst87_r1", act: "CGST Act, 2017", section: "Section 74A", title: "Unified Demand Provision (FY 2024-25 Onwards)", description: "Consolidated provision replacing Sections 73 and 74 for periods from FY 2024-25, establishing a common time limit of 42 months for SCN.", defaultSelected: true, required: true },
+      { id: "gst87_r2", act: "CGST Act, 2017", section: "Section 74A Penalties", title: "Penalty Structure under s.74A", description: "Distinguishes penalty amounts internally based on whether the evasion involves fraud/suppression (higher penalty) or not.", defaultSelected: true, required: true },
+      { id: "gst87_r3", act: "Finance Act, 2024", section: "Amendment Notification", title: "Applicability of Section 74A", description: "Applicable only for tax periods from FY 2024-25 onwards. Previous periods continue under old Section 73/74 limits.", defaultSelected: true, required: true }
+    ]
+  }
