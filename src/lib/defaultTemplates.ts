@@ -3613,6 +3613,318 @@ Please note:
 Date: \${scnDate}`
   },
   {
+    id: "gst_95",
+    category: "GST",
+    name: "Order — Revocation of Cancellation Allowed [Section 30(2)]",
+    subject: "Order Allowing Revocation of Cancellation of GST Registration u/s 30(2) of CGST Act, 2017 — GSTIN: \${gstin}",
+    opening: `OFFICE OF THE \${officerDesignation}
+\${officerOffice}
+
+Order No. \${orderNumber}                                Date: \${orderDate}
+
+To,
+\${taxpayerName}
+(Cancelled GSTIN: \${gstin})
+\${address}
+
+Sub: Order Allowing Revocation of Cancellation of GST Registration u/s 30(2) of the CGST Act, 2017 — Reg.
+
+Ref: 1. Cancellation Order No. \${cancellationOrderNumber} dated \${cancellationDate}
+     2. Application for Revocation in FORM GST REG-21 dated \${revocationApplicationDate} (ARN: \${arn})
+     3. SCN No. \${scnNumber} dated \${scnDate} (if applicable): \${scnReference}
+     4. Reply dated \${replyDate} (if filed)
+
+ORDER
+
+1. BACKGROUND:
+   The registration of \${taxpayerName} bearing GSTIN \${gstin} was cancelled vide Order No. \${cancellationOrderNumber} dated \${cancellationDate}.
+
+2. APPLICATION FOR REVOCATION:
+   You filed an application in FORM GST REG-21 on \${revocationApplicationDate} (ARN: \${arn}) for revocation of the said cancellation.
+
+3. EXAMINATION OF APPLICATION:
+   The application has been examined along with the documents submitted. The following is noted:
+   \${examinationDetails}
+
+4. COMPLIANCE VERIFIED:
+   It is verified that:
+   (a) All pending returns up to the effective date of cancellation have been filed.
+   (b) All outstanding tax, interest, and penalty have been paid.
+   (c) No further proceedings are pending which would preclude revocation.`,
+    closing: `ORDER:
+
+In exercise of the powers conferred under Section 30(2) of the CGST Act, 2017 read with Rule 23 of the CGST Rules, 2017, the application for revocation of cancellation of registration of \${taxpayerName} bearing GSTIN \${gstin} is hereby ALLOWED.
+
+The cancellation order dated \${cancellationDate} is hereby revoked, and the registration of the applicant stands RESTORED with effect from \${restorationDate}.
+
+The GSTN portal shall be updated to reflect ACTIVE status for GSTIN \${gstin}.
+
+The applicant is advised to:
+1. Ensure timely filing of all future returns.
+2. Comply with all provisions of the CGST Act, 2017 and rules thereunder.
+3. Note that any recurrence of the grounds that led to cancellation may result in fresh cancellation proceedings without the benefit of revocation.
+
+\${officerName}
+\${officerDesignation}
+\${officerOffice}
+Date: \${orderDate}`
+  },
+  {
+    id: "gst_96",
+    category: "GST",
+    name: "Order — Revocation of Cancellation Rejected [Section 30(2)]",
+    subject: "Order Rejecting Application for Revocation of Cancellation of GST Registration u/s 30(2) CGST Act, 2017 — GSTIN: \${gstin}",
+    opening: `OFFICE OF THE \${officerDesignation}
+\${officerOffice}
+
+Order No. \${orderNumber}                                Date: \${orderDate}
+
+To,
+\${taxpayerName}
+(Cancelled GSTIN: \${gstin})
+\${address}
+
+Sub: Order Rejecting Application for Revocation of Cancellation of Registration u/s 30(2) of the CGST Act, 2017 — Reg.
+
+Ref: 1. Cancellation Order No. \${cancellationOrderNumber} dated \${cancellationDate}
+     2. Application for Revocation in FORM GST REG-21 dated \${revocationApplicationDate} (ARN: \${arn})
+     3. SCN No. \${scnNumber} dated \${scnDate}
+     4. Reply dated \${replyDate} / No reply received
+
+ORDER
+
+1. BRIEF FACTS:
+   The registration of \${taxpayerName} (GSTIN: \${gstin}) was cancelled vide Order dated \${cancellationDate}. The applicant filed an application for revocation on \${revocationApplicationDate}.
+
+2. SCN ISSUED:
+   A Show Cause Notice was issued on \${scnDate} specifying the deficiencies in the application. \${replyStatus}
+
+3. FINDINGS:
+   \${findingDetails}
+
+4. CONSIDERATION:
+   The reply, if any, has been duly considered. The following reasons establish that the application for revocation cannot be allowed:
+   \${rejectionReasons}`,
+    closing: `ORDER:
+
+In exercise of the powers under Section 30(2) of the CGST Act, 2017 read with Rule 23 of the CGST Rules, 2017, the application for revocation of cancellation filed by \${taxpayerName} bearing cancelled GSTIN \${gstin} is hereby REJECTED for the following reasons:
+\${rejectionReasons}
+
+The cancellation of registration dated \${cancellationDate} shall therefore remain in force.
+
+APPEAL:
+This order may be appealed before the Commissioner (Appeals) under Section 107 of the CGST Act, 2017 within three months of receipt of this order.
+
+Consequential Action:
+The applicant may apply for a fresh registration under Section 22/24 of the CGST Act, 2017, if eligible, after meeting all statutory requirements.
+
+\${officerName}
+\${officerDesignation}
+\${officerOffice}
+Date: \${orderDate}`
+  },
+  {
+    id: "gst_97",
+    category: "GST",
+    name: "Notice — Physical Verification of Business Premises [Rule 25]",
+    subject: "Notice for Physical Verification of Business Premises under Rule 25 of CGST Rules, 2017 — GSTIN: \${gstin}",
+    opening: `OFFICE OF THE \${officerDesignation}
+\${officerOffice}
+
+Notice No. \${noticeNumber}                              Date: \${noticeDate}
+
+To,
+\${taxpayerName}
+GSTIN: \${gstin} / ARN: \${arn}
+\${address}
+
+Sub: Notice for Physical Verification of your Principal Place of Business / Additional Place of Business under Rule 25 of the CGST Rules, 2017 — Reg.
+
+Sir/Madam,
+
+Your GST Registration application / existing registration record has been selected for physical verification of the principal place of business / additional place of business as detailed below:
+
+Purpose of Verification: \${verificationPurpose}
+Address to be Verified: \${addressToVerify}
+Reason for Verification: \${verificationReason}
+
+As per Rule 25 of the CGST Rules, 2017, the proper officer may conduct physical verification of the place of business of the applicant/registered person before granting registration, or at any time during the period of registration, if deemed necessary.`,
+    closing: `You are hereby informed that a physical verification of the above-mentioned premises will be conducted on:
+
+Date of Verification: \${verificationDate}
+Time: \${verificationTime}
+Verification Officer: \${verifyingOfficerName}, \${verifyingOfficerDesignation}
+
+You are requested to:
+1. Ensure your presence (in person or through an authorized representative) at the said address at the above-mentioned time.
+2. Keep the following documents ready for inspection:
+   (a) Proof of ownership/lease/rent agreement of the premises
+   (b) Latest electricity/water bill for the premises
+   (c) Details of stock/goods if any, stored at the premises
+   (d) Any other relevant business documents
+3. Grant free access to the premises to the verification officer.
+
+Please note that non-availability at the premises during verification without prior intimation will be recorded as an adverse finding and may result in rejection/cancellation of registration.
+
+The verification officer will submit a report in FORM GST REG-30. Appropriate action will be taken on the basis of the verification report.
+
+\${officerName}
+\${officerDesignation}
+\${officerOffice}
+Date: \${noticeDate}`
+  },
+  {
+    id: "gst_98",
+    category: "GST",
+    name: "SCN — Rejection of New Registration Application [Rule 9(3)]",
+    subject: "Show Cause Notice for Rejection of GST Registration Application under Rule 9(3) of CGST Rules, 2017 — ARN: \${arn}",
+    opening: `OFFICE OF THE \${officerDesignation}
+\${officerOffice}
+
+SCN No. \${scnNumber}                                    Date: \${scnDate}
+
+To,
+\${applicantName}
+ARN: \${arn}  (Date of Application: \${applicationDate})
+\${address}
+
+Sub: Show Cause Notice for Rejection of Application for GST Registration under Rule 9(3) of the CGST Rules, 2017 — Reg.
+
+Sir/Madam,
+
+You have filed an application for registration under the CGST Act, 2017 on \${applicationDate} bearing ARN: \${arn}. The application was submitted for the following category: \${registrationCategory}.
+
+On examination of the application and the documents submitted therewith (including the verification report in FORM GST REG-30 dated \${verificationDate}, if applicable), the following deficiencies / objections have been found:
+
+DEFICIENCIES NOTED:
+\${deficiencyDetails}
+
+SPECIFIC OBSERVATIONS:
+1. \${observation1}
+2. \${observation2}
+3. \${observation3}
+
+The above deficiencies render the application prima facie liable for REJECTION under Rule 9(3) of the CGST Rules, 2017.`,
+    closing: `You are hereby called upon to SHOW CAUSE as to why your application for registration bearing ARN: \${arn} should not be rejected on the grounds stated above.
+
+You are directed to:
+1. Submit a written reply with supporting documents addressing each deficiency, within 7 (seven) working days from the date of receipt of this notice.
+2. Appear for a personal hearing on \${hearingDate} at \${hearingTime}, if you so wish.
+
+Please note:
+(a) Failure to reply shall result in the application being rejected ex-parte under Rule 9(3).
+(b) If the deficiencies are corrected and reply is satisfactory, the registration may be granted without further proceedings.
+(c) Where physical verification reveals the premises do not exist or are unsuitable, additional documentation of business activity will be required.
+(d) Providing false information or documents is a punishable offence under Section 122(1)(xiv) of the CGST Act, 2017.
+
+\${officerName}
+\${officerDesignation}
+\${officerOffice}
+Date: \${scnDate}`
+  },
+  {
+    id: "gst_99",
+    category: "GST",
+    name: "Order — Registration Application Rejected [Rule 9(3)]",
+    subject: "Order Rejecting GST Registration Application under Rule 9(3) of CGST Rules, 2017 — ARN: \${arn}",
+    opening: `OFFICE OF THE \${officerDesignation}
+\${officerOffice}
+
+Order No. \${orderNumber}                                Date: \${orderDate}
+
+To,
+\${applicantName}
+ARN: \${arn}
+\${address}
+
+Sub: Order Rejecting Application for GST Registration under Rule 9(3) of the CGST Rules, 2017 — Reg.
+
+Ref: 1. Registration Application dated \${applicationDate} (ARN: \${arn})
+     2. SCN No. \${scnNumber} dated \${scnDate}
+     3. Reply filed on \${replyDate} / No reply received
+     4. Physical Verification Report (FORM GST REG-30) dated \${verificationDate} (if applicable)
+
+ORDER
+
+1. APPLICATION DETAILS:
+   The applicant \${applicantName} filed an application for registration under the CGST Act, 2017 on \${applicationDate}.
+
+2. SCN AND REPLY:
+   A Show Cause Notice was issued on \${scnDate} citing the following deficiencies: \${deficiencySummary}. \${replyStatus}
+
+3. EXAMINATION OF REPLY:
+   \${replyExamination}
+
+4. FINDINGS:
+   \${findingDetails}`,
+    closing: `ORDER:
+
+In exercise of the powers under Rule 9(3) of the CGST Rules, 2017 read with Section 25 of the CGST Act, 2017, the application for GST Registration bearing ARN \${arn} filed by \${applicantName} is hereby REJECTED for the following reasons:
+\${rejectionReasons}
+
+APPEAL:
+The applicant may appeal this order before the Commissioner (Appeals) under Section 107 of the CGST Act, 2017 within three months of receipt of this order.
+
+FRESH APPLICATION:
+The applicant may file a fresh application for registration after rectifying the above deficiencies, if otherwise eligible for registration under the CGST Act, 2017.
+
+\${officerName}
+\${officerDesignation}
+\${officerOffice}
+Date: \${orderDate}`
+  },
+  {
+    id: "gst_100",
+    category: "GST",
+    name: "Notice — Officer-Initiated Amendment to Registration [Section 28(2)]",
+    subject: "Notice for Amendment to GST Registration Details u/s 28(2) of CGST Act, 2017 — GSTIN: \${gstin}",
+    opening: `OFFICE OF THE \${officerDesignation}
+\${officerOffice}
+
+Notice No. \${noticeNumber}                              Date: \${noticeDate}
+
+To,
+\${taxpayerName}
+GSTIN: \${gstin}
+\${address}
+
+Sub: Notice for Amendment to your GST Registration Certificate u/s 28(2) of the CGST Act, 2017 — Reg.
+
+Sir/Madam,
+
+It has come to the notice of this office that the following particulars in your GST Registration Certificate (issued for GSTIN: \${gstin}) require amendment/correction on the basis of \${basisForAmendment}.
+
+Proposed Amendment Details:
+┌─────────────────────────────┬──────────────────────┬──────────────────────┐
+│ Particulars                 │ Current Details      │ Proposed Amendment   │
+├─────────────────────────────┼──────────────────────┼──────────────────────┤
+│ \${field1}                   │ \${currentValue1}     │ \${amendedValue1}     │
+│ \${field2}                   │ \${currentValue2}     │ \${amendedValue2}     │
+│ \${field3}                   │ \${currentValue3}     │ \${amendedValue3}     │
+└─────────────────────────────┴──────────────────────┴──────────────────────┘
+
+Grounds for officer-initiated amendment:
+\${amendmentGrounds}
+
+As per Section 28(2) of the CGST Act, 2017, the proper officer may, on the basis of information available with him, amend the registration certificate if he is satisfied that there is a change in the particulars furnished at the time of or after registration, or where the particulars are incorrect.`,
+    closing: `You are hereby requested to:
+1. Review the proposed amendment details above.
+2. Submit your acceptance OR objection in writing within 7 (seven) working days from receipt of this notice.
+3. If you have objections, state your reasons with supporting documentary evidence.
+4. Appear for a personal hearing on \${hearingDate} at \${hearingTime} if required.
+
+If no objection is received within the stipulated period, the amendment shall be carried out suo-motu on the GSTN portal under Section 28(2) of the CGST Act, 2017.
+
+If objections are raised, a speaking order shall be passed after considering your response.
+
+Please note: This amendment does not affect your GST registration number (GSTIN). Only the specified field(s) in the registration certificate will be updated.
+
+\${officerName}
+\${officerDesignation}
+\${officerOffice}
+Date: \${noticeDate}`
+  },
+  {
     id: "cus_18",
     category: "Customs",
     name: "Bill of Entry Assessment Order",
