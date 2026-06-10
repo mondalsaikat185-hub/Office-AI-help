@@ -2412,6 +2412,868 @@ O/o the [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
 DIN: [DIN]`
   },
   {
+    id: "gst_73",
+    category: "GST",
+    name: "ITC Blocking Order — Rule 86A (Reason to Believe Fraud/Ineligibility)",
+    subject: "Order Blocking Input Tax Credit in Electronic Credit Ledger under Rule 86A of CGST Rules, 2017 — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `ORDER BLOCKING INPUT TAX CREDIT
+(Under Rule 86A of the Central Goods and Services Tax Rules, 2017)
+
+F. No.: [File Number]                                        Date: [Date]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Order for blocking of Input Tax Credit (ITC) amounting to Rs. [Amount]/- available in the Electronic Credit Ledger (ECL) under Rule 86A of the CGST Rules, 2017 — GSTIN [GSTIN].
+
+FACTS OF THE CASE:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) is a registered taxable person under the Central Goods and Services Tax Act, 2017, engaged in the business of [business description].
+
+2. An examination of the GSTN database, GSTR-1/GSTR-3B returns, and available intelligence reveals that ITC amounting to Rs. [Amount]/- has been availed in the Electronic Credit Ledger (ECL) on the basis of the following invoices:
+
+   Supplier GSTIN: [Supplier GSTIN] | Invoice No.: [Invoice No.] | Date: [Date] | ITC Amount: Rs. [Amt]/-
+   TOTAL ITC BLOCKED: Rs. [Total]/-
+
+3. Specific reasons for this order:
+
+   REASON A - Supplier does not exist / fake registration:
+   M/s [Supplier Name] (GSTIN: [Supplier GSTIN]) has been found to have obtained registration by means of fraud, wilful misstatement, or suppression of facts, and/or does not physically exist at the registered address, as verified on [verification date].
+
+   REASON B - Non-reflection in GSTR-2B / Supplier non-filer:
+   The supplier (GSTIN: [Supplier GSTIN]) has not filed GSTR-1 for the relevant period(s), and the said ITC does not reflect in GSTR-2B, raising a reasonable belief that the underlying supply did not actually take place.
+
+   REASON C - Goods/Services not actually received:
+   Intelligence/investigation reveals that the goods/services shown in the said invoices were not actually supplied/received, and the transactions are prima facie circular, paper, or accommodation entries.
+
+   REASON D - Tax not paid to Government by supplier:
+   The supplier (GSTIN: [Supplier GSTIN]) has collected tax on the said invoices but has not deposited the same to the Government account, as is evident from GSTR-3B filed/not filed for [period].
+
+FINDINGS:
+
+4. Based on the above specific reasons, I have reason to believe that the ITC of Rs. [Amount]/- availed by M/s [Taxpayer Name] is fraudulently availed and/or is ineligible under Section 16 of the CGST Act, 2017.
+
+5. Rule 86A(1) empowers the Commissioner or an officer authorized by him, not below the rank of Assistant Commissioner, to block ITC if there is reason to believe that such ITC has been fraudulently availed or is ineligible.
+
+6. I, [Designation], [Office], being authorized under Rule 86A(1), hereby record my satisfaction that the ITC is prima facie fraudulently availed/ineligible for the reasons stated above.`,
+    closing: `ORDER:
+
+In exercise of powers under Rule 86A(1) of the CGST Rules, 2017, I hereby ORDER the blocking of ITC amounting to Rs. [Amount]/- (Rupees [Amount in words] only) available in the Electronic Credit Ledger (ECL) of M/s [Taxpayer Name] (GSTIN: [GSTIN]).
+
+The blocked ITC shall not be available for utilization against output tax liability until further orders.
+
+TAXPAYER'S RIGHTS:
+(a) You may, within seven days of receipt of this order, file an objection in writing before the undersigned showing cause why the blocking should not continue, along with documentary evidence.
+(b) You shall be given an opportunity of being heard before any final decision is taken on your objection.
+(c) This order shall cease to have effect after the expiry of ONE YEAR from the date of this order, as per Rule 86A(3), unless reviewed/extended before expiry.
+(d) If proceedings result in a confirmed demand, the demand shall be recovered from the blocked ITC amount.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/Additional Commissioner/Joint Commissioner/Deputy Commissioner/Assistant Commissioner], CGST [Division/Commissionerate]
+F. No.: [File Number]`
+  },
+  {
+    id: "gst_74",
+    category: "GST",
+    name: "ITC Unblocking Order — Rule 86A(2) (After Verification / Proceedings Closed)",
+    subject: "Order for Restoration / Unblocking of Input Tax Credit under Rule 86A(2) of CGST Rules, 2017 — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `ORDER FOR RESTORATION OF BLOCKED INPUT TAX CREDIT
+(Under Rule 86A(2) of the Central Goods and Services Tax Rules, 2017)
+
+F. No.: [File Number]                                        Date: [Date]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Restoration/Unblocking of Input Tax Credit of Rs. [Amount]/- blocked vide Order F. No. [Previous Order No.] dated [Blocking Date] under Rule 86A of the CGST Rules, 2017 — GSTIN [GSTIN].
+
+BACKGROUND:
+
+1. Vide Order F. No. [Previous Order No.] dated [Blocking Date], ITC of Rs. [Amount]/- was blocked in the ECL of M/s [Taxpayer Name] (GSTIN: [GSTIN]) under Rule 86A(1) for the reasons stated therein.
+
+2. Reason for unblocking [SELECT ONE]:
+
+   (A) Verification completed - ITC found eligible: After thorough verification of records, invoices, e-way bills, and cross-verification with the supplier (GSTIN: [Supplier GSTIN]), the ITC of Rs. [Amount]/- is genuine and eligible. Tax has been paid to the Government by the supplier.
+
+   (B) Objection accepted: The taxpayer filed an objection dated [Date] with documentary evidence. On examination, I am satisfied that the ITC is eligible and the blocking was not warranted.
+
+   (C) Demand paid / proceedings closed: The demand proceedings have concluded and the taxpayer has paid the confirmed demand of Rs. [Demand Amount]/- with interest and penalty. The remaining blocked ITC of Rs. [Remaining Amount]/- is now to be restored.
+
+   (D) One-year limitation expired: The blocking order dated [Blocking Date] has completed one year under Rule 86A(3). No proceedings have been concluded requiring continuation of the block.`,
+    closing: `ORDER:
+
+In exercise of powers under Rule 86A(2) of the CGST Rules, 2017, I hereby ORDER the restoration/unblocking of ITC amounting to Rs. [Amount]/- (Rupees [Amount in words] only) in the Electronic Credit Ledger (ECL) of M/s [Taxpayer Name] (GSTIN: [GSTIN]).
+
+The said ITC is hereby restored with effect from the date of this order and shall be available for utilization against output tax liability.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/Additional Commissioner/Joint Commissioner/Deputy Commissioner/Assistant Commissioner], CGST [Division/Commissionerate]
+F. No.: [File Number]`
+  },
+  {
+    id: "gst_75",
+    category: "GST",
+    name: "SCN: ITC Reversal — Non-Payment to Supplier within 180 Days (Section 16(2)(b))",
+    subject: "Show Cause Notice for Reversal of Input Tax Credit under Section 16(2)(b) of CGST Act, 2017 — Non-Payment to Supplier within 180 Days — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 73 / 74 read with Section 16(2)(b) of the CGST Act, 2017 and Rule 37 of the CGST Rules, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for reversal of ITC of Rs. [Amount]/- availed on invoices where payment to supplier not made within 180 days — GSTIN [GSTIN] — Period: [Period].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) availed ITC of Rs. [ITC Amount]/- in GSTR-3B for [Period] on invoices from registered suppliers where payment has not been made within 180 days.
+
+   Supplier GSTIN: [GSTIN] | Invoice No.: [No.] | Invoice Date: [Date] | Invoice Value: Rs. [Amt]/- | ITC Availed: Rs. [ITC]/-
+   TOTAL ITC AVAILED: Rs. [Total ITC]/-
+
+2. Section 16(2)(b) of the CGST Act, 2017 mandates that a registered person shall not be entitled to ITC unless the recipient has paid to the supplier the value of the supply along with tax payable thereon.
+
+3. The proviso to Section 16(2) provides that where a recipient fails to pay the supplier within ONE HUNDRED AND EIGHTY DAYS from the date of issuance of the invoice, an amount equal to the ITC availed shall be ADDED TO THE OUTPUT TAX LIABILITY, along with interest under Section 50 from the date of availing credit till the date of reversal.
+
+4. On examination of records, it is found that payment has not been made to the supplier(s) within 180 days from the invoice date(s).
+
+   Invoice Date(s)                 : [Date(s)]
+   180-Day Deadline(s)             : [Date(s)]
+   Outstanding payment to supplier : Rs. [Outstanding]/-
+   ITC required to be reversed     : Rs. [ITC Reversal Amount]/-
+
+DEMAND:
+
+   ITC reversal required (Rule 37)     : Rs. [ITC Amount]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest Amount]/-
+   Penalty u/s 73(9) (10% of tax)      : Rs. [Penalty Amount]/-
+   TOTAL DEMAND                         : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause, in writing, within 30 days from the date of receipt of this notice, as to why:
+(i)  ITC of Rs. [ITC Amount]/- should not be added to output tax liability under Section 16(2)(b) read with Rule 37;
+(ii) Interest under Section 50 should not be levied;
+(iii) Penalty under Section 73(9) should not be imposed.
+
+NOTE: If payment to the supplier is made subsequently, ITC may be re-availed in the tax period in which such payment is made, as per Rule 37(2).
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_76",
+    category: "GST",
+    name: "Order: ITC Reversal Confirmed — 180-Day Non-Payment + Interest (Section 16(2)(b))",
+    subject: "Order Confirming Reversal of Input Tax Credit under Section 16(2)(b) of CGST Act, 2017 — Non-Payment to Supplier within 180 Days — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+ORDER-IN-ORIGINAL
+(Under Section 73 / 74 read with Section 16(2)(b) and Rule 37 of the CGST Act/Rules, 2017)
+
+C.No. [File Number]                                         Date: [Date]
+DIN: [DIN]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Order confirming reversal of ITC of Rs. [ITC Amount]/- — non-payment to supplier within 180 days — Section 16(2)(b) — GSTIN [GSTIN] — Period: [Period].
+
+BACKGROUND:
+
+1. Show Cause Notice vide C.No. [SCN Number] dated [SCN Date] was issued proposing reversal of ITC of Rs. [ITC Amount]/- on account of non-payment to supplier within 180 days under Section 16(2)(b) of the CGST Act, 2017.
+
+2. [The taxpayer replied on [Reply Date] / No reply was received to the SCN within the stipulated period.]
+
+3. Personal hearing [was conducted on [Date] / was not availed].
+
+FINDINGS:
+
+4. Section 16(2)(b) is clear and unambiguous — ITC is conditional upon payment to the supplier within 180 days of the invoice date.
+
+5. The taxpayer [has not produced any evidence of payment to the supplier within 180 days / has paid only Rs. [Amount Paid]/-, and the balance Rs. [Balance]/- is still unpaid].
+
+6. [Address taxpayer's main contention if any and give specific reasons for rejection].
+
+COMPUTATION:
+
+   ITC required to be reversed        : Rs. [ITC Amount]/-
+   Interest u/s 50 @ [Rate]% per annum
+   from [Date] to [Date]              : Rs. [Interest Amount]/-
+   Penalty u/s 73(9) (10%)            : Rs. [Penalty Amount]/-
+   TOTAL DEMAND                        : Rs. [Total]/-`,
+    closing: `ORDER:
+
+I hereby CONFIRM the demand of Rs. [Total Amount]/-, comprising:
+
+   ITC reversal (added to output tax)  : Rs. [ITC Amount]/-
+   Interest u/s 50                     : Rs. [Interest Amount]/-
+   Penalty u/s 73(9)                   : Rs. [Penalty Amount]/-
+
+The above amount is to be paid by M/s [Taxpayer Name] within 3 (three) months from the date of this order.
+
+NOTE: If payment to the supplier is made subsequently, the taxpayer shall be entitled to re-avail the ITC in the tax period in which such payment is made, as per Rule 37(2) of the CGST Rules, 2017.
+
+APPEAL CLAUSE: An appeal may be filed before the Commissioner (Appeals), CGST [Zone], within 3 months under Section 107 of the CGST Act, 2017, with mandatory pre-deposit of 10% of the disputed tax under Section 107(6).
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_77",
+    category: "GST",
+    name: "SCN: ITC Reversal — Goods/Services Not Received / Fake Invoice (Section 16(2)(a))",
+    subject: "Show Cause Notice for Reversal of Fraudulently Availed ITC — Goods/Services Not Received / Fake Invoice — Section 74 / Section 16(2)(a) of CGST Act — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 74 read with Section 16(2)(a) of the CGST Act, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for reversal of fraudulently availed ITC of Rs. [ITC Amount]/- — goods/services not actually received / fake invoices — GSTIN [GSTIN].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) availed ITC of Rs. [ITC Amount]/- on invoices purportedly issued by Supplier: [Supplier Name] (GSTIN: [Supplier GSTIN]).
+
+   Invoice No.: [No.] | Invoice Date: [Date] | Taxable Value: Rs. [Amt]/- | ITC Availed: Rs. [ITC]/-
+   TOTAL ITC: Rs. [Total ITC]/-
+
+2. Section 16(2)(a) of the CGST Act mandates that ITC is available only when the registered person is in possession of a tax invoice AND the goods or services have been actually received.
+
+3. Investigation/intelligence/scrutiny reveals:
+
+   [SELECT APPLICABLE]:
+   (a) The supplier (GSTIN: [Supplier GSTIN]) is a non-existent/fictitious entity. Physical verification at the registered address on [Date] found no business activity/no trace of the entity.
+   (b) The supplier did not have the capacity to supply the goods/services (no employees, no infrastructure, no purchase evidence in their GSTR-2B).
+   (c) Verification of transport documents, e-way bills, and inward supply records reveals no evidence of actual physical receipt of goods.
+   (d) The supplier's GSTR-1 does not reflect the said invoices / the supplier filed nil returns during the relevant period.
+   (e) Financial transactions were routed back to the taxpayer through circular transactions via [intermediary parties], indicating accommodation entries.
+
+4. The ITC of Rs. [ITC Amount]/- has been fraudulently availed by means of suppression of facts/fraud/wilful misstatement, attracting Section 74 of the CGST Act, 2017.
+
+DEMAND:
+
+   ITC wrongly availed (fraud)         : Rs. [ITC Amount]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest Amount]/-
+   Penalty u/s 74(9) (100% of tax)     : Rs. [Penalty Amount]/-
+   TOTAL DEMAND                         : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why:
+(i)  ITC of Rs. [ITC Amount]/- should not be reversed/recovered under Section 74 read with Section 16(2)(a);
+(ii) Interest under Section 50 should not be levied;
+(iii) Penalty under Section 74(9) equal to the amount of tax should not be imposed.
+
+Voluntary payment benefit: If full tax + interest paid before replying to this SCN, penalty shall be 15%. If paid within 30 days of this SCN, penalty shall be 25%.
+
+NOTE: This notice has been issued with prior approval of [Commissioner / Additional/Joint Commissioner] as required under Section 74(10).
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_78",
+    category: "GST",
+    name: "SCN: ITC Reversal — Blocked Credits under Section 17(5) (Ineligible Category)",
+    subject: "Show Cause Notice for Reversal of Ineligible Input Tax Credit under Section 17(5) of CGST Act, 2017 — Blocked Credits — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 73 read with Section 17(5) of the CGST Act, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for reversal of ITC of Rs. [Amount]/- availed on ineligible goods/services under Section 17(5) of the CGST Act, 2017 — GSTIN [GSTIN] — Period: [Period].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) has availed ITC of Rs. [Amount]/- during [Period] on categories specifically barred under Section 17(5) of the CGST Act, 2017.
+
+2. Section 17(5) blocks ITC on the following categories (applicable category identified):
+
+   (a) Motor Vehicles [s.17(5)(a)]: ITC of Rs. [Amount]/- on vehicle No. [Vehicle No.] is blocked. Motor vehicles are ineligible unless used for further supply of vehicles, transportation of passengers/goods, or driving training.
+
+   (b) Food and Beverages / Outdoor Catering [s.17(5)(b)(i)]: ITC of Rs. [Amount]/- on [catering/food invoice details] is blocked.
+
+   (c) Club / Health / Fitness Membership [s.17(5)(b)(iii)]: ITC of Rs. [Amount]/- on [club/gym membership] is blocked.
+
+   (d) Travel Benefits / LTC [s.17(5)(b)(iv)]: ITC of Rs. [Amount]/- on travel benefits extended to employees on vacation is blocked.
+
+   (e) Works Contract for Immovable Property [s.17(5)(c)]: ITC of Rs. [Amount]/- on [contractor invoice] for construction of immovable property is blocked, other than plant and machinery.
+
+   (f) Construction of Immovable Property [s.17(5)(d)]: ITC of Rs. [Amount]/- on goods/services for construction of immovable property on own account is blocked.
+
+3. The ineligible ITC is required to be reversed along with interest under Section 50.
+
+DEMAND:
+
+   Ineligible ITC (s.17(5))            : Rs. [Amount]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest Amount]/-
+   Penalty u/s 73(9) (10%)             : Rs. [Penalty Amount]/-
+   TOTAL DEMAND                         : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why:
+(i)  ITC of Rs. [Amount]/- availed on the above ineligible categories should not be reversed/recovered under Section 73 read with Section 17(5) of the CGST Act, 2017;
+(ii) Interest under Section 50 should not be levied;
+(iii) Penalty under Section 73(9) should not be imposed.
+
+If you have already reversed the said ITC and paid interest, furnish evidence of the same with your reply.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_79",
+    category: "GST",
+    name: "SCN: ITC Reversal — GSTR-2B Mismatch (Supplier Non-Filer / Nil Return)",
+    subject: "Show Cause Notice for Reversal of ITC not reflected in GSTR-2B — Section 16(2)(aa) of CGST Act — Supplier Non-Filing / Mismatch — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 73 read with Section 16(2)(aa) of the CGST Act, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for reversal of ITC of Rs. [Amount]/- availed in GSTR-3B but not reflected in GSTR-2B — Supplier non-filing / mismatch — Section 16(2)(aa) — GSTIN [GSTIN] — Period: [Period].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) availed ITC of Rs. [ITC Amount]/- in GSTR-3B for [Period].
+
+   Supplier GSTIN: [Supplier GSTIN] | Supplier Name: [Name] | Period: [Period] | ITC in GSTR-3B: Rs. [Amt]/- | ITC in GSTR-2B: Rs. [Amt]/- | Excess: Rs. [Excess]/-
+   TOTAL EXCESS ITC (not in GSTR-2B): Rs. [Total]/-
+
+2. Section 16(2)(aa) of the CGST Act, 2017 (inserted by Finance Act 2021, effective 01.01.2022) provides that ITC is available only if the details of the invoice appear in the GSTR-2B of the recipient.
+
+3. The ITC of Rs. [ITC Amount]/- does NOT appear in GSTR-2B because:
+   [SELECT APPLICABLE]:
+   (a) Supplier (GSTIN: [Supplier GSTIN]) did NOT file GSTR-1/IFF for [Period].
+   (b) Supplier filed GSTR-1 but did NOT upload/declare the said invoices.
+   (c) Supplier filed nil GSTR-1 for [Period] despite issuing the said tax invoices.
+
+DEMAND:
+
+   Ineligible ITC (not in GSTR-2B)     : Rs. [ITC Amount]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest Amount]/-
+   Penalty u/s 73(9)                   : Rs. [Penalty Amount]/-
+   TOTAL DEMAND                         : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why ITC of Rs. [ITC Amount]/- should not be reversed under Section 73 read with Section 16(2)(aa) of the CGST Act, 2017, along with interest and penalty.
+
+If the supplier has subsequently filed GSTR-1 and the ITC now reflects in your GSTR-2B, furnish a copy of the updated GSTR-2B with your reply.
+
+NOTE: If the supplier subsequently files GSTR-1 and the ITC appears in GSTR-2B, you may re-avail the ITC in that tax period, subject to the time limit under Section 16(4).
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_80",
+    category: "GST",
+    name: "Order: ITC Reversal Confirmed — GSTR-2B Mismatch + Interest (Section 16(2)(aa))",
+    subject: "Order Confirming Reversal of ITC Not Reflected in GSTR-2B — Section 16(2)(aa) of CGST Act, 2017 — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+ORDER-IN-ORIGINAL
+(Under Section 73 read with Section 16(2)(aa) of the CGST Act, 2017)
+
+C.No. [File Number]                                          Date: [Date]
+DIN: [DIN]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Order confirming reversal of ITC of Rs. [ITC Amount]/- not reflected in GSTR-2B — Section 73 read with Section 16(2)(aa) — GSTIN [GSTIN] — Period: [Period].
+
+BACKGROUND:
+
+1. Show Cause Notice vide C.No. [SCN No.] dated [SCN Date] was issued proposing reversal of ITC of Rs. [ITC Amount]/- for non-reflection in GSTR-2B under Section 16(2)(aa) of the CGST Act, 2017.
+
+2. [The taxpayer replied on [Date] / No reply was received.]
+
+3. Personal hearing [was conducted on [Date] / was not availed.]
+
+FINDINGS:
+
+4. Section 16(2)(aa) unambiguously provides that ITC is conditional upon reflection of invoices in GSTR-2B. The ITC of Rs. [ITC Amount]/- on invoices from supplier GSTIN [Supplier GSTIN] does not appear in the GSTR-2B for [Period].
+
+5. [Address taxpayer's contention if any]. The bar under Section 16(2)(aa) is a mandatory compliance requirement.
+
+COMPUTATION:
+
+   ITC reversed (GSTR-2B mismatch)    : Rs. [ITC Amount]/-
+   Interest u/s 50 @ [Rate]%
+   from [Date] to [Date]               : Rs. [Interest]/-
+   Penalty u/s 73(9) (10%)             : Rs. [Penalty]/-
+   TOTAL                               : Rs. [Total]/-`,
+    closing: `ORDER:
+
+I hereby CONFIRM the demand for reversal of ITC of Rs. [ITC Amount]/- along with interest and penalty, totalling Rs. [Total Amount]/-, under Section 73 read with Section 16(2)(aa) of the CGST Act, 2017.
+
+M/s [Taxpayer Name] is directed to pay Rs. [Total Amount]/- within 3 months from the date of this order.
+
+NOTE: If the supplier subsequently files GSTR-1 for the relevant period and the ITC appears in GSTR-2B, the taxpayer may re-avail the ITC in the subsequent period, subject to the annual time limit under Section 16(4).
+
+APPEAL CLAUSE: An appeal may be filed before the Commissioner (Appeals), CGST [Zone], within 3 months under Section 107, with mandatory pre-deposit of 10% of disputed tax under Section 107(6).
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_81",
+    category: "GST",
+    name: "SCN: ITC Reversal — Exempt/Non-Business Use Proportional Reversal (Rule 42/43)",
+    subject: "Show Cause Notice for Proportional Reversal of ITC under Rule 42/43 of CGST Rules, 2017 — Exempt Supply / Non-Business Use — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 73 read with Section 17(1), 17(2) and Rules 42 and 43 of the CGST Act/Rules, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for reversal of proportional ITC of Rs. [Amount]/- availed on inputs/capital goods used for exempt supplies and/or non-business purposes under Rule 42/43 — GSTIN [GSTIN] — Period: [Period].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) is engaged in making BOTH taxable and exempt supplies [and/or uses inputs partly for non-business purposes].
+
+2. Section 17(1) restricts ITC to so much of the input tax as is attributable to business purposes. Section 17(2) restricts ITC to so much as is attributable to taxable supplies.
+
+3. Rule 42 prescribes the method for reversal of ITC on inputs and input services used for exempt supplies / non-business use. Rule 43 prescribes the method for capital goods.
+
+4. From examination of the taxpayer's returns and financials for [Period]:
+
+   Total ITC availed                   : Rs. [Total ITC]/-
+   Taxable turnover                    : Rs. [Taxable TO]/-
+   Exempt turnover                     : Rs. [Exempt TO]/-
+   Total turnover                      : Rs. [Total TO]/-
+   Exempt supply ratio                 : [%]
+   ITC required to be reversed (Rule 42): Rs. [Reversal Amount]/-
+   ITC actually reversed by taxpayer   : Rs. [Reversed by TP]/-
+   SHORTFALL in reversal               : Rs. [Shortfall]/-
+
+DEMAND:
+
+   ITC short reversed (Rule 42/43)     : Rs. [Shortfall]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest]/-
+   Penalty u/s 73(9) (10%)             : Rs. [Penalty]/-
+   TOTAL DEMAND                         : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why ITC of Rs. [Shortfall]/- should not be recovered along with interest and penalty for short reversal under Rule 42/43 read with Section 17 of the CGST Act.
+
+If the reversal has already been made and interest paid, furnish evidence with your reply.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_82",
+    category: "GST",
+    name: "SCN: Wrongly Availed Transitional ITC — TRAN-1 / TRAN-2 (Section 140)",
+    subject: "Show Cause Notice for Recovery of Wrongly Availed Transitional Credit — TRAN-1 / TRAN-2 — Section 140 of CGST Act / Section 74 — GSTIN: [GSTIN] — M/s [Taxpayer Name]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 74 read with Section 140 of the CGST Act, 2017 and Rules 117/118 of the CGST Rules, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for recovery of transitional ITC of Rs. [Amount]/- fraudulently/wrongly availed through TRAN-1/TRAN-2 — Section 140 — GSTIN [GSTIN].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) filed FORM GST TRAN-1 on [Date] [and/or FORM GST TRAN-2 on [Date]] claiming transitional ITC of Rs. [Claimed ITC]/- on closing stock/credit held as on 30.06.2017.
+
+   Transitional ITC claimed:
+   Closing stock (pre-GST): Rs. [Amt]/- | Unavailed CENVAT credit: Rs. [Amt]/- | VAT credit on stock: Rs. [Amt]/-
+   TOTAL: Rs. [Total]/-
+
+2. Section 140 allows transitional credit only where:
+   (a) Such credit was admissible under the pre-GST law;
+   (b) The credit is reflected in the last returns filed under pre-GST law;
+   (c) The eligible credit is supported by documentary evidence as per Rule 117/118.
+
+3. On verification/investigation, the following discrepancies are found:
+   [SELECT APPLICABLE]:
+   (a) The claimed CENVAT credit is not reflected in the ER-1/ST-3 return for the period ending 30.06.2017.
+   (b) Closing stock claimed was found to be inflated/fictitious — no corresponding purchase invoices found.
+   (c) The TRAN-1 credit relates to ineligible categories of inputs under the pre-GST law as well.
+   (d) Supporting documents produced do not match the claim made in TRAN-1.
+
+4. The wrongly availed transitional ITC of Rs. [Amount]/- is recoverable under Section 74 as the claim was made through wilful misstatement / suppression / fraud.
+
+DEMAND:
+
+   Wrongly availed TRAN credit         : Rs. [Amount]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest]/-
+   Penalty u/s 74(9) (100%)            : Rs. [Penalty]/-
+   TOTAL                                : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why the transitional ITC of Rs. [Amount]/- should not be recovered along with 100% penalty and interest under Section 74 read with Section 140 of the CGST Act, 2017.
+
+Produce original pre-GST duty paying documents, stock records, and pre-GST returns in support of your TRAN-1/TRAN-2 claim.
+
+Prior approval for issuance of this notice has been obtained from [Commissioner/Joint Commissioner/Additional Commissioner] as required under Section 74(10) of the CGST Act.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_83",
+    category: "GST",
+    name: "SCN: ITC Reversal on Cancellation of GST Registration (Rule 44 / Section 29(5))",
+    subject: "Show Cause Notice for Reversal of ITC on Closing Stock/Capital Goods upon Cancellation of Registration — Rule 44 / Section 29(5) — GSTIN: [GSTIN]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 73 read with Section 29(5) and Rule 44 of the CGST Act/Rules, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Last Known Address]
+
+Subject: Show Cause Notice for payment of ITC reversal amount on closing stock and capital goods as on date of cancellation of GST registration — Rule 44 — GSTIN [GSTIN] — Effective Cancellation Date: [Date].
+
+FACTS:
+
+1. The GST registration of M/s [Taxpayer Name] (GSTIN: [GSTIN]) was cancelled with effect from [Cancellation Date] under Section 29 of the CGST Act, 2017.
+
+2. Section 29(5) provides that every registered taxable person whose registration is cancelled shall pay an amount equivalent to the credit of input tax in respect of inputs held in stock, capital goods, and plant and machinery on the day immediately preceding the date of effectiveness of cancellation, in FORM GST ITC-03.
+
+3. Rule 44 prescribes the manner of reversal:
+   - For inputs: the credit attributable to inputs in stock shall be reversed.
+   - For capital goods: ITC on capital goods reduced by 5% per quarter/part thereof from the date of invoice shall be reversed.
+
+4. As on [Cancellation Date - 1]:
+   Estimated closing stock value          : Rs. [Stock Value]/-
+   ITC attributable to closing stock      : Rs. [ITC on Stock]/-
+   Capital goods ITC (reduced by usage)   : Rs. [Capital Goods ITC]/-
+   Total ITC reversal required (Rule 44)  : Rs. [Total Reversal]/-
+
+5. The taxpayer has NOT filed FORM GST ITC-03 and has NOT reversed the said ITC of Rs. [Total Reversal]/-.
+
+DEMAND:
+
+   ITC reversal required (Rule 44)      : Rs. [Total Reversal]/-
+   Interest u/s 50 from [Date]          : Rs. [Interest]/-
+   Penalty u/s 73(9)                    : Rs. [Penalty]/-
+   TOTAL DEMAND                          : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why the ITC reversal amount of Rs. [Total Reversal]/- should not be recovered under Rule 44 read with Section 29(5) of the CGST Act, 2017, along with interest and penalty.
+
+If FORM GST ITC-03 has been filed and ITC reversed, produce documentary evidence with your reply.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_84",
+    category: "GST",
+    name: "DRC-07: Summary of ITC Demand Order (Post OIO for ITC Cases)",
+    subject: "Summary of Order — Form GST DRC-07 — ITC Demand — Section 73/74 — GSTIN: [GSTIN] — M/s [Taxpayer Name] — Order No: [Order No.]",
+    opening: `FORM GST DRC - 07
+SUMMARY OF THE ORDER
+(Rule 142(5) of the Central Goods and Services Tax Rules, 2017)
+
+GSTIN of Taxable Person     : [GSTIN]
+Name of Taxable Person      : [Taxpayer Name]
+Address                     : [Registered Address]
+Order No.                   : [Order Number]
+Date of Order               : [Order Date]
+DIN of Order                : [DIN]
+Issuing Authority           : [Name and Designation]
+Period                      : [Tax Period]
+Section under which order passed: Section [73/74] read with Section 16([section]) of the CGST Act, 2017
+
+DETAILS OF DEMAND CONFIRMED:
+
+Nature of ITC Issue: [ITC reversal type]
+Description: [Brief description]
+
+Tax Type  | Tax Amount    | Interest Amount | Penalty Amount | Total Amount
+CGST      | Rs. [CGST]/-  | Rs. [Int]/-     | Rs. [Pen]/-    | Rs. [Total]/-
+SGST/UTGST| Rs. [SGST]/-  | Rs. [Int]/-     | Rs. [Pen]/-    | Rs. [Total]/-
+IGST      | Rs. [IGST]/-  | Rs. [Int]/-     | Rs. [Pen]/-    | Rs. [Total]/-
+CESS      | Rs. [CESS]/-  | Rs. [Int]/-     | Rs. [Pen]/-    | Rs. [Total]/-
+TOTAL     | Rs. [Tax]/-   | Rs. [Interest]/-| Rs. [Penalty]/-| Rs. [Grand Total]/-
+
+Amount already paid (if any): Rs. [Paid]/-
+Net amount payable          : Rs. [Net Due]/-
+Payment Due Date            : [Date — 3 months from order date]`,
+    closing: `PAYMENT INSTRUCTION:
+
+The above amount of Rs. [Net Due]/- is required to be paid by M/s [Taxpayer Name] (GSTIN: [GSTIN]) on or before [Due Date].
+
+Payment to be made through CGST Minor Head 300 (Tax) / 400 (Interest) / 500 (Penalty) via GSTR-3B or DRC-03 on the GST portal.
+
+APPEAL NOTICE: If you wish to appeal against Order No. [Order No.] dated [Date], file Form GST APL-01 before the Commissioner (Appeals), CGST [Zone], within 3 months, with mandatory pre-deposit of 10% of the disputed tax under Section 107(6) of the CGST Act, 2017.
+
+If the amount is not paid within the stipulated period, recovery proceedings under Section 79 of the CGST Act, 2017 shall be initiated.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]`
+  },
+  {
+    id: "gst_85",
+    category: "GST",
+    name: "Note Sheet: ITC Reconciliation — Internal Officer Working Note",
+    subject: "Note Sheet for ITC Reconciliation and Determination of Ineligible/Wrongly Availed ITC — Internal — GSTIN: [GSTIN] — M/s [Taxpayer Name] — Period: [Period]",
+    opening: `INTERNAL NOTE SHEET — ITC RECONCILIATION
+
+F. No.: [File Number]                                  Date: [Date]
+OFFICE OF THE [DESIGNATION], CGST [DIVISION/COMMISSIONERATE]
+
+Subject: ITC Reconciliation — GSTIN [GSTIN] — M/s [Taxpayer Name] — Period: [Period].
+
+1. INTRODUCTION:
+   This note examines the ITC availed by M/s [Taxpayer Name] (GSTIN: [GSTIN]) for the period [Period] vis-a-vis GSTR-2B data, GSTR-3B data, purchase registers, and applicable restrictions under Sections 16, 17 and related rules of the CGST Act, 2017.
+
+2. COMPARISON OF ITC DATA:
+   Total ITC availed in GSTR-3B               : Rs. [Total ITC]/-
+   Total ITC available in GSTR-2B             : Rs. [GSTR-2B ITC]/-
+   Excess ITC availed (GSTR-3B over GSTR-2B)  : Rs. [Excess]/-
+
+3. CATEGORY-WISE ANALYSIS:
+
+   A. ITC on s.17(5) blocked categories        : Rs. [Amount]/-
+   B. ITC on 180-day non-payment (s.16(2)(b))  : Rs. [Amount]/-
+   C. GSTR-2B mismatch (s.16(2)(aa))           : Rs. [Amount]/-
+   D. Rule 42 short reversal (exempt supply):
+      Exempt turnover ratio: [%]
+      ITC to be reversed (Rule 42)             : Rs. [Amount]/-
+      ITC actually reversed                    : Rs. [Amount]/-
+      Short reversal                           : Rs. [Amount]/-
+   E. Any other ineligible ITC                 : Rs. [Amount]/-
+
+4. SUMMARY OF DEMAND PROPOSED:
+   s.17(5) blocked credit                      : Rs. [Amt]/-
+   s.16(2)(b) 180-day                          : Rs. [Amt]/-
+   s.16(2)(aa) GSTR-2B                         : Rs. [Amt]/-
+   Rule 42 short reversal                      : Rs. [Amt]/-
+   Other                                       : Rs. [Amt]/-
+   TOTAL ITC DEMAND                            : Rs. [Total]/-
+   Add: Interest u/s 50                        : Rs. [Interest]/-
+   Add: Penalty (10%)                          : Rs. [Penalty]/-
+   GRAND TOTAL DEMAND                          : Rs. [Grand Total]/-
+
+5. RECOMMENDATION:
+   It is recommended that a Show Cause Notice be issued to M/s [Taxpayer Name] (GSTIN: [GSTIN]) for recovery of ITC of Rs. [Total]/- as computed above, along with interest and penalty.
+   Section: [73 — no fraud / 74 — fraud/suppression — prior approval of [JC/Addl. Commr.] required under s.74(10)]
+
+Submitted for kind approval to [Designation]:
+Prepared by: [Name, Designation]  |  Date: [Date]`,
+    closing: `APPROVAL / NOTING:
+
+Reviewed by [Superintendent / Inspector]: [Signature, Name, Date]
+
+Approved by [Assistant Commissioner / Deputy Commissioner / Joint Commissioner]: [Signature, Name, Date]
+
+Decision: Issue SCN under Section [73/74] as per above analysis.
+SCN to be issued by: [Name, Designation]
+Target date for SCN issuance: [Date]
+
+File No.: [File No.]`
+  },
+  {
+    id: "gst_86",
+    category: "GST",
+    name: "SCN: ITC Availed by Ineligible Person — Composition Dealer / Exempt Supplier",
+    subject: "Show Cause Notice for Recovery of ITC Wrongly Availed by Ineligible Person — Composition Dealer / Person Making Only Exempt Supplies — Section 10(4) / Section 17(2) — GSTIN: [GSTIN]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 73 read with Section 10(4) / Section 17(2) of the CGST Act, 2017)
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice for recovery of ITC of Rs. [Amount]/- wrongly availed by ineligible person — [Composition Dealer / Exempt Supplier] — GSTIN [GSTIN] — Period: [Period].
+
+FACTS:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) is registered under [Composition Scheme under Section 10 / making only exempt supplies].
+
+2. [SELECT APPLICABLE]:
+
+   CASE A — Composition Dealer:
+   Section 10(4) explicitly provides that a person opting for Composition Scheme SHALL NOT be entitled to any credit of input tax. Despite this clear bar, the taxpayer has availed ITC of Rs. [Amount]/- in their Electronic Credit Ledger.
+
+   CASE B — Exempt Supply Only:
+   As M/s [Taxpayer Name] makes ONLY exempt supplies, ITC of Rs. [Amount]/- availed is wholly ineligible under Section 17(2) read with Rule 42 of the CGST Rules, 2017.
+
+DEMAND:
+
+   Ineligible ITC (wrong availing)     : Rs. [Amount]/-
+   Interest u/s 50 from [Date]         : Rs. [Interest]/-
+   Penalty u/s 73(9) (10%)             : Rs. [Penalty]/-
+   TOTAL DEMAND                         : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why ITC of Rs. [Amount]/- should not be recovered as you are not entitled to ITC under Section 10(4) / Section 17(2) of the CGST Act, 2017.
+
+If ITC has been voluntarily reversed, produce evidence with your reply.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+  {
+    id: "gst_87",
+    category: "GST",
+    name: "SCN: Section 74A — Unified Demand Notice (FY 2024-25 Onwards)",
+    subject: "Show Cause Notice under Section 74A of CGST Act, 2017 — [Nature of Demand] — GSTIN: [GSTIN] — M/s [Taxpayer Name] — Period: [FY 2024-25 or later]",
+    opening: `OFFICE OF THE [DESIGNATION]
+CENTRAL GOODS AND SERVICES TAX [DIVISION/COMMISSIONERATE]
+[ADDRESS]
+
+C.No. [File Number]                                           Date: [Date]
+
+SHOW CAUSE NOTICE
+(Under Section 74A of the Central Goods and Services Tax Act, 2017)
+
+[NOTE: Section 74A applies ONLY for FY 2024-25 and subsequent years. For prior periods, use Section 73 or Section 74.]
+
+To,
+[Taxpayer Name]
+GSTIN: [GSTIN]
+[Registered Address]
+
+Subject: Show Cause Notice under Section 74A of the CGST Act, 2017 for recovery of tax of Rs. [Tax Amount]/- — [Short description of demand] — GSTIN [GSTIN] — Period: [FY 2024-25 / 2025-26].
+
+BACKGROUND — SECTION 74A:
+
+Section 74A was inserted by the Finance (No. 2) Act, 2024 and is applicable for FY 2024-25 and subsequent years. It provides a UNIFIED framework replacing the erstwhile separate provisions of Section 73 (no fraud) and Section 74 (fraud), with a single time limit of 42 months from the due date of filing the annual return.
+
+Time limit for SCN: 42 months from due date of annual return.
+Penalty (fraud/wilful misstatement): 100% of tax.
+Penalty (no fraud): 10% of tax.
+Reduced penalty available under Section 74A(6) for early payment.
+
+FACTS OF THE CASE:
+
+1. M/s [Taxpayer Name] (GSTIN: [GSTIN]) is registered under the CGST Act, 2017.
+
+2. The following discrepancy has been identified for [Period — FY 2024-25 / 2025-26]:
+
+   [SELECT APPLICABLE]:
+   (a) Output tax mismatch: Declared in GSTR-1: Rs. [Amt]/- | Paid in GSTR-3B: Rs. [Amt]/- | Short payment: Rs. [Amt]/-
+   (b) ITC wrongly availed [specify category]: ITC availed: Rs. [Amt]/- | ITC eligible: Rs. [Amt]/- | Ineligible ITC: Rs. [Amt]/-
+   (c) RCM non-payment: [Specify supply details and RCM liability]
+   (d) Any other: [Describe]
+
+3. [WHERE FRAUD IS ALLEGED]: The above is attributable to fraud/wilful misstatement/suppression of facts, as evidenced by [specific reasons].
+   [WHERE NO FRAUD]: The discrepancy appears to be on account of inadvertence/error/miscalculation, without any fraud or wilful misstatement.
+
+LIMITATION:
+
+4. Annual return for FY [2024-25] was due on [30.12.2025 / actual date]. Time limit for SCN under Section 74A: 42 months from [due date] = [Date]. This notice is within the limitation period.
+
+DEMAND:
+
+   Tax short-paid / ITC wrongly availed    : Rs. [Tax Amount]/-
+   Interest u/s 50 from [Date] to [Date]   : Rs. [Interest]/-
+   Penalty under Section 74A               : Rs. [Penalty]/-
+   [If fraud: 100% | If no fraud: 10%]
+   TOTAL DEMAND                             : Rs. [Total]/-`,
+    closing: `YOU ARE HEREBY REQUIRED to show cause within 30 days as to why:
+(i)  Tax of Rs. [Tax Amount]/- should not be recovered under Section 74A of the CGST Act, 2017;
+(ii) Interest under Section 50 should not be levied;
+(iii) Penalty under Section 74A should not be imposed.
+
+REDUCED PENALTY BENEFIT (Section 74A(6)):
+   Paid before replying to this SCN        : Penalty NIL
+   Paid within 30 days of this SCN         : Penalty 25% of tax
+   Paid before Order-in-Original           : Penalty 50% of tax
+[These reduced penalties apply where no fraud is alleged. For fraud cases, penalty up to 100% under Section 74A(9).]
+
+[IF FRAUD ALLEGED]: This notice has been issued with prior approval of [Commissioner / Additional/Joint Commissioner] as required.
+
+NOTE: This notice pertains to FY [2024-25 / 2025-26] and is issued under Section 74A as applicable for FY 2024-25 onwards. Demands pertaining to prior periods are governed by Section 73 or Section 74, as applicable.
+
+[Name of Proper Officer]
+[Designation]
+O/o [Commissioner/AC/DC/Superintendent], CGST [Division/Commissionerate]
+DIN: [DIN]`
+  },
+
+  {
     id: "cus_18",
     category: "Customs",
     name: "Bill of Entry Assessment Order",
