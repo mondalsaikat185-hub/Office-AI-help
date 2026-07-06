@@ -33,10 +33,12 @@ async function withAutoRetry<T>(
   }
 }
 
-// Google retired the Gemini 1.5 series — silently upgrade stale saved selections
+// Google shut down the Gemini 1.5 and 2.0 series — silently upgrade stale saved selections
 const RETIRED_MODEL_MAP: Record<string, string> = {
   'gemini-1.5-pro': 'gemini-2.5-pro',
   'gemini-1.5-flash': 'gemini-2.5-flash',
+  'gemini-2.0-flash': 'gemini-2.5-flash',
+  'gemini-2.0-flash-lite': 'gemini-2.5-flash-lite',
 };
 function resolveModel(id: string): string {
   return RETIRED_MODEL_MAP[id] || id;

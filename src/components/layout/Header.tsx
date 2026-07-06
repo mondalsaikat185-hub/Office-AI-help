@@ -80,11 +80,13 @@ export default function Header() {
   const file = dir?.files?.find(f => f.id === activeFileId) || dir?.files?.[0];
   const sig = ws?.signatures.find(s => s.id === activeSignatureId) || ws?.signatures[0];
 
+  // Verified against ai.google.dev/gemini-api/docs/models (June 2026).
+  // 1.5 and 2.0 series are shut down by Google — do not add them back.
   const models = [
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended)', short: '2.5 Flash ⚡' },
-    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Best quality, slow)', short: '2.5 Pro 🎯' },
-    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Fastest)', short: '2.5 Lite 🚀' },
-    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', short: '2.0 Flash' },
+    { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Recommended — newest)', short: '3.5 Flash ✨' },
+    { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite (Fastest)', short: '3.1 Lite 🚀' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Deep reasoning)', short: '2.5 Pro 🎯' },
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Proven workhorse)', short: '2.5 Flash ⚡' },
   ];
 
   const getSigDisplay = (s: any) => {

@@ -7,12 +7,11 @@ interface RateLimitConfig {
 
 // Model-specific RPM defaults
 const MODEL_RPM_MAP: Record<string, number> = {
+  'gemini-3.5-flash':       10,
+  'gemini-3.1-flash-lite':  15,
   'gemini-2.5-flash':       10,   // Free tier default
   'gemini-2.5-pro':         5,
   'gemini-2.5-flash-lite':  15,
-  'gemini-2.0-flash':       10,
-  'gemini-1.5-flash':       15,
-  'gemini-1.5-pro':         2,
   'default':                10,
 };
 
