@@ -2,27 +2,32 @@ import { useStore } from './store';
 import { rateLimiter } from './rateLimiter';
 
 const MAX_AUTO_RETRIES = 2;
+const MAX_QUOTA_RETRIES = 2;
 const RETRY_DELAY_MS = [2000, 5000]; // 2s then 5s
 
 async function withAutoRetry<T>(
   fn: () => Promise<T>,
   attempt: number = 0,
-  canRetry: () => boolean = () => true
+  canRetry: () => boolean = () => true,
+  quotaAttempt: number = 0
 ): Promise<T> {
   try {
     return await fn();
   } catch (e: any) {
-    const isRetryable =
-      !e.message?.includes('429') &&
-      !e.message?.includes('quota') &&
-      !e.message?.includes('Quota') &&
-      canRetry() &&
-      attempt < MAX_AUTO_RETRIES;
+    const isQuota = e.message?.includes('429') || /quota/i.test(e.message || '');
 
+    // 429/quota: rateLimiter.handleRateLimit() already waited (exponential backoff).
+    // RPM quotas reset within a minute, so retrying the SAME key usually succeeds.
+    if (isQuota && canRetry() && quotaAttempt < MAX_QUOTA_RETRIES) {
+      console.warn(`[Gemini] Quota retry ${quotaAttempt + 1}/${MAX_QUOTA_RETRIES} (backoff already applied)`);
+      return withAutoRetry(fn, attempt, canRetry, quotaAttempt + 1);
+    }
+
+    const isRetryable = !isQuota && canRetry() && attempt < MAX_AUTO_RETRIES;
     if (isRetryable) {
       console.warn(`[Gemini] Retry ${attempt + 1}/${MAX_AUTO_RETRIES} after ${RETRY_DELAY_MS[attempt]}ms due to error: ${e.message}`);
       await new Promise(r => setTimeout(r, RETRY_DELAY_MS[attempt]));
-      return withAutoRetry(fn, attempt + 1, canRetry);
+      return withAutoRetry(fn, attempt + 1, canRetry, quotaAttempt);
     }
     throw e;
   }
@@ -72,7 +77,7 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
         contents: [{ parts }],
         generationConfig: { 
           temperature: opts.temp ?? 0.4, 
-          maxOutputTokens: opts.maxOut ?? 16384 
+          maxOutputTokens: opts.maxOut ?? 32768 
         },
       };
       
@@ -117,10 +122,12 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
         let truncated = false;
         let buffer = '';
 
-        // Reset activity timeout helper
+        // Reset activity timeout helper.
+        // Before the first chunk the model may "think" silently for a long time on big
+        // notes — allow 90s. After output starts, 30s of silence means a stalled stream.
         const resetActivityTimeout = () => {
           if (timeoutId) clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => controller.abort(), 20000); // 20s inactivity timeout
+          timeoutId = setTimeout(() => controller.abort(), hasSentChunk ? 30000 : 90000);
         };
 
         // Clear connection timeout

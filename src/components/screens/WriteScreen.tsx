@@ -111,32 +111,45 @@ export default function WriteScreen() {
     if (!magicInput) return displayAlert("Please paste some text first!");
     setIsMagicLoading(true);
     try {
-      const prompt = `You are a strict data extraction AI. A user pasted a raw document draft.
-Your ONLY task is to extract the details WITHOUT modifying, summarizing, altering punctuation, or changing any wording.
+      const prompt = `You are a strict data extraction AI for an Indian CGST/Customs office assistant. A user pasted raw notes, a draft, or scattered case details.
+Your ONLY task is to extract details WITHOUT modifying, summarizing, altering punctuation, or changing any wording. If a field is absent, return an empty string for it.
 
-Draft:
+Input:
 """
 ${magicInput}
 """
 
 Extract into this exact JSON format:
 {
-  "type": "Determine if it's a 'letter', 'note', or 'order'. Default to 'letter' if unsure.",
-  "subject": "EXACT subject line (excluding 'Sub:' or 'Subject:')",
-  "salutation": "EXACT salutation if present (e.g., 'Sir/Madam,', 'Dear Sir,'). Leave empty if not.",
-  "recipientTo": "EXACT address block of the recipient (exclude 'To,' or 'To'). Preserve line breaks.",
-  "refText": "EXACT reference text if present.",
-  "details": "The EXACT complete body paragraphs of the text. STRICTLY copy-paste the body content. DO NOT summarize or rewrite."
+  "type": "'letter', 'note', or 'order'. Default 'letter' if unsure.",
+  "subject": "EXACT subject line (excluding 'Sub:' or 'Subject:'). If no explicit subject, compose a one-line subject from the facts (this is the ONLY field you may compose).",
+  "salutation": "EXACT salutation if present (e.g., 'Sir/Madam,').",
+  "recipientTo": "EXACT recipient address block (exclude 'To,'). Preserve line breaks.",
+  "refText": "EXACT reference text / ref numbers with dates if present.",
+  "details": "The EXACT complete body/facts. STRICTLY copy-paste. DO NOT summarize or rewrite.",
+  "copyTo": "EXACT 'Copy to' / 'Copy submitted to' list if present. Preserve line breaks.",
+  "enclosures": "EXACT enclosure list if present.",
+  "din": "DIN number if present (format like CBIC-20260106XXXXXXXX).",
+  "arnNo": "ARN number if present.",
+  "arnDate": "ARN date if present (YYYY-MM-DD if convertible).",
+  "boeNo": "Bill of Entry / Shipping Bill number if present.",
+  "boeDate": "BOE date if present (YYYY-MM-DD if convertible).",
+  "importerName": "Importer / taxpayer / noticee name if present.",
+  "iec": "IEC or GSTIN if present.",
+  "amount": "Principal disputed/refund/demand amount in Rs. if present (numbers only).",
+  "goods": "Description of goods/services if present.",
+  "scnDate": "SCN date if present (YYYY-MM-DD if convertible)."
 }
 Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       
-      const res = await callGemini(prompt, { maxOut: 1500, temp: 0.1 });
+      const res = await callGemini(prompt, { maxOut: 8192, temp: 0.1 });
       let parsedItem;
       try {
-        const jsonMatch = res.text.match(/\{[\s\S]*\}/);
-        parsedItem = JSON.parse(jsonMatch ? jsonMatch[0] : res.text);
+        let raw = res.text.replace(/^\s*```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        parsedItem = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
       } catch (err) {
-        throw new Error("AI returned invalid data format.");
+        throw new Error("AI returned invalid data format. Try again or paste a smaller portion.");
       }
       
       if (parsedItem.type && ['letter', 'note', 'order'].includes(parsedItem.type.toLowerCase())) {
@@ -152,9 +165,22 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       if (parsedItem.refText) setRefText(parsedItem.refText);
       if (parsedItem.salutation) setSalutation(parsedItem.salutation);
       if (parsedItem.details) setDetails(parsedItem.details);
-      
+      if (parsedItem.copyTo) setCopyTo(parsedItem.copyTo);
+      if (parsedItem.enclosures) setEnclosures(parsedItem.enclosures);
+      if (parsedItem.din) { setDin(parsedItem.din); setIncludeDin(true); }
+      if (parsedItem.arnNo) setArnNo(parsedItem.arnNo);
+      if (parsedItem.arnDate) setArnDate(parsedItem.arnDate);
+      if (parsedItem.boeNo) setBoeNo(parsedItem.boeNo);
+      if (parsedItem.boeDate) setBoeDate(parsedItem.boeDate);
+      if (parsedItem.importerName) setImporterName(parsedItem.importerName);
+      if (parsedItem.iec) setIec(parsedItem.iec);
+      if (parsedItem.amount) setAmount(String(parsedItem.amount));
+      if (parsedItem.goods) setGoods(parsedItem.goods);
+      if (parsedItem.scnDate) setScnDate(parsedItem.scnDate);
+
+      const extracted = ['subject','recipientTo','refText','details','copyTo','enclosures','din','arnNo','boeNo','importerName','iec','amount','goods','scnDate'].filter(k => parsedItem[k]);
       setMagicInput('');
-      displayAlert(`Magic fill successful! Detected type: ${parsedItem.type || 'letter'}`);
+      displayAlert(`Magic fill successful! Detected type: ${parsedItem.type || 'letter'} • ${extracted.length} fields auto-filled`);
     } catch(err: any) {
       displayAlert("Magic fill failed: " + err.message);
     } finally {
