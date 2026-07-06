@@ -21,6 +21,16 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState<'workspace' | 'dir' | 'file' | 'sig' | 'ai' | 'menu' | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Dropdown panels use position:fixed so the overflow-x-auto chip strip cannot clip them.
+  const [ddRect, setDdRect] = useState<{ top: number; left: number; right: number } | null>(null);
+  const toggleDropdown = (name: 'workspace' | 'dir' | 'file' | 'sig' | 'ai' | 'menu', e: React.MouseEvent) => {
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setDdRect({ top: r.bottom + 8, left: r.left, right: Math.max(8, window.innerWidth - r.right) });
+    setOpenDropdown(openDropdown === name ? null : name);
+  };
+  const ddLeft = { position: 'fixed' as const, top: ddRect?.top, left: ddRect?.left, zIndex: 10000 };
+  const ddRight = { position: 'fixed' as const, top: ddRect?.top, right: ddRect?.right, zIndex: 10000 };
+
   const handleHardRefresh = async () => {
     setRefreshing(true);
     setOpenDropdown(null);
@@ -262,7 +272,7 @@ export default function Header() {
         {/* Workspace Chip */}
         <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'workspace' ? 9999 : 'auto' }}>
           <div 
-            onClick={() => setOpenDropdown(openDropdown === 'workspace' ? null : 'workspace')}
+            onClick={(e) => toggleDropdown('workspace', e)}
             className="flex items-center gap-2 border border-[#22C55E]/30 bg-[#22C55E]/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-[#22C55E] transition-colors h-8"
           >
             <Building2 className="w-3.5 h-3.5 text-[#22C55E]" />
@@ -283,7 +293,7 @@ export default function Header() {
             </div>
           )}
           {openDropdown === 'workspace' && (
-            <div className="absolute top-full left-0 mt-2 bg-white dark:bg-black border-2 border-[#22C55E] w-48 shadow-lg shadow-[#22C55E]/20 max-h-64 overflow-y-auto" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-black border-2 border-[#22C55E] w-48 shadow-lg shadow-[#22C55E]/20 max-h-64 overflow-y-auto" style={ddLeft}>
               {workspaces.map(w => (
                 <div 
                   key={w.id} 
@@ -300,7 +310,7 @@ export default function Header() {
         {/* Directory Chip */}
         <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'dir' ? 9999 : 'auto' }}>
           <div 
-            onClick={() => setOpenDropdown(openDropdown === 'dir' ? null : 'dir')}
+            onClick={(e) => toggleDropdown('dir', e)}
             className="flex items-center gap-2 border border-blue-500/30 bg-blue-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-blue-500 transition-colors h-8"
           >
             <FolderOpen className="w-3.5 h-3.5 text-blue-400" />
@@ -320,7 +330,7 @@ export default function Header() {
             </div>
           ) : null}
           {openDropdown === 'dir' && ws && (
-            <div className="absolute top-full left-0 mt-2 bg-white dark:bg-black border-2 border-blue-500 w-48 shadow-lg shadow-blue-500/20 max-h-64 overflow-y-auto" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-black border-2 border-blue-500 w-48 shadow-lg shadow-blue-500/20 max-h-64 overflow-y-auto" style={ddLeft}>
               {ws.directories.map(d => {
                 const parentDir = ws.directories.find(p => p.id === d.parentId);
                 const displayName = parentDir ? `${parentDir.name} / ${d.name}` : d.name;
@@ -341,7 +351,7 @@ export default function Header() {
         {/* File Chip */}
         <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'file' ? 9999 : 'auto' }}>
           <div 
-            onClick={() => setOpenDropdown(openDropdown === 'file' ? null : 'file')}
+            onClick={(e) => toggleDropdown('file', e)}
             className="flex items-center gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-amber-500 transition-colors h-8"
           >
             <FileText className="w-3.5 h-3.5 text-amber-400" />
@@ -361,7 +371,7 @@ export default function Header() {
             </div>
           ) : null}
           {openDropdown === 'file' && dir && (
-            <div className="absolute top-full left-0 mt-2 bg-white dark:bg-black border-2 border-amber-500 w-48 shadow-lg shadow-amber-500/20 max-h-64 overflow-y-auto" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-black border-2 border-amber-500 w-48 shadow-lg shadow-amber-500/20 max-h-64 overflow-y-auto" style={ddLeft}>
               {dir.files.map(f => (
                 <div 
                   key={f.id} 
@@ -378,7 +388,7 @@ export default function Header() {
         {/* Signature Chip */}
         <div className="relative flex items-center flex-shrink-0" style={{ zIndex: openDropdown === 'sig' ? 9999 : 'auto' }}>
           <div 
-            onClick={() => setOpenDropdown(openDropdown === 'sig' ? null : 'sig')}
+            onClick={(e) => toggleDropdown('sig', e)}
             className="flex items-center gap-2 border border-purple-500/30 bg-purple-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-purple-500 transition-colors h-8"
           >
             <Signature className="w-3.5 h-3.5 text-purple-400" />
@@ -398,7 +408,7 @@ export default function Header() {
             </div>
           ) : null}
           {openDropdown === 'sig' && ws && (
-            <div className="absolute top-full right-0 mt-2 bg-white dark:bg-black border-2 border-purple-500 w-48 shadow-lg shadow-purple-500/20 max-h-64 overflow-y-auto" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-black border-2 border-purple-500 w-48 shadow-lg shadow-purple-500/20 max-h-64 overflow-y-auto" style={ddRight}>
               {ws.signatures.map(s => (
                 <div 
                   key={s.id} 
@@ -422,7 +432,7 @@ export default function Header() {
           </button>
           <div className="relative" style={{ zIndex: openDropdown === 'ai' ? 9999 : 'auto' }}>
             <div 
-              onClick={() => setOpenDropdown(openDropdown === 'ai' ? null : 'ai')}
+              onClick={(e) => toggleDropdown('ai', e)}
               className="flex items-center gap-2 border border-rose-500/30 bg-rose-500/5 px-3 py-1.5 rounded-none cursor-pointer hover:border-rose-500 transition-colors h-8"
             >
             <Cpu className="w-3.5 h-3.5 text-rose-400" />
@@ -432,7 +442,7 @@ export default function Header() {
             <ChevronDown className="w-3 h-3 text-rose-400" />
           </div>
           {openDropdown === 'ai' && (
-            <div className="absolute top-full right-0 mt-2 bg-white dark:bg-black border-2 border-rose-500 w-64 shadow-lg shadow-rose-500/20 p-2" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-black border-2 border-rose-500 w-64 shadow-lg shadow-rose-500/20 p-2 max-h-80 overflow-y-auto" style={ddRight}>
               <div className="mb-2 border-b border-rose-500/20 pb-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-rose-500 mb-1">Model Selection</p>
                 {models.map(m => (
@@ -462,14 +472,14 @@ export default function Header() {
           {/* ── Three-dot Menu ── */}
           <div className="relative" style={{ zIndex: openDropdown === 'menu' ? 9999 : 'auto' }}>
             <button
-              onClick={() => setOpenDropdown(openDropdown === 'menu' ? null : 'menu')}
+              onClick={(e) => toggleDropdown('menu', e)}
               className="flex items-center justify-center p-1.5 border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition-colors h-8 w-8"
               title="More Options"
             >
               <MoreVertical className="w-4 h-4 text-black/60 dark:text-white/60" />
             </button>
             {openDropdown === 'menu' && (
-              <div className="absolute top-full right-0 mt-2 bg-white dark:bg-neutral-900 border-2 border-black/20 dark:border-white/20 w-52 shadow-xl" style={{ zIndex: 10000 }}>
+              <div className="bg-white dark:bg-neutral-900 border-2 border-black/20 dark:border-white/20 w-52 shadow-xl" style={ddRight}>
                 <div className="p-2 border-b border-black/10 dark:border-white/10">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-black/40 dark:text-white/40 px-2 py-1">Application</p>
                 </div>
