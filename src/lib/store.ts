@@ -45,6 +45,8 @@ interface GlobalStore extends AppState {
   loadReportsData: () => Promise<void>;
   loadInbox: () => Promise<void>;
   loadHomeData: () => Promise<void>;
+  exportAllData: () => Promise<Record<string, any>>;
+  importAllData: (json: Record<string, any>) => Promise<string[]>;
 }
 
 let saveDraftTimeout: any = null;
@@ -506,6 +508,60 @@ export const useStore = create<GlobalStore>((set, get) => ({
     } catch (e) {
       console.error("Error loading diary:", e);
     }
+  },
+
+  exportAllData: async () => {
+    // Full backup: core settings + EVERY subcollection fetched fresh from storage
+    // (letters/cases etc. are lazy-loaded, so in-memory state may be incomplete).
+    const adapter = getAdapter();
+    const subCols = ['letters', 'cases', 'diary', 'demands', 'inbox', 'employees', 'bonds', 'revenue'];
+    const subData: Record<string, any[]> = {};
+    for (const col of subCols) {
+      try { subData[col] = await adapter.queryDocs(col); }
+      catch (e) { console.warn(`[Backup] Could not export ${col}:`, e); subData[col] = []; }
+    }
+    const st = get();
+    return {
+      _format: 'officeai-backup',
+      _version: 2,
+      exportedAt: new Date().toISOString(),
+      workspaces: st.workspaces,
+      templates: st.templates,
+      phrases: st.phrases,
+      addressBook: st.addressBook,
+      apiKeys: st.apiKeys,
+      mistralKey: st.mistralKey || '',
+      selectedModel: st.selectedModel,
+      ...subData,
+    };
+  },
+
+  importAllData: async (json) => {
+    // Merge-restore: every item is set by id (nothing is deleted).
+    const adapter = getAdapter();
+    const restored: string[] = [];
+    const subCols = ['workspaces', 'letters', 'cases', 'diary', 'demands', 'inbox', 'employees', 'bonds', 'revenue'];
+    for (const col of subCols) {
+      const items = json[col];
+      if (!Array.isArray(items) || items.length === 0) continue;
+      const ops = items.filter((it: any) => it && it.id).map((it: any) => ({ type: 'set' as const, collection: col, id: it.id, data: it }));
+      if (ops.length > 0) {
+        await adapter.batchWrite(ops);
+        restored.push(`${col} (${ops.length})`);
+      }
+    }
+    // Core settings via the normal save path (also refreshes in-memory state)
+    const core: Record<string, any> = {};
+    for (const k of ['templates', 'phrases', 'addressBook', 'apiKeys', 'mistralKey']) {
+      if (json[k] !== undefined && json[k] !== '') core[k] = json[k];
+    }
+    if (Array.isArray(json.workspaces) && json.workspaces.length) core.workspaces = json.workspaces;
+    if (Object.keys(core).length) {
+      await get().saveUserData(core);
+      restored.push('settings');
+    }
+    await get().loadUserData();
+    return restored;
   },
 
   loadDemands: async () => {

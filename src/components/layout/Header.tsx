@@ -81,10 +81,10 @@ export default function Header() {
   const sig = ws?.signatures.find(s => s.id === activeSignatureId) || ws?.signatures[0];
 
   const models = [
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', short: '2.5 Flash ⚡' },
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended)', short: '2.5 Flash ⚡' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Best quality, slow)', short: '2.5 Pro 🎯' },
+    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Fastest)', short: '2.5 Lite 🚀' },
     { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', short: '2.0 Flash' },
-    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', short: '1.5 Pro' },
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', short: '1.5 Flash' },
   ];
 
   const getSigDisplay = (s: any) => {

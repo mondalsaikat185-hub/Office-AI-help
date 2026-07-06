@@ -112,7 +112,9 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
   const handleUpdateLetterhead = async (id: string, field: keyof Letterhead, value: string) => {
     const ws = workspaces.find((w: Workspace) => w.id === id);
     if (ws) {
-      handleUpdateWs(id, { letterhead: { ...(ws.letterhead || {l1:'',l2:'',l3:'',l4:'',l5:'',l6:''}), [field]: value } });
+      // Size fields (s1–s6) come from <input type="number"> as strings — store real numbers
+      const finalValue = /^s[1-6]$/.test(field as string) ? (Number(value) || 16) : value;
+      handleUpdateWs(id, { letterhead: { ...(ws.letterhead || {l1:'',l2:'',l3:'',l4:'',l5:'',l6:''}), [field]: finalValue } });
     }
   };
 
@@ -793,21 +795,23 @@ export default function SettingsScreen() {
                <p className="font-bold text-sm tracking-wide text-purple-400 mb-2">Local Device Backup</p>
                <p className="text-[10px] text-black dark:text-white/50 mb-4">Download a full JSON backup of your workspaces, templates, letters and settings. You can restore this if you change devices.</p>
                <div className="mt-auto flex flex-col gap-2">
-                  <button onClick={() => {
-                      const data = {
-                         workspaces: useStore.getState().workspaces,
-                         templates: useStore.getState().templates,
-                         phrases: useStore.getState().phrases,
-                         addressBook: useStore.getState().addressBook,
-                         apiKeys: useStore.getState().apiKeys,
-                         diary: useStore.getState().diary
-                      };
-                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `officeai_backup_${new Date().toISOString().slice(0,10)}.json`;
-                      a.click();
+                  <button onClick={async (e) => {
+                      const btn = e.currentTarget;
+                      btn.textContent = 'Preparing full backup...';
+                      try {
+                        const data = await useStore.getState().exportAllData();
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `officeai_backup_${new Date().toISOString().slice(0,10)}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch (err: any) {
+                        alert('Backup failed: ' + err.message);
+                      } finally {
+                        btn.textContent = '↓ Export Backup JSON';
+                      }
                   }} className="bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/50 text-purple-400 font-bold uppercase tracking-widest text-xs px-4 py-2 w-full text-center cursor-pointer transition-colors">↓ Export Backup JSON</button>
                   <label className="bg-purple-600 hover:bg-purple-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 w-full text-center cursor-pointer transition-colors relative">
                     ↑ Import / Restore JSON
@@ -818,17 +822,9 @@ export default function SettingsScreen() {
                       reader.onload = async (ev) => {
                         try {
                           const json = JSON.parse(ev.target?.result as string);
-                          if(confirm('This will merge the imported data with your existing data. Proceed?')) {
-                             const state = useStore.getState();
-                             await saveUserData({
-                                workspaces: json.workspaces || state.workspaces,
-                                templates: json.templates || state.templates,
-                                phrases: json.phrases || state.phrases,
-                                addressBook: json.addressBook || state.addressBook,
-                                apiKeys: json.apiKeys || state.apiKeys,
-                                diary: json.diary || state.diary
-                             });
-                             alert('Backup restored successfully!');
+                          if(confirm('This will merge the imported data with your existing data (nothing is deleted). Proceed?')) {
+                             const restored = await useStore.getState().importAllData(json);
+                             alert('Backup restored successfully!\nRestored: ' + (restored.join(', ') || 'nothing found in file'));
                           }
                         } catch(err:any) {
                           alert('Error importing JSON: ' + err.message);

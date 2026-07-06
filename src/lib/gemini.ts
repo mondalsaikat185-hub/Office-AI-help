@@ -33,8 +33,18 @@ async function withAutoRetry<T>(
   }
 }
 
+// Google retired the Gemini 1.5 series — silently upgrade stale saved selections
+const RETIRED_MODEL_MAP: Record<string, string> = {
+  'gemini-1.5-pro': 'gemini-2.5-pro',
+  'gemini-1.5-flash': 'gemini-2.5-flash',
+};
+function resolveModel(id: string): string {
+  return RETIRED_MODEL_MAP[id] || id;
+}
+
 export async function callGeminiStream(prompt: string, onChunk: (text: string) => void, opts: { temp?: number, maxOut?: number, imageBase64?: string, imageBase64s?: string[] } = {}) {
   let { apiKeys, mistralKey, selectedModel } = useStore.getState();
+  selectedModel = resolveModel(selectedModel);
   
   // Set model RPM
   rateLimiter.setModelRPM(selectedModel);
@@ -227,6 +237,7 @@ export async function callGeminiStream(prompt: string, onChunk: (text: string) =
 
 export async function callGemini(prompt: string, opts: { temp?: number, maxOut?: number, imageBase64?: string, imageBase64s?: string[] } = {}) {
   let { apiKeys, mistralKey, selectedModel } = useStore.getState();
+  selectedModel = resolveModel(selectedModel);
   
   // Set model RPM
   rateLimiter.setModelRPM(selectedModel);
