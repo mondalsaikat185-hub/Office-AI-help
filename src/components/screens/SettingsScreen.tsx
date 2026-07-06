@@ -112,8 +112,7 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
   const handleUpdateLetterhead = async (id: string, field: keyof Letterhead, value: string) => {
     const ws = workspaces.find((w: Workspace) => w.id === id);
     if (ws) {
-      const updated = { ...ws, letterhead: { ...(ws.letterhead || {l1:'',l2:'',l3:'',l4:'',l5:'',l6:''}), [field]: value } };
-      handleUpdateWs(id, updated);
+      handleUpdateWs(id, { letterhead: { ...(ws.letterhead || {l1:'',l2:'',l3:'',l4:'',l5:'',l6:''}), [field]: value } });
     }
   };
 
@@ -144,6 +143,15 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
     handleUpdateWs(wsId, { signatures: ws.signatures.filter((s: SignatureBlock) => s.id !== sigId) });
   };
 
+  const handleToggleSigActive = (wsId: string, sigId: string) => {
+    const ws = workspaces.find((w: Workspace) => w.id === wsId);
+    if (!ws) return;
+    const updated = ws.signatures.map((s: SignatureBlock) =>
+      s.id === sigId ? { ...s, active: !s.active } : s
+    );
+    handleUpdateWs(wsId, { signatures: updated });
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
        <header className="mb-8 border-b-2 border-black/10 dark:border-white/10 pb-4 flex justify-between items-center">
@@ -166,8 +174,43 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
                 </button>
               </div>
 
-              {editingId === ws.id ? (
-                <div className="flex flex-col gap-8 mt-6 border-t border-black/10 dark:border-white/10 pt-6">
+              {/* ── Signatures Section — ALWAYS VISIBLE ── */}
+              <div className="space-y-4 mb-6 mt-6">
+                  <h4 className="font-bold uppercase tracking-wide text-xs border-b border-black/10 dark:border-white/10 pb-2 text-black dark:text-white/40">Signatures in this Workspace</h4>
+                  {ws.signatures?.map((s: SignatureBlock) => (
+                      <div key={s.id} className="flex justify-between items-center bg-white/50 dark:bg-black/50 p-3 border border-black/10 dark:border-white/10">
+                        <div>
+                          <p className="font-bold text-sm tracking-wide">{s.name} <span className="text-black dark:text-white/40 font-normal">({s.designation})</span></p>
+                          <p className="text-[10px] text-black dark:text-white/50 uppercase tracking-widest">{s.section}</p>
+                        </div>
+                        <div className="flex gap-2 items-center flex-wrap justify-end">
+                          <button
+                            onClick={() => handleToggleSigActive(ws.id, s.id)}
+                            className={`text-[10px] px-2 py-1 font-bold uppercase tracking-widest border transition-colors ${s.active ? 'bg-[#22C55E]/20 text-[#22C55E] border-[#22C55E]/50 hover:bg-red-500/10 hover:text-red-400 hover:border-red-400/50' : 'bg-black/5 dark:bg-white/5 text-black/40 dark:text-white/40 border-black/20 dark:border-white/20 hover:bg-[#22C55E]/10 hover:text-[#22C55E] hover:border-[#22C55E]/50'}`}
+                            title={s.active ? 'Click to Deactivate' : 'Click to Activate'}
+                          >
+                            {s.active ? '✓ Active' : 'Inactive'}
+                          </button>
+                          <button onClick={() => handleRemoveSig(ws.id, s.id)} className="text-red-500 hover:bg-red-500/10 p-2"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                  ))}
+                  {(!ws.signatures || ws.signatures.length === 0) && <p className="text-xs text-black dark:text-white/30 italic">No signatures yet</p>}
+
+                  <div className="mt-4 p-4 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                    <p className="font-bold uppercase text-[10px] tracking-widest text-[#22C55E] mb-2">Add New Signature</p>
+                    <div className="flex flex-col md:flex-row gap-2">
+                       <input value={newSigName} onChange={(e) => setNewSigName(e.target.value)} placeholder="Name (e.g. Prakash Dhal)" className="flex-1 bg-white dark:bg-black border border-black/20 dark:border-white/20 p-2 text-xs" />
+                       <input value={newSigDesig} onChange={(e) => setNewSigDesig(e.target.value)} placeholder="Designation (e.g. Superintendent)" className="flex-1 bg-white dark:bg-black border border-black/20 dark:border-white/20 p-2 text-xs" />
+                       <input value={newSigSection} onChange={(e) => setNewSigSection(e.target.value)} placeholder="Section (Optional)" className="flex-1 bg-white dark:bg-black border border-black/20 dark:border-white/20 p-2 text-xs" />
+                       <button onClick={() => handleAddSig(ws.id)} className="bg-[#22C55E] text-black font-bold text-[10px] uppercase tracking-widest px-4 py-2 hover:bg-[#1fb355] whitespace-nowrap"><Plus className="w-4 h-4 inline mr-1"/> Add</button>
+                    </div>
+                  </div>
+              </div>
+
+              {/* ── Letterhead / Logo Section — VISIBLE ONLY WHEN EDIT DETAILS IS OPEN ── */}
+              {editingId === ws.id && (
+                <div className="flex flex-col gap-8 mt-2 border-t-2 border-[#22C55E]/30 pt-6">
                   
                   {/* Live Preview Panel (Top) */}
                   <div className="w-full border-b border-black/10 dark:border-white/10 pb-8">
@@ -278,33 +321,6 @@ function WorkspaceEditor({ workspaces, saveUserData, setActiveSection }: any) {
                     </div>
                   </div>
 
-                </div>
-              ) : (
-                <div className="space-y-4 mb-6 mt-6">
-                  <h4 className="font-bold uppercase tracking-wide text-xs border-b border-black/10 dark:border-white/10 pb-2 text-black dark:text-white/40">Signatures in this Workspace</h4>
-                  {ws.signatures?.map((s: SignatureBlock) => (
-                      <div key={s.id} className="flex justify-between items-center bg-white/50 dark:bg-black/50 p-3 border border-black/10 dark:border-white/10">
-                        <div>
-                          <p className="font-bold text-sm tracking-wide">{s.name} <span className="text-black dark:text-white/40 font-normal">({s.designation})</span></p>
-                          <p className="text-[10px] text-black dark:text-white/50 uppercase tracking-widest">{s.section}</p>
-                        </div>
-                        <div className="flex gap-4 items-center">
-                          {s.active && <span className="text-[10px] bg-[#22C55E]/20 text-[#22C55E] px-2 py-1 font-bold uppercase tracking-widest border border-[#22C55E]/50">Active</span>}
-                          <button onClick={() => handleRemoveSig(ws.id, s.id)} className="text-red-500 hover:bg-red-500/10 p-2"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </div>
-                  ))}
-                  {(!ws.signatures || ws.signatures.length === 0) && <p className="text-xs text-black dark:text-white/30 italic">No signatures yet</p>}
-                  
-                  <div className="mt-4 p-4 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
-                    <p className="font-bold uppercase text-[10px] tracking-widest text-[#22C55E] mb-2">Add New Signature</p>
-                    <div className="flex flex-col md:flex-row gap-2">
-                       <input value={newSigName} onChange={(e) => setNewSigName(e.target.value)} placeholder="Name (e.g. Prakash Dhal)" className="flex-1 bg-white dark:bg-black border border-black/20 dark:border-white/20 p-2 text-xs" />
-                       <input value={newSigDesig} onChange={(e) => setNewSigDesig(e.target.value)} placeholder="Designation (e.g. Superintendent)" className="flex-1 bg-white dark:bg-black border border-black/20 dark:border-white/20 p-2 text-xs" />
-                       <input value={newSigSection} onChange={(e) => setNewSigSection(e.target.value)} placeholder="Section (Optional)" className="flex-1 bg-white dark:bg-black border border-black/20 dark:border-white/20 p-2 text-xs" />
-                       <button onClick={() => handleAddSig(ws.id)} className="bg-[#22C55E] text-black font-bold text-[10px] uppercase tracking-widest px-4 py-2 hover:bg-[#1fb355] whitespace-nowrap"><Plus className="w-4 h-4 inline mr-1"/> Add</button>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -1115,28 +1131,4 @@ function StorageModePanel() {
             <button
               onClick={handleMigrate}
               disabled={migrating}
-              className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-widest text-[10px] px-4 py-2.5 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              🚀 {migrating ? `মাইগ্রেট হচ্ছে: ${migrationProgress}% (${migrationStatus})` : 'Migrate Firebase Data to Hybrid'}
-            </button>
-            {migrating && (
-              <div className="w-full bg-black/10 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mt-2">
-                <div 
-                  className="bg-cyan-500 h-full transition-all duration-300" 
-                  style={{ width: `${migrationProgress}%` }}
-                ></div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Status Message */}
-      {syncStatus && (
-        <div className="text-[10px] font-mono bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2 text-black/70 dark:text-white/60">
-          {syncStatus}
-        </div>
-      )}
-    </div>
-  );
-}
+              className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-
