@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { useStore } from './lib/store';
@@ -13,17 +13,26 @@ import Layout from './components/layout/Layout';
 import AuthScreen from './components/screens/AuthScreen';
 import SetupScreen from './components/screens/SetupScreen';
 import HomeScreen from './components/screens/HomeScreen';
-import WriteScreen from './components/screens/WriteScreen';
-import FilesScreen from './components/screens/FilesScreen';
-import InboxScreen from './components/screens/InboxScreen';
-import GPFScreen from './components/screens/GPFScreen';
-import SettingsScreen from './components/screens/SettingsScreen';
-import BulkScreen from './components/screens/BulkScreen';
-import DiaryScreen from './components/screens/DiaryScreen';
-import DemandScreen from './components/screens/DemandScreen';
-import ReportScreen from './components/screens/ReportScreen';
-import CaseRegisterScreen from './components/screens/CaseRegisterScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+
+// Heavy screens are code-split: each loads only when its route is opened.
+const WriteScreen = lazy(() => import('./components/screens/WriteScreen'));
+const FilesScreen = lazy(() => import('./components/screens/FilesScreen'));
+const InboxScreen = lazy(() => import('./components/screens/InboxScreen'));
+const GPFScreen = lazy(() => import('./components/screens/GPFScreen'));
+const SettingsScreen = lazy(() => import('./components/screens/SettingsScreen'));
+const BulkScreen = lazy(() => import('./components/screens/BulkScreen'));
+const DiaryScreen = lazy(() => import('./components/screens/DiaryScreen'));
+const DemandScreen = lazy(() => import('./components/screens/DemandScreen'));
+const ReportScreen = lazy(() => import('./components/screens/ReportScreen'));
+const CaseRegisterScreen = lazy(() => import('./components/screens/CaseRegisterScreen'));
+
+const ScreenLoader = () => (
+  <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#22C55E]"></div>
+  </div>
+);
 
 export default function App() {
   const { theme, setTheme, user, setUser, loadUserData, workspaces, inbox, saveUserData } = useStore();
@@ -90,8 +99,9 @@ export default function App() {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <BrowserRouter>
+        <Suspense fallback={<ScreenLoader />}>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/home" replace />} />
@@ -108,6 +118,7 @@ export default function App() {
             <Route path="settings" element={<SettingsScreen />} />
           </Route>
         </Routes>
+        </Suspense>
       </BrowserRouter>
 
       {/* Reminders Modal */}
@@ -155,6 +166,6 @@ export default function App() {
       )}
 
       <PwaInstallPrompt />
-    </>
+    </ErrorBoundary>
   );
 }

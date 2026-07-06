@@ -49,7 +49,7 @@ export default function WriteScreen() {
   const [previewMode, setPreviewMode] = useState<'preview'|'edit'>('preview');
   const [output, setOutput] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [paperSize, setPaperSize] = useState<'A4' | 'A3' | 'Legal'>('Legal');
+  const [paperSize, setPaperSize] = useState<'A4' | 'A3' | 'Legal'>('A4');
   const [outputLang, setOutputLang] = useState<'English' | 'Bengali' | 'Hindi' | 'Odia' | 'English-Hindi Mixed'>('English');
   const [tokensUsed, setTokensUsed] = useState(0);
   const [isTruncated, setIsTruncated] = useState(false);
