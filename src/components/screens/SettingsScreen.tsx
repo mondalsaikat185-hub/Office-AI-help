@@ -1130,5 +1130,28 @@ function StorageModePanel() {
           <div className="border-t border-black/10 dark:border-white/10 pt-4 mt-2">
             <button
               onClick={handleMigrate}
-              disabled={migrating}
-              className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-
+              className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-widest text-[10px] px-4 py-2.5 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              🚀 {migrating ? `মাইগ্রেট হচ্ছে: ${migrationProgress}% (${migrationStatus})` : 'Migrate Firebase Data to Hybrid'}
+            </button>
+            {migrating && (
+              <div className="w-full bg-black/10 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="bg-cyan-500 h-full transition-all duration-300" 
+                  style={{ width: `${migrationProgress}%` }}
+                ></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Status Message */}
+      {syncStatus && (
+        <div className="text-[10px] font-mono bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2 text-black/70 dark:text-white/60">
+          {syncStatus}
+        </div>
+      )}
+    </div>
+  );
+}
