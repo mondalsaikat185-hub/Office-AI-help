@@ -10,6 +10,7 @@ import { learningEngine } from '../../lib/learningEngine';
 import TemplateWizard from '../wizard/TemplateWizard';
 import WizardResult from '../wizard/WizardResult';
 import { TEMPLATE_RULES } from '../../lib/templateRules';
+import { downloadDocxDocument } from '../../lib/export/docxExport';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 // @ts-ignore
@@ -59,7 +60,10 @@ export default function WriteScreen() {
   const [downloadName, setDownloadName] = useState('');
   const [lastSavedId, setLastSavedId] = useState<string | null>(null);
   const [magicInput, setMagicInput] = useState('');
+  const [magicImages, setMagicImages] = useState<string[]>([]);
   const [isMagicLoading, setIsMagicLoading] = useState(false);
+  const [legalCheck, setLegalCheck] = useState('');
+  const [isLegalChecking, setIsLegalChecking] = useState(false);
 
   const [templateSearch, setTemplateSearch] = useState('');
   const [templateCategory, setTemplateCategory] = useState<string>('All');
@@ -108,10 +112,10 @@ export default function WriteScreen() {
   const [scnDate, setScnDate] = useState('');
 
   const handleMagicFill = async () => {
-    if (!magicInput) return displayAlert("Please paste some text first!");
+    if (!magicInput && magicImages.length === 0) return displayAlert("Please paste some text or attach a scanned document image first!");
     setIsMagicLoading(true);
     try {
-      const prompt = `You are a strict data extraction AI for an Indian CGST/Customs office assistant. A user pasted raw notes, a draft, or scattered case details.
+      const prompt = `You are a strict data extraction AI for an Indian CGST/Customs office assistant. A user ${magicImages.length > 0 ? 'attached scanned document image(s)' + (magicInput ? ' and pasted notes' : '') : 'pasted raw notes, a draft, or scattered case details'}.${magicImages.length > 0 ? '\nFIRST read ALL text in the attached image(s) carefully (letters, notices, seals, handwritten notes), THEN extract.' : ''}
 Your ONLY task is to extract details WITHOUT modifying, summarizing, altering punctuation, or changing any wording. If a field is absent, return an empty string for it.
 
 Input:
@@ -142,7 +146,7 @@ Extract into this exact JSON format:
 }
 Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
       
-      const res = await callGemini(prompt, { maxOut: 8192, temp: 0.1 });
+      const res = await callGemini(prompt, { maxOut: 8192, temp: 0.1, imageBase64s: magicImages.length > 0 ? magicImages : undefined });
       let parsedItem;
       try {
         let raw = res.text.replace(/^\s*```(?:json)?/i, '').replace(/```\s*$/, '').trim();
@@ -180,11 +184,48 @@ Return ONLY a valid JSON object. No markdown, no backticks, no explanation.`;
 
       const extracted = ['subject','recipientTo','refText','details','copyTo','enclosures','din','arnNo','boeNo','importerName','iec','amount','goods','scnDate'].filter(k => parsedItem[k]);
       setMagicInput('');
+      setMagicImages([]);
       displayAlert(`Magic fill successful! Detected type: ${parsedItem.type || 'letter'} • ${extracted.length} fields auto-filled`);
     } catch(err: any) {
       displayAlert("Magic fill failed: " + err.message);
     } finally {
       setIsMagicLoading(false);
+    }
+  };
+
+  const handleLegalCheck = async () => {
+    if (!output) return;
+    setIsLegalChecking(true);
+    setLegalCheck('');
+    try {
+      const ruleSet = wizardTemplateId ? TEMPLATE_RULES.find(r => r.templateId === wizardTemplateId) : null;
+      const selectedRuleInfo = ruleSet
+        ? ruleSet.rules.filter(r => wizardSelectedRules.includes(r.id)).map(r => `${r.act} ${r.section} — ${r.title}`).join('\n')
+        : '';
+      const prompt = `You are a senior legal vetting officer of Indian CGST & Customs. Vet the following draft ${mode === 'legal' ? 'quasi-judicial order' : mode === 'note' ? 'note sheet' : 'official letter'} STRICTLY and report problems only.
+
+Check for:
+1. WRONG or MISQUOTED legal provisions (section/rule numbers vs what they actually govern under CGST Act 2017, CGST Rules 2017, Customs Act 1962).
+2. LIMITATION issues — e.g. Section 73(10)/74(10) time limits, Section 27/28 Customs limitation, appeal periods.
+3. INTERNAL INCONSISTENCIES — dates that contradict each other, amount mismatches (figures vs words), name/GSTIN inconsistencies.
+4. MISSING MANDATORY ELEMENTS — DIN (CBIC Circular 122/41/2019), signature block, personal-hearing opportunity in orders (Section 75(4)), preamble/appeal provision in orders.
+5. FORMAT of DIN, GSTIN, ARN if present (only if visibly malformed).
+${selectedRuleInfo ? 'Provisions the officer selected for this document:\n' + selectedRuleInfo : ''}
+Today's date: ${new Date().toISOString().slice(0,10)}
+
+---BEGIN DRAFT---
+${output}
+---END DRAFT---
+
+Reply in this exact format, in ${outputLang === 'Bengali' ? 'Bengali' : 'English'}:
+VERDICT: [SAFE / MINOR ISSUES / SERIOUS ISSUES]
+Then a numbered list — each item starts with ⚠️ (minor) or ❌ (serious), states the problem in ONE sentence, and gives the fix in ONE sentence. If nothing is wrong, reply only: VERDICT: SAFE — followed by one line confirming what was verified. Do NOT rewrite the draft. Maximum 10 items.`;
+      const res = await callGemini(prompt, { temp: 0.2, maxOut: 4096 });
+      setLegalCheck(res.text || 'No response');
+    } catch (e: any) {
+      setLegalCheck('❌ Check failed: ' + e.message);
+    } finally {
+      setIsLegalChecking(false);
     }
   };
 
@@ -839,409 +880,7 @@ DO NOT repeat what was already written. Just continue writing the next words sea
     handleSaveToFirebase(true);
   };
 
-  const handleWordDownload = async () => {
-    if (!output || !output.trim()) return displayAlert("Ensure generated text exists.");
-    try {
-        const children = [];
-        const isNote = mode === 'note';
-        const isOrder = mode === 'order';
-        const isLegal = mode === 'legal';
-
-        // Safe fallbacks for missing/incomplete elements
-        const safeSig = {
-          name: sig?.name || 'Authorized Signatory',
-          designation: sig?.designation || 'Officer',
-          section: sig?.section || ''
-        };
-        const safeFileNo = file?.fileNumber || dir?.filePrefix || 'GEN-01';
-
-        if(!isNote && includeLetterhead) {
-            if (ws && ws.letterhead) {
-               const fetchImageBuf = async (str: string): Promise<{ buf: Uint8Array, width: number, height: number } | null> => {
-                  return new Promise((resolve) => {
-                     const img = new Image();
-                     img.crossOrigin = "Anonymous";
-                     img.onload = async () => {
-                         try {
-                              const res = await fetch(str);
-                              const buf = await res.arrayBuffer();
-                              const height = 80;
-                              const ratio = img.naturalWidth / img.naturalHeight;
-                              const width = Math.round(height * ratio);
-                              resolve({ buf: new Uint8Array(buf), width, height });
-                         } catch(e) { resolve(null); }
-                     };
-                     img.onerror = () => resolve(null);
-                     img.src = str;
-                  });
-               };
-               
-               const logo1 = ws.letterhead.logo1 ? await fetchImageBuf(ws.letterhead.logo1) : null;
-               const logo2 = ws.letterhead.logo2 ? await fetchImageBuf(ws.letterhead.logo2) : null;
-               const logo3 = ws.letterhead.logo3 ? await fetchImageBuf(ws.letterhead.logo3) : null;
-               
-               if (logo1 || logo2 || logo3) {
-                  children.push(new Table({
-                      width: { size: 9746, type: WidthType.DXA },
-                      borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                      rows: [
-                         new TableRow({
-                            children: [
-                               (new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: logo1 ? [new ImageRun({ data: logo1.buf, transformation: { width: logo1.width, height: logo1.height }, type: 'png' } as any)] : [] })] })),
-                               (new TableCell({ width: { size: 5848, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: logo2 ? [new ImageRun({ data: logo2.buf, transformation: { width: logo2.width, height: logo2.height }, type: 'png' } as any)] : [] })] })),
-                               (new TableCell({ width: { size: 1949, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: logo3 ? [new ImageRun({ data: logo3.buf, transformation: { width: logo3.width, height: logo3.height }, type: 'png' } as any)] : [] })] })),
-                            ]
-                         })
-                      ]
-                   }));
-               }
-
-               const addCenterRun = (text: string, o: any) => {
-                  if (!text || !text.trim()) return;
-                  text.split('\n').forEach(line => {
-                      if (line.includes('|')) {
-                          const [l, r] = line.split('|');
-                          children.push(new Table({
-                              width: { size: 9746, type: WidthType.DXA },
-                              borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                              rows: [
-                                  new TableRow({
-                                      children: [
-                                          new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: l.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })] })] }),
-                                          new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: r.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })] })] }),
-                                      ]
-                                  })
-                              ]
-                          }));
-                      } else {
-                          children.push(new Paragraph({
-                              children: [new TextRun({ text: line.trim(), size: o.size || 24, bold: !!o.bold, color: o.color })],
-                              alignment: AlignmentType.CENTER,
-                              spacing: { before: o.before || 0, after: o.after || 0, line: 200 }
-                          }));
-                      }
-                  });
-               };
-               const pxToHalfPts = (px: number) => Math.max(16, Math.round((px - 3) * 2));
-               addCenterRun(ws.letterhead.l1 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s1 || 24), color: ws.letterhead.color || '1A3A8A' }); 
-               addCenterRun(ws.letterhead.l2 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s2 || 20), color: ws.letterhead.color || '1A3A8A' });
-               addCenterRun(ws.letterhead.l3 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s3 || 16), color: ws.letterhead.color || '1A3A8A' });
-               addCenterRun(ws.letterhead.l4 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s4 || 16), color: ws.letterhead.color || '1A3A8A' });
-               addCenterRun(ws.letterhead.l5 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s5 || 14), color: ws.letterhead.color || '1A3A8A' });
-               addCenterRun(ws.letterhead.l6 || '', { bold: true, size: pxToHalfPts(ws.letterhead.s6 || 14), color: ws.letterhead.color || '1A3A8A' });
-            } else {
-               const officeName = ws?.office_en || ws?.name || 'Office Assistant';
-               if(ws?.office_hi) children.push(new Paragraph({children:[new TextRun({text:ws.office_hi, bold:true, size:30})], alignment:AlignmentType.CENTER}));
-               children.push(new Paragraph({children:[new TextRun({text:officeName, bold:true, size:24, color:'1A3A8A'})], alignment:AlignmentType.CENTER}));
-               if(ws?.address) children.push(new Paragraph({children:[new TextRun({text:ws.address, size:20})], alignment:AlignmentType.CENTER}));
-               if(ws?.phone || ws?.email) children.push(new Paragraph({children:[new TextRun({text:[ws.phone,ws.email].filter(Boolean).join(' • '), size:20})], alignment:AlignmentType.CENTER}));
-            }
-            children.push(new Paragraph({
-                text: '',
-                border: { bottom: { color: ws?.letterhead?.color || '1A3A8A', space: 1, style: BorderStyle.SINGLE, size: 12 } },
-                spacing: { after: 200 }
-            }));
-            children.push(new Paragraph({text:''}));
-
-            if (isOrder || isLegal) {
-               children.push(new Table({
-                    width: { size: 9746, type: WidthType.DXA },
-                    borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                    rows: [
-                        new TableRow({
-                            children: [
-                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + safeFileNo, bold: true })] })] }),
-                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-GB').replace(/\//g, '.'), bold: true })] })] })
-                            ]
-                        })
-                    ]
-                }));
-               children.push(new Paragraph({text:''}));
-               if (includeDin && din) {
-                   children.push(new Paragraph({
-                       children: [new TextRun({ text: 'DIN: ' + din, bold: true })],
-                       alignment: AlignmentType.CENTER
-                   }));
-                   children.push(new Paragraph({text:''}));
-               }
-               if (isOrder) {
-                   children.push(new Paragraph({
-                       children: [new TextRun({ text: 'आदेश / ORDER', bold: true, underline: { type: UnderlineType.SINGLE } })],
-                       alignment: AlignmentType.CENTER
-                   }));
-                   children.push(new Paragraph({text:''}));
-               }
-            } else {
-               if (includeDin && din) {
-                   children.push(new Paragraph({
-                       children: [
-                           new TextRun({ text: 'DIN: ' + din, bold: true })
-                       ],
-                       alignment: AlignmentType.RIGHT
-                   }));
-               }
-               // C.No. and Date for Normal Letters
-               children.push(new Table({
-                    width: { size: 9746, type: WidthType.DXA },
-                    borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                    rows: [
-                        new TableRow({
-                            children: [
-                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: 'C. No. ' + safeFileNo, bold: true })] })] }),
-                                new TableCell({ width: { size: 4873, type: WidthType.DXA }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Date: ' + new Date().toLocaleDateString('en-IN'), bold: true })] })] })
-                            ]
-                        })
-                    ]
-                }));
-               
-               children.push(new Paragraph({text:''}));
-               
-               if(recipientTo) {
-                   children.push(new Paragraph({text:'To,'}));
-                   recipientTo.split('\n').forEach(line => children.push(new Paragraph({
-                       children: [new TextRun({ text: line })],
-                       indent: { left: 720 }
-                   })));
-                   children.push(new Paragraph({text:''}));
-               }
-               if (salutation && !isOrder) {
-                   children.push(new Paragraph({ text: salutation }));
-                   children.push(new Paragraph({text:''}));
-               }
-               if(subject && !isOrder) children.push(new Paragraph({
-                   children: [new TextRun({text:'Sub: '+subject, bold:true, underline:{ type: UnderlineType.SINGLE }})],
-                   indent: { left: 720, firstLine: 0 }
-               }));
-               
-               children.push(new Paragraph({text:''}));
-            }
-        } else {
-            // Note Sheet header removed as per request
-            if(subject) children.push(new Paragraph({
-                children:[new TextRun({text:'Sub: '+subject, bold:true, underline:{ type: UnderlineType.SINGLE }})],
-                indent: { left: 720, firstLine: 0 }
-            }));
-            children.push(new Paragraph({text:''}));
-        }
-
-        let docxTableRows: TableRow[] = [];
-        let lastWasEmpty = false;
-
-        output.split('\n').forEach((line, index, arr) => {
-            if (line.trim().startsWith('|')) {
-                lastWasEmpty = false;
-                // Table parsing logic
-                const isSeparator = line.includes('---');
-                if (!isSeparator) {
-                    const cols = line.split('|').map(c => c.trim()).filter((c, i, a) => !(i === 0 && c === '') && !(i === a.length - 1 && c === ''));
-                    const isTableHeader = docxTableRows.length === 0;
-                    const PAGE_WIDTH_DXA = mode === 'note' ? 6866 : 9746;
-                    
-                    docxTableRows.push(new TableRow({
-                        children: cols.map((col) => {
-                            // bold parser within col
-                            const parts = col.split('**');
-                            return new TableCell({
-                                width: { size: Math.floor(PAGE_WIDTH_DXA / cols.length), type: WidthType.DXA },
-                                borders: {
-                                    top: { style: BorderStyle.SINGLE, size: 6, color: '000000' },
-                                    bottom: { style: BorderStyle.SINGLE, size: 6, color: '000000' },
-                                    left: { style: BorderStyle.SINGLE, size: 6, color: '000000' },
-                                    right: { style: BorderStyle.SINGLE, size: 6, color: '000000' },
-                                },
-                                shading: isTableHeader ? { fill: '1A3A8A' } : undefined,
-                                margins: { top: 120, bottom: 120, left: 120, right: 120 },
-                                children: [new Paragraph({
-                                    children: parts.map((part, pIdx) => new TextRun({
-                                        text: part,
-                                        bold: isTableHeader || pIdx % 2 !== 0,
-                                        size: 24,
-                                        color: isTableHeader ? 'FFFFFF' : '000000'
-                                    })),
-                                    alignment: AlignmentType.LEFT
-                                })]
-                            });
-                        })
-                    }));
-                }
-                
-                // If this is the last line or the next line isn't a table, append the table
-                if (index === arr.length - 1 || !arr[index + 1].trim().startsWith('|')) {
-                    if (docxTableRows.length > 0) {
-                        const PAGE_WIDTH_DXA = mode === 'note' ? 6866 : 9746;
-                        children.push(new Table({
-                            width: { size: PAGE_WIDTH_DXA, type: WidthType.DXA },
-                            rows: docxTableRows
-                        }));
-                        children.push(new Paragraph({text:''})); // add spacing after table
-                        docxTableRows = []; // reset
-                    }
-                }
-            } else if (line.trim()) {
-                lastWasEmpty = false;
-                const isHeader = line.includes('Submitted') || line.includes('For kind perusal') || line.includes('Put up for');
-                const indent = isHeader ? undefined : { firstLine: 720 };
-                const alignment = isHeader ? AlignmentType.LEFT : AlignmentType.JUSTIFIED;
-                
-                // simple markdown bold parser
-                if (line.includes('**')) {
-                    const parts = line.split('**');
-                    children.push(new Paragraph({
-                        children: parts.map((part, idx) => new TextRun({ text: part, size: 24, bold: idx % 2 !== 0 || (isHeader && parts.length === 1) })),
-                        indent,
-                        alignment
-                    }));
-                } else {
-                    children.push(new Paragraph({
-                        children: [new TextRun({ text: line, size: 24, bold: isHeader })],
-                        indent,
-                        alignment
-                    }));
-                }
-            } else {
-                if (!lastWasEmpty && index !== 0) {
-                    children.push(new Paragraph({ text: '' }));
-                    lastWasEmpty = true;
-                }
-            }
-        });
-        
-        const makeDocxSignatureBlock = (sigName: string, sigDesig: string, sigSection?: string, includeYours: boolean = true, encText?: string) => {
-            const sigDesigLines = (sigDesig || '').split('\n').filter(Boolean);
-            const sigSectionLines = (sigSection || '').split('\n').filter(Boolean);
-            
-            return new Table({
-                width: { size: 9746, type: WidthType.DXA },
-                borders: { top: { style: BorderStyle.NONE, size: 0 }, bottom: { style: BorderStyle.NONE, size: 0 }, left: { style: BorderStyle.NONE, size: 0 }, right: { style: BorderStyle.NONE, size: 0 }, insideHorizontal: { style: BorderStyle.NONE, size: 0 }, insideVertical: { style: BorderStyle.NONE, size: 0 } },
-                rows: [
-                    new TableRow({
-                        children: [
-                            new TableCell({ 
-                                width: { size: 5360, type: WidthType.DXA }, 
-                                children: [
-                                    ...(encText ? [new Paragraph({text: ""}), ...encText.split('\n').map((l, idx) => new Paragraph({ children: [new TextRun({ text: l, bold: idx === 0 })] }))] : [])
-                                ] 
-                            }),
-                            new TableCell({ 
-                                width: { size: 4386, type: WidthType.DXA }, 
-                                children: [
-                                    ...(includeYours ? [
-                                        new Paragraph({children: [new TextRun({text: 'Yours faithfully,'})], alignment: AlignmentType.CENTER}),
-                                        new Paragraph({text: ''}),
-                                        new Paragraph({text: ''}),
-                                        new Paragraph({text: ''})
-                                    ] : [
-                                        new Paragraph({text: ''}),
-                                        new Paragraph({text: ''}),
-                                        new Paragraph({text: ''}),
-                                        new Paragraph({text: ''})
-                                    ]),
-                                    new Paragraph({children: [new TextRun({text: '(' + sigName + ')', bold: true})], alignment: AlignmentType.CENTER}),
-                                    ...sigDesigLines.map(l => new Paragraph({children: [new TextRun({ text: l })], alignment: AlignmentType.CENTER})),
-                                    ...sigSectionLines.map(l => new Paragraph({children: [new TextRun({ text: l })], alignment: AlignmentType.CENTER}))
-                                ] 
-                            })
-                        ]
-                    })
-                ]
-            });
-        };
-
-        if(!isNote && !isLegal) {
-            let encString = '';
-            if (enclosures) {
-                encString = 'Enclosures: ' + enclosures;
-            } else if (extraIns.toLowerCase().includes('encl') || output.toLowerCase().includes('encl')) {
-                encString = 'Enclosures: As above';
-            }
-            
-            if (isOrder) {
-                children.push(makeDocxSignatureBlock(safeSig.name, safeSig.designation, safeSig.section, false, encString || undefined));
-            } else {
-                children.push(makeDocxSignatureBlock(safeSig.name, safeSig.designation, safeSig.section, true, encString || undefined));
-            }
-
-            if (copyTo) {
-                children.push(new Paragraph({text:''}));
-                children.push(new Paragraph({children:[new TextRun({text:'Copy to:', bold:true})]}));
-                const copies = copyTo.split('\n').filter(Boolean);
-                copies.forEach((line, idx) => {
-                    let text = line.trim();
-                    // Auto-remove "Copy to" prefixes from AI if any
-                    if (text.toLowerCase().startsWith('copy to')) {
-                        text = text.substring(7).trim();
-                    }
-                    children.push(new Paragraph({
-                        text: `${idx + 1}. ${text}`,
-                        indent: { left: 720, hanging: 360 }
-                    }));
-                });
-                if (!isOrder) {
-                    children.push(new Paragraph({text:''}));
-                    children.push(makeDocxSignatureBlock(safeSig.name, safeSig.designation, safeSig.section, false));
-                }
-            }
-        } else {
-            // Note sheet signature
-            children.push(new Paragraph({text:''}));
-            children.push(new Paragraph({children:[new TextRun({text:'('+safeSig.name+')', bold:true})], alignment:AlignmentType.LEFT}));
-            const sigDesigLines = (safeSig.designation || '').split('\n').filter(Boolean);
-            sigDesigLines.forEach(line => {
-                children.push(new Paragraph({children:[new TextRun({text:line})], alignment:AlignmentType.LEFT}));
-            });
-            if(safeSig.section) {
-                const sigSectionLines = (safeSig.section || '').split('\n').filter(Boolean);
-                sigSectionLines.forEach(line => {
-                    children.push(new Paragraph({children:[new TextRun({text:line})], alignment:AlignmentType.LEFT}));
-                });
-            }
-        }
-
-        let pgWidth = 12240; let pgHeight = 20160;
-        if (paperSize === 'A4') { pgWidth = 11906; pgHeight = 16838; }
-        else if (paperSize === 'A3') { pgWidth = 16838; pgHeight = 23811; }
-
-        const doc = new Document({
-            styles: {
-                default: {
-                    document: {
-                        run: {
-                            font: "Times New Roman",
-                            size: 24,
-                        },
-                        paragraph: {
-                            spacing: {
-                                line: 240,
-                                lineRule: "auto",
-                                before: 0,
-                                after: 0
-                            }
-                        }
-                    }
-                }
-            },
-            sections:[{properties:{page:{size:{width:pgWidth, height:pgHeight}, margin: mode === 'note' ? {top:1440, right:1440, bottom:1440, left:3600} : {top:720, right:1080, bottom:720, left:1080}}}, children}]
-        });
-        const blob = await Packer.toBlob(doc);
-        const url = URL.createObjectURL(blob);
-        const fileName = `${isNote ? 'NoteSheet' : isLegal ? 'SpeakingOrder' : 'Letter'}_${subject.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_${new Date().toISOString().slice(0,10)}.docx`;
-        
-        setDownloadUrl(url);
-        setDownloadName(fileName);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        displayAlert("Download triggered! If nothing happens, you may need to 'Open in new tab' to allow downloads.");
-        handleSaveToFirebase(true);
-    } catch(e: any) {
-        displayAlert("Failed to generate Word document: " + e.message);
-    }
-  }
+  const handleWordDownload = () => downloadDocxDocument({ mode, copyTo, din, dir, displayAlert, enclosures, extraIns, file, handleSaveToFirebase, includeDin, includeLetterhead, output, paperSize, recipientTo, salutation, setDownloadName, setDownloadUrl, sig, subject, ws });
 
   // handleSaveToFirebase was moved above to prevent TDZ issues
 
@@ -1357,10 +996,32 @@ DO NOT repeat what was already written. Just continue writing the next words sea
                 placeholder="Paste raw text, draft, or OCR text here. AI will extract Recipient, Subject, Ref, and Body..."
                 disabled={isMagicLoading}
              />
-             <div className="flex justify-end mt-2">
+             {magicImages.length > 0 && (
+               <div className="flex gap-2 mt-2 flex-wrap">
+                 {magicImages.map((img, i) => (
+                   <div key={i} className="relative group">
+                     <img src={img} className="h-16 w-16 object-cover border border-[#22C55E]/40" />
+                     <button onClick={() => setMagicImages(magicImages.filter((_, j) => j !== i))} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-4 h-4 text-[9px] leading-4 text-center font-bold">✕</button>
+                   </div>
+                 ))}
+               </div>
+             )}
+             <div className="flex justify-between items-center mt-2 gap-2">
+                <label className="border border-[#22C55E]/40 text-[#22C55E] px-3 py-1 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:bg-[#22C55E]/10 transition-colors">
+                  📷 Attach Scan/Photo
+                  <input type="file" accept="image/*" multiple className="hidden" disabled={isMagicLoading} onChange={e => {
+                    const files = Array.from(e.target.files || []).slice(0, 4 - magicImages.length);
+                    files.forEach(f => {
+                      const reader = new FileReader();
+                      reader.onload = ev => setMagicImages(prev => prev.length < 4 ? [...prev, ev.target?.result as string] : prev);
+                      reader.readAsDataURL(f);
+                    });
+                    e.target.value = '';
+                  }} />
+                </label>
                 <button 
                   onClick={handleMagicFill} 
-                  disabled={isMagicLoading || !magicInput}
+                  disabled={isMagicLoading || (!magicInput && magicImages.length === 0)}
                   className="bg-[#22C55E] hover:bg-[#1eb354] text-black px-4 py-1 text-[10px] font-bold uppercase tracking-wider disabled:opacity-50 transition-colors"
                 >
                   {isMagicLoading ? 'Extracting...' : 'Auto-Fill Fields'}
@@ -1742,12 +1403,24 @@ DO NOT repeat what was already written. Just continue writing the next words sea
         {tokensUsed > 0 && <p className="text-center text-[10px] text-black/50 dark:text-white/50 mt-2 font-mono">Cost: ~{tokensUsed} tokens used</p>}
         {output && <p className="text-center text-[10px] text-black/50 dark:text-white/50 mt-1 font-mono">Word Count: {output.trim().split(/\s+/).length} words</p>}
 
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
           <button onClick={() => handleSaveToFirebase()} className="bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 rounded transition-colors">
             💾 Save to Cloud
           </button>
+          {output && (
+            <button onClick={handleLegalCheck} disabled={isLegalChecking} className="bg-amber-600 hover:bg-amber-500 text-white font-bold uppercase tracking-widest text-xs px-4 py-2 rounded transition-colors disabled:opacity-50">
+              {isLegalChecking ? '⚖️ Vetting...' : '⚖️ Legal Check'}
+            </button>
+          )}
           {saveMessage && <span className="text-xs text-[#22C55E] font-bold">{saveMessage}</span>}
         </div>
+        {legalCheck && (
+          <div className={`mt-3 border-2 p-4 text-xs whitespace-pre-wrap font-mono relative ${legalCheck.includes('SERIOUS') ? 'border-red-500/60 bg-red-500/5' : legalCheck.includes('MINOR') ? 'border-amber-500/60 bg-amber-500/5' : 'border-[#22C55E]/60 bg-[#22C55E]/5'}`}>
+            <button onClick={() => setLegalCheck('')} className="absolute top-2 right-2 text-black/40 dark:text-white/40 hover:text-red-500 font-bold">✕</button>
+            <p className="font-bold uppercase tracking-widest text-[10px] mb-2 opacity-60">⚖️ Legal Vetting Report</p>
+            {legalCheck}
+          </div>
+        )}
       </>
     )}
   </>
