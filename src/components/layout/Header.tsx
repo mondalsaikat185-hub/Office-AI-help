@@ -235,7 +235,7 @@ export default function Header() {
       const wIdx = wsList.findIndex(w => w.id === ws.id);
       const sIdx = wsList[wIdx].signatures.findIndex(s => s.id === sig.id);
       if (wIdx !== -1 && sIdx !== -1) {
-        wsList[wIdx].signatures[sIdx] = { ...sig, name, designation, section, active: sig.active || false };
+        wsList[wIdx].signatures[sIdx] = { ...sig, name, designation, section, active: sig.active !== false };
         saveUserData({ workspaces: wsList });
       }
     });
@@ -582,4 +582,3 @@ export default function Header() {
     </header>
   );
 }
-
